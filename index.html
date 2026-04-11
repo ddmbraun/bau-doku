@@ -2,931 +2,896 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Bau-Doku</title>
 <style>
 :root {
   --bg:#1a1b2e; --bg2:#232440; --bg3:#2a2b4a; --bg4:#33345a;
   --text:#e0e0f0; --text2:#a0a0c0;
   --accent:#6c63ff; --accent2:#8b83ff;
-  --green:#2ecc71; --orange:#f39c12; --red:#e74c3c;
+  --green:#2ecc71; --orange:#f39c12; --red:#e74c3c; --blue:#4a90d9;
   --border:#3a3b5a; --shadow:rgba(0,0,0,0.3);
+  --card-font: 14px;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
 button{cursor:pointer;border:none;font-family:inherit;}
 input,select,textarea{font-family:inherit;}
+a{color:inherit;text-decoration:none;}
 
-/* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;gap:8px;}
-.logo{font-size:20px;font-weight:700;color:var(--accent2);letter-spacing:1px;}
-.logo span{color:var(--text2);font-size:13px;font-weight:400;margin-left:8px;}
-.topbar-center{flex:1;max-width:340px;margin:0 16px;position:relative;}
-.search-input{width:100%;padding:7px 12px 7px 34px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;}
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-size:18px;font-weight:700;color:var(--accent2);white-space:nowrap;}
+.logo small{color:var(--text2);font-size:11px;font-weight:400;margin-left:6px;}
+.search-wrap{flex:1;position:relative;}
+.search-input{width:100%;padding:7px 12px 7px 32px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;}
 .search-input:focus{border-color:var(--accent);}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px;pointer-events:none;}
-.topbar-right{display:flex;align-items:center;gap:8px;}
-.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;transition:all .15s;}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:13px;pointer-events:none;}
+.topbar-btns{display:flex;gap:6px;flex-shrink:0;}
+.btn{padding:7px 12px;border-radius:6px;font-size:12px;font-weight:600;transition:all .15s;white-space:nowrap;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover{background:var(--accent2);}
 .btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
 .btn-secondary:hover{background:var(--bg4);color:var(--text);}
 .btn-danger{background:var(--red);color:#fff;}
-.btn-danger:hover{opacity:.85;}
-.btn-green{background:var(--green);color:#fff;}
-.btn-green:hover{opacity:.85;}
+.btn-sm{padding:5px 10px;font-size:11px;}
 
-/* FILEBAR */
-.filebar{display:flex;align-items:center;justify-content:space-between;padding:5px 20px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;gap:6px;}
-.filebar-left{display:flex;align-items:center;gap:8px;}
-.file-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+/* ── FILEBAR ── */
+.filebar{display:flex;align-items:center;justify-content:space-between;padding:4px 16px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;flex-wrap:wrap;}
+.filebar-left{display:flex;align-items:center;gap:6px;}
+.file-dot{width:6px;height:6px;border-radius:50%;}
 .file-dot.ok{background:var(--green);}
 .file-dot.unsaved{background:var(--orange);}
 .file-dot.none{background:var(--text2);}
-.file-name{color:var(--text2);font-size:12px;}
-.filebar-right{display:flex;gap:6px;}
-.file-btn{padding:3px 10px;border-radius:4px;font-size:11px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);transition:all .15s;}
+.file-name{color:var(--text2);font-size:11px;}
+.filebar-right{display:flex;gap:5px;}
+.file-btn{padding:3px 8px;border-radius:4px;font-size:10px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);transition:all .15s;}
 .file-btn:hover{background:var(--bg3);color:var(--text);}
 
-/* FILTER BAR */
-.filterbar{display:flex;align-items:center;gap:8px;padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;}
-.filter-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
-.filter-btn{padding:4px 12px;border-radius:20px;font-size:12px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);transition:all .15s;}
-.filter-btn:hover,.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.filter-count{font-size:11px;color:var(--text2);margin-left:auto;}
+/* ── TABS ── */
+.tabs{display:flex;align-items:center;gap:0;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;}
+.tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);background:transparent;border:1px solid transparent;white-space:nowrap;transition:all .15s;}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tab-count{font-size:10px;background:rgba(255,255,255,.2);border-radius:10px;padding:1px 5px;margin-left:4px;}
 
-/* MAIN */
-.main{flex:1;padding:16px 20px;overflow-y:auto;}
+/* ── ZOOM BAR ── */
+.zoombar{display:flex;align-items:center;gap:10px;padding:6px 16px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;}
+.zoom-label{font-size:10px;color:var(--text2);white-space:nowrap;}
+.zoom-slider{flex:1;max-width:160px;accent-color:var(--accent);}
+.zoom-count{font-size:10px;color:var(--text2);min-width:28px;}
 
-/* KANBAN */
-.kanban{display:flex;gap:14px;align-items:flex-start;}
-.kanban-col{flex:1;min-width:260px;background:var(--bg2);border-radius:10px;display:flex;flex-direction:column;}
-.kanban-col-header{padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;}
-.kanban-col-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
-.kanban-col-dot{width:8px;height:8px;border-radius:50%;}
-.kanban-col-count{font-size:11px;color:var(--text2);background:var(--bg4);padding:1px 7px;border-radius:10px;}
-.kanban-col-body{padding:6px 10px 12px;display:flex;flex-direction:column;gap:8px;min-height:60px;}
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
-/* AUFTRAG CARD */
-.auftrag-card{background:var(--bg3);border-radius:8px;padding:12px;cursor:pointer;transition:all .15s;border:1px solid transparent;position:relative;}
-.auftrag-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px var(--shadow);}
-.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
-.card-kostenstelle{font-size:13px;font-weight:600;color:var(--accent2);}
-.card-datum{font-size:11px;color:var(--text2);}
-.card-adresse{font-size:12px;color:var(--text);margin-bottom:4px;line-height:1.3;}
-.card-hv{font-size:11px;color:var(--text2);margin-bottom:6px;}
-.card-schaden{font-size:11px;color:var(--text2);font-style:italic;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
-.card-footer{display:flex;gap:6px;flex-wrap:wrap;}
-.card-badge{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);display:flex;align-items:center;gap:4px;}
-.card-badge.has-gdrive{color:var(--green);}
-.card-badge.has-nas{color:var(--accent2);}
-.card-mieter{font-size:11px;color:var(--text2);margin-bottom:4px;}
+/* ── KARTEN LISTE ── */
+.karten-liste{padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
 
-/* GRID VIEW */
-.grid-view{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+/* ── AUFTRAG KARTE ── */
+.auftrag-karte{background:var(--bg2);border-radius:12px;padding:14px;cursor:pointer;border:1px solid var(--border);transition:all .15s;font-size:var(--card-font);}
+.auftrag-karte:active{transform:scale(.98);border-color:var(--accent);}
+.karte-kopf{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.karte-ks{font-size:calc(var(--card-font) + 1px);font-weight:700;color:var(--accent2);}
+.karte-datum{font-size:calc(var(--card-font) - 3px);color:var(--text2);}
+.karte-adresse{font-size:var(--card-font);color:var(--text);margin-bottom:3px;}
+.karte-hv{font-size:calc(var(--card-font) - 2px);color:var(--text2);margin-bottom:3px;}
+.karte-mieter{font-size:calc(var(--card-font) - 2px);color:var(--text2);margin-bottom:6px;}
+.karte-schaden{font-size:calc(var(--card-font) - 2px);color:var(--text2);font-style:italic;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.karte-footer{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.badge{font-size:calc(var(--card-font) - 4px);padding:2px 7px;border-radius:4px;background:var(--bg4);color:var(--text2);display:inline-flex;align-items:center;gap:3px;}
+.badge.drive{color:var(--green);}
+.badge.nas{color:var(--accent2);}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
 
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px;}
+/* ── DETAIL ANSICHT ── */
+.detail-view{display:none;flex-direction:column;flex:1;}
+.detail-view.active{display:flex;}
+.list-view{display:flex;flex-direction:column;flex:1;}
+.list-view.hidden{display:none;}
+
+.detail-topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.back-btn{display:flex;align-items:center;gap:6px;color:var(--accent2);font-size:14px;font-weight:600;background:none;padding:4px 0;}
+.detail-title{flex:1;font-size:15px;font-weight:700;color:var(--text);}
+.detail-actions{display:flex;gap:6px;}
+
+.detail-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;}
+
+.detail-status-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.status-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.status-badge.neu{background:rgba(74,144,217,.2);color:#4a90d9;border:1px solid #4a90d9;}
+.status-badge.bearbeitung{background:rgba(243,156,18,.2);color:#f39c12;border:1px solid #f39c12;}
+.status-badge.abgeschlossen{background:rgba(46,204,113,.2);color:#2ecc71;border:1px solid #2ecc71;}
+.status-change-btn{font-size:11px;padding:4px 10px;border-radius:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+
+.detail-section{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:12px;}
+.detail-section-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.detail-row{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+.detail-row:last-child{margin-bottom:0;}
+.detail-label{font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.detail-value{font-size:14px;color:var(--text);line-height:1.4;}
+.detail-value.offen{color:var(--text2);font-style:italic;}
+.detail-value a{color:var(--accent2);}
+.detail-value a.tel{color:var(--green);display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;padding:4px 0;}
+.detail-value a.mail{color:var(--accent2);}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.detail-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:8px;transition:all .15s;}
+.detail-btn.drive{background:rgba(26,115,232,.15);color:#4a90ff;border:1px solid rgba(26,115,232,.3);}
+.detail-btn.drive:hover{background:rgba(26,115,232,.3);}
+.detail-btn.nas{background:rgba(108,99,255,.15);color:var(--accent2);border:1px solid rgba(108,99,255,.3);}
+.detail-btn.nas:hover{background:rgba(108,99,255,.3);}
+.detail-btn.nas.copied{background:rgba(46,204,113,.2);color:var(--green);border-color:var(--green);}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
 .modal-overlay.open{opacity:1;pointer-events:all;}
-.modal{background:var(--bg2);border-radius:12px;padding:24px;width:600px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px var(--shadow);}
-.modal h2{font-size:18px;margin-bottom:16px;color:var(--accent2);}
-.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal{background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-width:680px;max-height:92vh;overflow-y:auto;box-shadow:0 -8px 40px var(--shadow);}
+.modal-handle{width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:0 auto 16px;}
+.modal h2{font-size:17px;margin-bottom:16px;color:var(--accent2);}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .modal-field{margin-bottom:0;}
 .modal-field.full{grid-column:1/-1;}
-.modal-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
-.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;transition:border-color .15s;}
+.modal-field label{display:block;font-size:10px;color:var(--text2);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;outline:none;}
 .modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--accent);}
 .modal-field textarea{resize:vertical;min-height:70px;}
 .modal-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
-.modal-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.modal-section-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
 
-/* NAS COPY */
-.nas-row{display:flex;gap:8px;align-items:center;}
-.nas-row input{flex:1;}
-.nas-copy-btn{padding:8px 12px;border-radius:6px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;transition:all .15s;}
-.nas-copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
-.nas-copy-btn.copied{background:var(--green);color:#fff;border-color:var(--green);}
+/* ── README IMPORT ── */
+.readme-bar{display:flex;align-items:center;gap:8px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;padding:10px 12px;margin-bottom:14px;}
+.readme-bar span{flex:1;font-size:12px;color:var(--text2);}
 
-/* GDRIVE */
-.gdrive-row{display:flex;gap:8px;align-items:center;}
-.gdrive-row input{flex:1;}
-.gdrive-open-btn{padding:8px 12px;border-radius:6px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;text-decoration:none;transition:all .15s;display:flex;align-items:center;gap:4px;cursor:pointer;}
-.gdrive-open-btn:hover{background:#1a73e8;color:#fff;border-color:#1a73e8;}
+/* ── NAS / GDRIVE FELDER ── */
+.link-row{display:flex;gap:6px;}
+.link-row input{flex:1;}
+.link-btn{padding:10px 12px;border-radius:8px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;transition:all .15s;}
+.link-btn:hover,.link-btn:active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.link-btn.copied{background:var(--green);color:#fff;border-color:var(--green);}
 
-/* README IMPORT BANNER */
-.readme-import-bar{display:flex;align-items:center;gap:10px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;}
-.readme-import-bar span{flex:1;font-size:12px;color:var(--text2);}
-
-/* HV STAMMLISTE */
-.hv-row{display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:8px;padding:8px 10px;border:1px solid var(--border);margin-bottom:8px;}
-.hv-row-name{flex:1;font-size:13px;font-weight:500;}
-.hv-row-drive{font-size:11px;color:var(--green);flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.hv-row-btns{display:flex;gap:4px;}
-.icon-btn{width:26px;height:26px;border-radius:4px;background:var(--bg4);color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+/* ── HV LISTE ── */
+.hv-row{display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--border);}
+.hv-name{flex:1;font-size:13px;font-weight:600;}
+.hv-drive{font-size:11px;color:var(--green);flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.icon-btn{width:28px;height:28px;border-radius:6px;background:var(--bg4);color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .12s;}
 .icon-btn:hover{background:var(--accent);color:#fff;}
-.icon-btn.del:hover{background:var(--red);color:#fff;}
+.icon-btn.del:hover{background:var(--red);}
 .hv-add-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:12px;}
-.hv-add-row input{padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;}
+.hv-add-row input{padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;}
 .hv-add-row input:focus{border-color:var(--accent);}
 
-/* START MODAL */
-.start-modal{background:var(--bg2);border-radius:14px;padding:32px;width:420px;max-width:90vw;box-shadow:0 20px 60px var(--shadow);text-align:center;}
-.start-modal h2{font-size:22px;font-weight:700;color:var(--accent2);margin-bottom:8px;}
-.start-modal p{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;}
+/* ── START MODAL ── */
+.start-card{background:var(--bg2);border-radius:20px 20px 0 0;padding:24px 24px 48px;width:100%;max-width:480px;text-align:center;}
+.start-card h2{font-size:24px;font-weight:700;color:var(--accent2);margin-bottom:8px;}
+.start-card p{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;}
 .start-btns{display:flex;flex-direction:column;gap:10px;}
-.start-btn{padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;transition:all .15s;text-align:left;display:flex;align-items:center;gap:12px;}
-.start-btn-icon{font-size:20px;flex-shrink:0;}
-.start-btn-text{display:flex;flex-direction:column;gap:2px;}
+.start-btn{padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;transition:all .15s;text-align:left;display:flex;align-items:center;gap:12px;}
+.start-btn-icon{font-size:22px;}
+.start-btn-text{display:flex;flex-direction:column;gap:2px;text-align:left;}
 .start-btn-label{font-size:14px;font-weight:600;}
-.start-btn-sub{font-size:11px;font-weight:400;opacity:.8;}
+.start-btn-sub{font-size:11px;font-weight:400;opacity:.75;}
 .start-btn.primary{background:var(--accent);color:#fff;}
-.start-btn.primary:hover{background:var(--accent2);}
 .start-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
-.start-btn.secondary:hover{background:var(--bg4);}
-.start-btn.ghost{background:transparent;color:var(--text2);font-size:12px;font-weight:400;justify-content:center;padding:8px;}
-.start-btn.ghost:hover{color:var(--text);}
+.start-btn.ghost{background:transparent;color:var(--text2);font-size:12px;justify-content:center;padding:8px;}
 
-/* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:2000;box-shadow:0 4px 16px var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;z-index:3000;box-shadow:0 4px 16px var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 
-/* EMPTY STATE */
-.empty-state{text-align:center;padding:40px 20px;color:var(--text2);}
-.empty-state-icon{font-size:40px;margin-bottom:12px;}
-.empty-state-text{font-size:14px;}
+/* ── LEER ── */
+.empty{text-align:center;padding:48px 24px;color:var(--text2);}
+.empty-icon{font-size:44px;margin-bottom:12px;}
 
-::-webkit-scrollbar{width:6px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
-::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px;}
 
-@media(max-width:600px){
-  .kanban{flex-direction:column;}
-  .topbar-center{max-width:100%;margin:0;}
+@media(min-width:600px){
+  .modal-overlay{align-items:center;}
+  .modal{border-radius:16px;padding:24px;}
+  .start-card{border-radius:16px;padding:32px;}
+  .modal-handle{display:none;}
+  .hv-add-row{grid-template-columns:1fr 2fr auto;}
+}
+@media(max-width:400px){
   .modal-grid{grid-template-columns:1fr;}
   .modal-field.full{grid-column:1;}
-  .hv-add-row{grid-template-columns:1fr;gap:6px;}
+  .hv-add-row{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
-    <div class="logo">🏗 Bau-Doku <span>Auftragsübersicht</span></div>
-    <div class="topbar-center">
+<!-- ═══ LISTEN-ANSICHT ═══ -->
+<div class="list-view" id="listView">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="logo">🏗 Bau-Doku <small>Aufträge</small></div>
+    <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" type="text" placeholder="Kostenstelle, Adresse, Mieter suchen…" oninput="renderAll()">
+      <input class="search-input" id="searchInput" type="text" placeholder="Suchen…" oninput="renderListe()">
+    </div>
+    <div class="topbar-btns">
+      <button class="btn btn-secondary btn-sm" onclick="openHvModal()">🏢</button>
+      <button class="btn btn-primary btn-sm" onclick="openNeu()">+ Neu</button>
     </div>
   </div>
-  <div class="topbar-right">
-    <button class="btn btn-secondary" onclick="openHvModal()" title="Hausverwaltungen verwalten">🏢 HV-Liste</button>
-    <button class="btn btn-primary" onclick="openNewAuftrag()">+ Neuer Auftrag</button>
+
+  <!-- Filebar -->
+  <div class="filebar">
+    <div class="filebar-left">
+      <span class="file-dot none" id="fileDot"></span>
+      <span class="file-name" id="fileName">Keine Datei</span>
+    </div>
+    <div class="filebar-right">
+      <button class="file-btn" onclick="openFile()">📂 Öffnen</button>
+      <button class="file-btn" onclick="createNewFile()">✨ Neu</button>
+      <button class="file-btn" onclick="downloadFile()">⬇</button>
+    </div>
   </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-f="alle" onclick="setFilter('alle',this)">Alle <span class="tab-count" id="tc-alle">0</span></button>
+    <button class="tab" data-f="neu" onclick="setFilter('neu',this)">🔵 Neu <span class="tab-count" id="tc-neu">0</span></button>
+    <button class="tab" data-f="bearbeitung" onclick="setFilter('bearbeitung',this)">🟠 Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
+    <button class="tab" data-f="abgeschlossen" onclick="setFilter('abgeschlossen',this)">🟢 Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
+  </div>
+
+  <!-- Zoom -->
+  <div class="zoombar">
+    <span class="zoom-label">🔤 Kartengröße:</span>
+    <input type="range" class="zoom-slider" id="zoomSlider" min="11" max="18" value="14" oninput="setZoom(this.value)">
+    <span class="zoom-count" id="zoomVal">14px</span>
+  </div>
+
+  <!-- Karten -->
+  <div class="main">
+    <div class="karten-liste" id="kartenListe"></div>
+  </div>
+
 </div>
 
-<!-- FILEBAR -->
-<div class="filebar">
-  <div class="filebar-left">
-    <span class="file-dot none" id="fileDot"></span>
-    <span class="file-name" id="fileName">Keine Datei geöffnet</span>
+<!-- ═══ DETAIL-ANSICHT ═══ -->
+<div class="detail-view" id="detailView">
+
+  <div class="detail-topbar">
+    <button class="back-btn" onclick="zurueck()">← Zurück</button>
+    <div class="detail-title" id="detailTitel">Auftrag</div>
+    <div class="detail-actions">
+      <button class="btn btn-secondary btn-sm" onclick="openBearbeiten()">✏ Bearbeiten</button>
+    </div>
   </div>
-  <div class="filebar-right">
-    <button class="file-btn" onclick="openFile()">📂 Öffnen</button>
-    <button class="file-btn" onclick="createNewFile()">✨ Neue Datei</button>
-    <button class="file-btn" onclick="downloadFile()">⬇ Download</button>
-  </div>
+
+  <div class="detail-body" id="detailBody"></div>
+
 </div>
 
-<!-- FILTER BAR -->
-<div class="filterbar">
-  <span class="filter-label">Status:</span>
-  <button class="filter-btn active" data-filter="alle" onclick="setFilter('alle',this)">Alle</button>
-  <button class="filter-btn" data-filter="neu" onclick="setFilter('neu',this)">🔵 Neu</button>
-  <button class="filter-btn" data-filter="bearbeitung" onclick="setFilter('bearbeitung',this)">🟠 In Bearbeitung</button>
-  <button class="filter-btn" data-filter="abgeschlossen" onclick="setFilter('abgeschlossen',this)">🟢 Abgeschlossen</button>
-  <span class="filter-count" id="filterCount"></span>
-</div>
-
-<!-- MAIN -->
-<div class="main" id="mainContent"></div>
-
-<!-- TOAST -->
+<!-- ═══ TOAST ═══ -->
 <div class="toast" id="toast"></div>
 
-<!-- START MODAL -->
+<!-- ═══ START MODAL ═══ -->
 <div class="modal-overlay open" id="startModal">
-  <div class="start-modal">
+  <div class="start-card">
+    <div class="modal-handle"></div>
     <h2>🏗 Bau-Doku</h2>
-    <p>Wähle eine JSON-Datei für die automatische Speicherung.<br>Datei direkt auf Google Drive speichern!</p>
+    <p>Wähle deine JSON-Datei.<br>Direkt auf Google Drive speichern möglich!</p>
     <div class="start-btns">
       <button class="start-btn primary" onclick="openFile()">
         <span class="start-btn-icon">📂</span>
-        <span class="start-btn-text">
-          <span class="start-btn-label">Vorhandene Datei öffnen</span>
-          <span class="start-btn-sub">bau-doku.json vom letzten Mal laden</span>
-        </span>
+        <span class="start-btn-text"><span class="start-btn-label">Datei öffnen</span><span class="start-btn-sub">bau-doku.json vom letzten Mal</span></span>
       </button>
       <button class="start-btn secondary" onclick="createNewFile()">
         <span class="start-btn-icon">✨</span>
-        <span class="start-btn-text">
-          <span class="start-btn-label">Neue Datei anlegen</span>
-          <span class="start-btn-sub">Frisch starten – Datei auf Google Drive speichern</span>
-        </span>
+        <span class="start-btn-text"><span class="start-btn-label">Neue Datei anlegen</span><span class="start-btn-sub">Frisch starten, auf Google Drive speichern</span></span>
       </button>
-      <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten (Daten gehen beim Schließen verloren)</button>
+      <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten</button>
     </div>
   </div>
 </div>
 
-<!-- AUFTRAG MODAL -->
-<div class="modal-overlay" id="auftragModal">
+<!-- ═══ FORMULAR MODAL (Neu/Bearbeiten) ═══ -->
+<div class="modal-overlay" id="formModal">
   <div class="modal">
-    <h2 id="modalTitle">Neuer Auftrag</h2>
-    <input type="hidden" id="auftragId">
+    <div class="modal-handle"></div>
+    <h2 id="formTitel">Neuer Auftrag</h2>
+    <input type="hidden" id="fId">
 
-    <!-- README IMPORT -->
-    <div class="readme-import-bar">
-      <span>📄 README.txt aus Auftragsordner importieren → Felder werden automatisch ausgefüllt</span>
-      <button class="btn btn-secondary" style="white-space:nowrap;" onclick="triggerReadmeImport()">📥 README importieren</button>
-      <input type="file" id="readmeFileInput" accept=".txt" style="display:none" onchange="importReadme(event)">
+    <div class="readme-bar">
+      <span>📄 README.txt importieren → Felder automatisch ausfüllen</span>
+      <button class="btn btn-secondary btn-sm" onclick="triggerReadme()">📥 Import</button>
+      <input type="file" id="readmeInput" accept=".txt" style="display:none" onchange="importReadme(event)">
     </div>
 
-    <!-- AUFTRAGSDATEN -->
     <div class="modal-section" style="margin-top:0;padding-top:0;border-top:none;">
-      <div class="modal-section-title">📋 Auftragsdaten</div>
+      <div class="modal-section-title">📋 Auftrag</div>
       <div class="modal-grid">
-        <div class="modal-field">
-          <label>Kostenstelle *</label>
-          <input type="text" id="fKostenstelle" placeholder="z.B. 260022">
-        </div>
-        <div class="modal-field">
-          <label>Rep.-Nr.</label>
-          <input type="text" id="fRepNr" placeholder="z.B. 3471">
-        </div>
-        <div class="modal-field">
-          <label>Datum</label>
-          <input type="date" id="fDatum">
-        </div>
-        <div class="modal-field">
-          <label>Status</label>
-          <select id="fStatus">
+        <div class="modal-field"><label>Kostenstelle *</label><input type="text" id="fKS" placeholder="260022"></div>
+        <div class="modal-field"><label>Rep.-Nr.</label><input type="text" id="fRep" placeholder="3471"></div>
+        <div class="modal-field"><label>Datum</label><input type="date" id="fDat"></div>
+        <div class="modal-field"><label>Status</label>
+          <select id="fStat">
             <option value="neu">🔵 Neu</option>
             <option value="bearbeitung">🟠 In Bearbeitung</option>
             <option value="abgeschlossen">🟢 Abgeschlossen</option>
           </select>
         </div>
-        <div class="modal-field">
-          <label>Auftraggeber</label>
-          <input type="text" id="fAuftraggeber" placeholder="z.B. Fr. Beck">
-        </div>
-        <div class="modal-field">
-          <label>Kunden-Nr.</label>
-          <input type="text" id="fKundenNr" placeholder="z.B. 777">
-        </div>
+        <div class="modal-field"><label>Auftraggeber</label><input type="text" id="fAG" placeholder="Fr. Beck"></div>
+        <div class="modal-field"><label>Kunden-Nr.</label><input type="text" id="fKNr" placeholder="777"></div>
       </div>
     </div>
 
-    <!-- OBJEKT -->
     <div class="modal-section">
       <div class="modal-section-title">📍 Objekt</div>
       <div class="modal-grid">
         <div class="modal-field full">
           <label>Hausverwaltung</label>
-          <div style="display:flex;gap:8px;">
-            <select id="fHvSelect" style="flex:1;" onchange="hvSelected()">
-              <option value="">– aus Liste wählen –</option>
-            </select>
-            <input type="text" id="fHausverwaltung" style="flex:2;" placeholder="oder direkt eingeben">
+          <div style="display:flex;gap:6px;">
+            <select id="fHVSel" style="flex:1;" onchange="hvGewaehlt()"><option value="">– aus Liste –</option></select>
+            <input type="text" id="fHV" style="flex:2;" placeholder="oder eingeben">
           </div>
         </div>
-        <div class="modal-field">
-          <label>Straße + Hausnummer</label>
-          <input type="text" id="fStrasse" placeholder="z.B. Humboldtstr. 62">
-        </div>
-        <div class="modal-field">
-          <label>PLZ + Ort</label>
-          <input type="text" id="fOrt" placeholder="z.B. 99096 Erfurt">
-        </div>
-        <div class="modal-field full">
-          <label>Baustelle / Schadensbild</label>
-          <textarea id="fSchaden" placeholder="z.B. 2. OG links, Feuchtigkeit Küche…"></textarea>
-        </div>
+        <div class="modal-field"><label>Straße + Nr.</label><input type="text" id="fStr" placeholder="Humboldtstr. 62"></div>
+        <div class="modal-field"><label>PLZ + Ort</label><input type="text" id="fOrt" placeholder="99096 Erfurt"></div>
+        <div class="modal-field full"><label>Baustelle / Schadensbild</label><textarea id="fSch" placeholder="2. OG links, Feuchtigkeit Küche…"></textarea></div>
       </div>
     </div>
 
-    <!-- EIGENTUEMER -->
     <div class="modal-section">
       <div class="modal-section-title">👤 Eigentümer</div>
       <div class="modal-grid">
-        <div class="modal-field">
-          <label>Name</label>
-          <input type="text" id="fEigName" placeholder="Vor- und Nachname">
-        </div>
-        <div class="modal-field">
-          <label>Telefon</label>
-          <input type="tel" id="fEigTel" placeholder="z.B. 0361/123456">
-        </div>
-        <div class="modal-field full">
-          <label>E-Mail</label>
-          <input type="email" id="fEigEmail" placeholder="name@example.de">
-        </div>
+        <div class="modal-field"><label>Name</label><input type="text" id="fEN"></div>
+        <div class="modal-field"><label>Telefon</label><input type="tel" id="fET" placeholder="0361/123456"></div>
+        <div class="modal-field full"><label>E-Mail</label><input type="email" id="fEE"></div>
       </div>
     </div>
 
-    <!-- MIETER -->
     <div class="modal-section">
       <div class="modal-section-title">🏠 Mieter</div>
       <div class="modal-grid">
-        <div class="modal-field">
-          <label>Name</label>
-          <input type="text" id="fMietName" placeholder="Vor- und Nachname">
-        </div>
-        <div class="modal-field">
-          <label>Telefon</label>
-          <input type="tel" id="fMietTel" placeholder="z.B. 0178/9210453">
-        </div>
-        <div class="modal-field full">
-          <label>E-Mail</label>
-          <input type="email" id="fMietEmail" placeholder="name@example.de">
-        </div>
+        <div class="modal-field"><label>Name</label><input type="text" id="fMN"></div>
+        <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="0178/9210453"></div>
+        <div class="modal-field full"><label>E-Mail</label><input type="email" id="fME"></div>
       </div>
     </div>
 
-    <!-- TERMINE -->
     <div class="modal-section">
       <div class="modal-section-title">📅 Termine</div>
       <div class="modal-grid">
-        <div class="modal-field">
-          <label>Ortstermin</label>
-          <input type="text" id="fTerminOrt" placeholder="z.B. 15.04.2026 10:00 Uhr">
-        </div>
-        <div class="modal-field">
-          <label>Abgabe</label>
-          <input type="text" id="fTerminAbgabe" placeholder="z.B. 30.04.2026">
-        </div>
+        <div class="modal-field"><label>Ortstermin</label><input type="text" id="fTO" placeholder="15.04.2026 10:00 Uhr"></div>
+        <div class="modal-field"><label>Abgabe</label><input type="text" id="fTA" placeholder="30.04.2026"></div>
       </div>
     </div>
 
-    <!-- VERKNÜPFUNGEN -->
     <div class="modal-section">
       <div class="modal-section-title">🔗 Verknüpfungen</div>
       <div class="modal-grid">
         <div class="modal-field full">
           <label>Google Drive – Foto-Ordner</label>
-          <div class="gdrive-row">
-            <input type="url" id="fGdrive" placeholder="https://drive.google.com/drive/folders/…">
-            <button class="gdrive-open-btn" onclick="openGdrive()">📁 Öffnen</button>
+          <div class="link-row">
+            <input type="url" id="fGD" placeholder="https://drive.google.com/drive/folders/…">
+            <button class="link-btn" onclick="driveOeffnen()">📁</button>
           </div>
         </div>
         <div class="modal-field full">
-          <label>NAS-Pfad (Auftragsordner)</label>
-          <div class="nas-row">
-            <input type="text" id="fNasPfad" placeholder="\\nas-ddbraun\Datenarchiv\…">
-            <button class="nas-copy-btn" id="nasCopyBtn" onclick="copyNas()">📋 Kopieren</button>
+          <label>NAS-Pfad</label>
+          <div class="link-row">
+            <input type="text" id="fNAS" placeholder="\\nas-ddbraun\Datenarchiv\…">
+            <button class="link-btn" id="nasBtnForm" onclick="nasKopierenForm()">📋</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- NOTIZEN -->
     <div class="modal-section">
       <div class="modal-section-title">📝 Notizen</div>
-      <div class="modal-field">
-        <label>Interne Notizen</label>
-        <textarea id="fNotizen" placeholder="Weitere Informationen, Hinweise…" style="min-height:80px;"></textarea>
-      </div>
+      <div class="modal-field"><textarea id="fNot" placeholder="Interne Notizen…" style="min-height:70px;"></textarea></div>
     </div>
 
     <div class="modal-actions">
-      <button class="btn btn-danger" id="deleteBtn" onclick="deleteAuftrag()" style="display:none;margin-right:auto;">🗑 Löschen</button>
-      <button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
-      <button class="btn btn-primary" onclick="saveAuftrag()">💾 Speichern</button>
+      <button class="btn btn-danger btn-sm" id="loeschBtn" onclick="loeschen()" style="display:none;margin-right:auto;">🗑 Löschen</button>
+      <button class="btn btn-secondary" onclick="closeForm()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="speichern()">💾 Speichern</button>
     </div>
   </div>
 </div>
 
-<!-- HV STAMMLISTE MODAL -->
+<!-- ═══ HV MODAL ═══ -->
 <div class="modal-overlay" id="hvModal">
-  <div class="modal" style="width:660px;">
-    <h2>🏢 Hausverwaltungen – Stammliste</h2>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;">Einmal anlegen → beim Auftrag nur noch auswählen → Google Drive Link wird automatisch eingetragen.</p>
-    <div id="hvList"></div>
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>🏢 Hausverwaltungen</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">Einmal anlegen → Drive-Link wird automatisch eingetragen.</p>
+    <div id="hvListe"></div>
     <div class="hv-add-row">
-      <input type="text" id="hvNewName" placeholder="HV Name (z.B. Alkenbrecher)">
-      <input type="url" id="hvNewDrive" placeholder="Google Drive Ordner-Link">
-      <button class="btn btn-primary" onclick="addHv()">+ Hinzufügen</button>
+      <input type="text" id="hvName" placeholder="HV Name">
+      <input type="url" id="hvDrive" placeholder="Google Drive Link">
+      <button class="btn btn-primary btn-sm" onclick="hvHinzu()">+ Add</button>
     </div>
-    <div class="modal-actions" style="margin-top:16px;">
-      <button class="btn btn-secondary" onclick="closeHvModal()">Schließen</button>
-    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeHv()">Schließen</button></div>
   </div>
 </div>
 
 <script>
-// ── STATE ──
+// ═══ STATE ═══
 let auftraege = [];
 let hvListe = JSON.parse(localStorage.getItem('bau_hv') || '[]');
-let currentFilter = 'alle';
-let currentId = null;
+let filter = 'alle';
 let fileHandle = null;
+let detailId = null;
 const hasFileAPI = 'showOpenFilePicker' in window;
 
-function genId(){ return 'a_' + Date.now() + '_' + Math.random().toString(36).substr(2,5); }
-function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
-function readVal(txt, key){ // "noch offen" = leer lassen
-  const r = new RegExp(key + ':\\s*(.+)', 'i');
-  const m = txt.match(r);
+// ═══ UTILS ═══
+function genId(){ return 'a_'+Date.now()+'_'+Math.random().toString(36).substr(2,5); }
+function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
+function readVal(txt,key){
+  const m=txt.match(new RegExp(key+':\\s*(.+)','i'));
   if(!m) return '';
-  const v = m[1].trim();
-  return (v === '(noch offen)' || v === 'noch offen') ? '' : v;
+  const v=m[1].trim();
+  return(v==='(noch offen)'||v==='noch offen')?'':v;
 }
+function formatTel(t){ return t?t.replace(/[^\d+]/g,''):''; }
 
-// ── FILE SYSTEM ──
-function updateFileStatus(state, name){
-  document.getElementById('fileDot').className = 'file-dot ' + state;
-  document.getElementById('fileName').textContent = name;
+// ═══ ZOOM ═══
+function setZoom(v){
+  document.documentElement.style.setProperty('--card-font', v+'px');
+  document.getElementById('zoomVal').textContent = v+'px';
+  localStorage.setItem('bau_zoom', v);
 }
+(function(){ const z=localStorage.getItem('bau_zoom')||'14'; document.getElementById('zoomSlider').value=z; setZoom(z); })();
 
+// ═══ FILE ═══
+function updateFileStatus(state,name){
+  document.getElementById('fileDot').className='file-dot '+state;
+  document.getElementById('fileName').textContent=name;
+}
 async function openFile(){
-  closeStartModal();
-  if(!hasFileAPI){ fallbackImport(); return; }
-  try {
-    [fileHandle] = await window.showOpenFilePicker({ types:[{description:'JSON',accept:{'application/json':['.json']}}] });
-    const f = await fileHandle.getFile();
-    const text = await f.text();
-    const data = JSON.parse(text) || {};
-    auftraege = Array.isArray(data) ? data : (data.auftraege || []);
-    if(data.hvListe){ hvListe = data.hvListe; localStorage.setItem('bau_hv', JSON.stringify(hvListe)); }
-    updateFileStatus('ok', fileHandle.name);
-    renderAll();
-  } catch(e){ if(e.name!=='AbortError') showToast('Fehler beim Öffnen'); }
+  closeStart();
+  if(!hasFileAPI){fallbackImport();return;}
+  try{
+    [fileHandle]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+    const f=await fileHandle.getFile();
+    const data=JSON.parse(await f.text())||{};
+    auftraege=Array.isArray(data)?data:(data.auftraege||[]);
+    if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
+    updateFileStatus('ok',fileHandle.name);
+    renderListe();
+  }catch(e){if(e.name!=='AbortError')toast('Fehler beim Öffnen');}
 }
-
 async function createNewFile(){
-  closeStartModal();
-  if(!hasFileAPI){ updateFileStatus('unsaved','Ohne Datei (Download zum Speichern)'); renderAll(); return; }
-  try {
-    fileHandle = await window.showSaveFilePicker({ suggestedName:'bau-doku.json', types:[{description:'JSON',accept:{'application/json':['.json']}}] });
-    auftraege = [];
-    await saveToFile();
-    updateFileStatus('ok', fileHandle.name);
-    renderAll();
-  } catch(e){ if(e.name!=='AbortError') showToast('Datei konnte nicht erstellt werden'); }
+  closeStart();
+  if(!hasFileAPI){updateFileStatus('unsaved','Kein Auto-Speichern');renderListe();return;}
+  try{
+    fileHandle=await window.showSaveFilePicker({suggestedName:'bau-doku.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+    auftraege=[];
+    await saveFile();
+    updateFileStatus('ok',fileHandle.name);
+    renderListe();
+  }catch(e){if(e.name!=='AbortError')toast('Datei konnte nicht erstellt werden');}
 }
-
-function skipFile(){
-  closeStartModal();
-  updateFileStatus('none','Ohne Datei – Daten werden nicht automatisch gespeichert');
-  renderAll();
-}
-
-async function saveToFile(){
-  if(!fileHandle) return;
-  try {
-    const payload = { auftraege, hvListe };
-    const w = await fileHandle.createWritable();
-    await w.write(JSON.stringify(payload, null, 2));
+function skipFile(){closeStart();updateFileStatus('none','Ohne Datei');renderListe();}
+async function saveFile(){
+  if(!fileHandle)return;
+  try{
+    const w=await fileHandle.createWritable();
+    await w.write(JSON.stringify({auftraege,hvListe},null,2));
     await w.close();
-    updateFileStatus('ok', fileHandle.name);
-  } catch(e){ showToast('⚠ Speichern fehlgeschlagen'); }
+    updateFileStatus('ok',fileHandle.name);
+  }catch(e){toast('⚠ Speichern fehlgeschlagen');}
 }
-
 function fallbackImport(){
-  const input = document.createElement('input');
-  input.type='file'; input.accept='.json';
-  input.onchange = async e => {
-    const text = await e.target.files[0].text();
-    const data = JSON.parse(text) || {};
-    auftraege = Array.isArray(data) ? data : (data.auftraege || []);
-    if(data.hvListe){ hvListe = data.hvListe; localStorage.setItem('bau_hv', JSON.stringify(hvListe)); }
-    updateFileStatus('unsaved','Importiert (Download zum Speichern)');
-    renderAll();
-  };
-  input.click();
+  const i=document.createElement('input');i.type='file';i.accept='.json';
+  i.onchange=async e=>{
+    const data=JSON.parse(await e.target.files[0].text())||{};
+    auftraege=Array.isArray(data)?data:(data.auftraege||[]);
+    if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
+    updateFileStatus('unsaved','Importiert');renderListe();
+  };i.click();
 }
-
 function downloadFile(){
-  const payload = { auftraege, hvListe };
-  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'bau-doku.json';
-  a.click();
-  showToast('✅ Datei heruntergeladen');
+  const b=new Blob([JSON.stringify({auftraege,hvListe},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='bau-doku.json';a.click();
+  toast('✅ Heruntergeladen');
 }
 
-// ── README IMPORT ──
-function triggerReadmeImport(){
-  document.getElementById('readmeFileInput').click();
+// ═══ FILTER ═══
+function setFilter(f,btn){
+  filter=f;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderListe();
+}
+function getFiltered(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  return auftraege.filter(a=>{
+    const ok=filter==='alle'||a.status===filter;
+    if(!ok)return false;
+    if(!q)return true;
+    return [a.ks,a.strasse,a.ort,a.hv,a.mieterName,a.eigentuemer,a.schaden,a.rep].join(' ').toLowerCase().includes(q);
+  });
 }
 
-function importReadme(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const txt = e.target.result;
-    // Felder befüllen
-    const v = key => readVal(txt, key);
-    const ks = v('Auftrag_Kostenstelle');
-    if(ks) document.getElementById('fKostenstelle').value = ks;
-    const repNr = v('Rep_Nr');
-    if(repNr) document.getElementById('fRepNr').value = repNr;
-    const datum = v('Auftrag_Datum');
-    if(datum){
-      // Datum von DD.MM.YYYY auf YYYY-MM-DD umwandeln
-      const p = datum.split('.');
-      if(p.length===3) document.getElementById('fDatum').value = p[2]+'-'+p[1]+'-'+p[0];
-    }
-    const auftraggeber = v('Auftraggeber');
-    if(auftraggeber) document.getElementById('fAuftraggeber').value = auftraggeber;
-    const kundenNr = v('Kunden_Nr');
-    if(kundenNr) document.getElementById('fKundenNr').value = kundenNr;
-    // Hausverwaltung
-    const hv = v('Objekt_Hausverwaltung');
-    if(hv){
-      document.getElementById('fHausverwaltung').value = hv;
-      // Automatisch HV-Stammliste suchen und Drive-Link eintragen
-      const gefunden = hvListe.find(h => hv.toLowerCase().includes(h.name.toLowerCase()) || h.name.toLowerCase().includes(hv.toLowerCase()));
-      if(gefunden && gefunden.driveLink){
-        document.getElementById('fGdrive').value = gefunden.driveLink;
-        showToast('✅ Drive-Link aus HV-Liste automatisch eingetragen!');
-      }
-    }
-    // Adresse
-    const strasse = v('Objekt_Strasse');
-    if(strasse){
-      // Versuche PLZ/Ort zu trennen
-      const plzMatch = strasse.match(/^(.+?),\s*(\d{5}.+)$/);
-      if(plzMatch){
-        document.getElementById('fStrasse').value = plzMatch[1].trim();
-        document.getElementById('fOrt').value = plzMatch[2].trim();
-      } else {
-        document.getElementById('fStrasse').value = strasse;
-      }
-    }
-    // Schaden
-    const schaden = v('Baustelle_Schadensbild');
-    if(schaden) document.getElementById('fSchaden').value = schaden;
-    // Eigentümer
-    const eigName = v('Eigentuemer_Name');
-    if(eigName) document.getElementById('fEigName').value = eigName;
-    const eigTel = v('Eigentuemer_Telefon');
-    if(eigTel) document.getElementById('fEigTel').value = eigTel;
-    const eigEmail = v('Eigentuemer_Email');
-    if(eigEmail) document.getElementById('fEigEmail').value = eigEmail;
-    // Mieter
-    const mietName = v('Mieter_Name');
-    if(mietName) document.getElementById('fMietName').value = mietName;
-    const mietTel = v('Mieter_Telefon');
-    if(mietTel) document.getElementById('fMietTel').value = mietTel;
-    const mietEmail = v('Mieter_Email');
-    if(mietEmail) document.getElementById('fMietEmail').value = mietEmail;
-    // Termine
-    const terminOrt = v('Termin_Ortstermin');
-    if(terminOrt) document.getElementById('fTerminOrt').value = terminOrt;
-    const terminAbg = v('Termin_Abgabe');
-    if(terminAbg) document.getElementById('fTerminAbgabe').value = terminAbg;
-
-    showToast('✅ README importiert – bitte fehlende Felder ergänzen');
-    event.target.value = ''; // reset
-  };
-  reader.readAsText(file, 'windows-1252');
-}
-
-// ── HV STAMMLISTE ──
-function saveHvListe(){
-  localStorage.setItem('bau_hv', JSON.stringify(hvListe));
-  saveToFile();
-}
-
-function renderHvList(){
-  const el = document.getElementById('hvList');
-  if(hvListe.length === 0){
-    el.innerHTML = '<p style="font-size:12px;color:var(--text2);text-align:center;padding:16px;">Noch keine Hausverwaltungen angelegt.</p>';
+// ═══ RENDER LISTE ═══
+function renderListe(){
+  const alle=auftraege;
+  ['alle','neu','bearbeitung','abgeschlossen'].forEach(k=>{
+    const el=document.getElementById('tc-'+k);
+    if(el) el.textContent=k==='alle'?alle.length:alle.filter(a=>a.status===k).length;
+  });
+  const filtered=getFiltered();
+  const el=document.getElementById('kartenListe');
+  if(filtered.length===0){
+    el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div>Keine Aufträge</div></div>';
     return;
   }
-  el.innerHTML = hvListe.map((hv, i) => `
-    <div class="hv-row">
-      <div class="hv-row-name">🏢 ${esc(hv.name)}</div>
-      <div class="hv-row-drive">${hv.driveLink ? '📁 '+esc(hv.driveLink) : '<span style="color:var(--text2)">Kein Drive-Link</span>'}</div>
-      <div class="hv-row-btns">
-        <button class="icon-btn" onclick="editHv(${i})" title="Bearbeiten">✏</button>
-        <button class="icon-btn del" onclick="deleteHv(${i})" title="Löschen">🗑</button>
-      </div>
-    </div>`).join('');
+  el.innerHTML=filtered.map(a=>renderKarte(a)).join('');
 }
 
-function addHv(){
-  const name = document.getElementById('hvNewName').value.trim();
-  const driveLink = document.getElementById('hvNewDrive').value.trim();
-  if(!name){ showToast('⚠ Name eingeben'); return; }
-  hvListe.push({ name, driveLink });
-  document.getElementById('hvNewName').value = '';
-  document.getElementById('hvNewDrive').value = '';
-  saveHvListe();
-  renderHvList();
-  updateHvSelect();
-  showToast('✅ Hausverwaltung gespeichert');
+function statusDot(s){
+  const c={neu:'#4a90d9',bearbeitung:'#f39c12',abgeschlossen:'#2ecc71'}[s]||'#888';
+  return `<span class="status-dot" style="background:${c}"></span>`;
 }
 
-function deleteHv(i){
-  if(!confirm('Hausverwaltung "'+hvListe[i].name+'" löschen?')) return;
-  hvListe.splice(i, 1);
-  saveHvListe();
-  renderHvList();
-  updateHvSelect();
-}
-
-function editHv(i){
-  const hv = hvListe[i];
-  const name = prompt('Name:', hv.name);
-  if(name === null) return;
-  const drive = prompt('Google Drive Link:', hv.driveLink || '');
-  if(drive === null) return;
-  hvListe[i] = { name: name.trim(), driveLink: drive.trim() };
-  saveHvListe();
-  renderHvList();
-  updateHvSelect();
-  showToast('✅ Aktualisiert');
-}
-
-function updateHvSelect(){
-  const sel = document.getElementById('fHvSelect');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">– aus Liste wählen –</option>';
-  hvListe.forEach(hv => {
-    const opt = document.createElement('option');
-    opt.value = hv.name;
-    opt.textContent = hv.name;
-    sel.appendChild(opt);
-  });
-  sel.value = cur;
-}
-
-function hvSelected(){
-  const name = document.getElementById('fHvSelect').value;
-  if(!name) return;
-  document.getElementById('fHausverwaltung').value = name;
-  const hv = hvListe.find(h => h.name === name);
-  if(hv && hv.driveLink){
-    document.getElementById('fGdrive').value = hv.driveLink;
-    showToast('📁 Drive-Link automatisch eingetragen');
-  }
-}
-
-function openHvModal(){
-  renderHvList();
-  document.getElementById('hvModal').classList.add('open');
-}
-function closeHvModal(){
-  document.getElementById('hvModal').classList.remove('open');
-}
-
-// ── FILTER & SEARCH ──
-function setFilter(f, btn){
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderAll();
-}
-
-function getFiltered(){
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  return auftraege.filter(a => {
-    const matchFilter = currentFilter === 'alle' || a.status === currentFilter;
-    if(!matchFilter) return false;
-    if(!q) return true;
-    const haystack = [a.kostenstelle,a.strasse,a.ort,a.hausverwaltung,a.mieterName,a.eigentuemer,a.schaden,a.repNr].join(' ').toLowerCase();
-    return haystack.includes(q);
-  });
-}
-
-// ── RENDER ──
-function renderAll(){
-  const filtered = getFiltered();
-  document.getElementById('filterCount').textContent = filtered.length + ' Auftrag' + (filtered.length!==1?'e':'');
-  const spalten = [
-    {key:'neu',          label:'Neu',            color:'#4a90d9'},
-    {key:'bearbeitung',  label:'In Bearbeitung',  color:'#f39c12'},
-    {key:'abgeschlossen',label:'Abgeschlossen',   color:'#2ecc71'}
-  ];
-  let html = '';
-  if(currentFilter === 'alle'){
-    html = '<div class="kanban">';
-    spalten.forEach(sp => {
-      const cards = filtered.filter(a => a.status === sp.key);
-      html += `<div class="kanban-col">
-        <div class="kanban-col-header">
-          <div class="kanban-col-title"><div class="kanban-col-dot" style="background:${sp.color}"></div>${sp.label}</div>
-          <span class="kanban-col-count">${cards.length}</span>
-        </div>
-        <div class="kanban-col-body">`;
-      if(cards.length === 0){
-        html += `<div class="empty-state" style="padding:20px 10px;"><div style="font-size:24px;margin-bottom:6px;">📭</div><div style="font-size:12px;">Keine Aufträge</div></div>`;
-      } else {
-        cards.forEach(a => { html += renderCard(a); });
-      }
-      html += '</div></div>';
-    });
-    html += '</div>';
-  } else {
-    if(filtered.length === 0){
-      html = `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Keine Aufträge gefunden</div></div>`;
-    } else {
-      html = '<div class="grid-view">';
-      filtered.forEach(a => { html += renderCard(a); });
-      html += '</div>';
-    }
-  }
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-function renderCard(a){
-  const gdriveBadge = a.gdrive ? `<span class="card-badge has-gdrive">📁 Drive</span>` : '';
-  const nasBadge = a.nasPfad ? `<span class="card-badge has-nas">💾 NAS</span>` : '';
-  const mieter = a.mieterName ? `<div class="card-mieter">🏠 ${esc(a.mieterName)}${a.mieterTel?' · '+esc(a.mieterTel):''}</div>` : '';
-  const terminBadge = a.terminOrt ? `<span class="card-badge">📅 ${esc(a.terminOrt)}</span>` : '';
-  return `<div class="auftrag-card" onclick="openEditAuftrag('${a.id}')">
-    <div class="card-head">
-      <div class="card-kostenstelle">${esc(a.kostenstelle||'Kostenstelle fehlt')}</div>
-      <div class="card-datum">${esc(a.datum||'')}</div>
+function renderKarte(a){
+  const drive=a.gdrive?`<span class="badge drive">📁 Drive</span>`:'';
+  const nas=a.nas?`<span class="badge nas">💾 NAS</span>`:'';
+  const termin=a.terminOrt?`<span class="badge">📅 ${esc(a.terminOrt)}</span>`:'';
+  return `<div class="auftrag-karte" onclick="openDetail('${a.id}')">
+    <div class="karte-kopf">
+      <div class="karte-ks">${statusDot(a.status)} ${esc(a.ks||'–')}</div>
+      <div class="karte-datum">${esc(a.datum||'')}</div>
     </div>
-    <div class="card-adresse">📍 ${esc(a.strasse||'')}${a.ort?', '+esc(a.ort):''}</div>
-    <div class="card-hv">🏢 ${esc(a.hausverwaltung||'–')}</div>
-    ${mieter}
-    ${a.schaden ? `<div class="card-schaden">${esc(a.schaden)}</div>` : ''}
-    <div class="card-footer">${gdriveBadge}${nasBadge}${terminBadge}${a.repNr?`<span class="card-badge">Rep. ${esc(a.repNr)}</span>`:''}</div>
+    <div class="karte-adresse">📍 ${esc(a.strasse||'')}${a.ort?', '+esc(a.ort):''}</div>
+    <div class="karte-hv">🏢 ${esc(a.hv||'–')}</div>
+    ${a.mieterName?`<div class="karte-mieter">🏠 ${esc(a.mieterName)}${a.mieterTel?' · '+esc(a.mieterTel):''}</div>`:''}
+    ${a.schaden?`<div class="karte-schaden">${esc(a.schaden)}</div>`:''}
+    <div class="karte-footer">${drive}${nas}${termin}${a.rep?`<span class="badge">Rep. ${esc(a.rep)}</span>`:''}</div>
   </div>`;
 }
 
-// ── MODAL ──
-function openNewAuftrag(){
-  currentId = null;
-  document.getElementById('modalTitle').textContent = '+ Neuer Auftrag';
-  document.getElementById('deleteBtn').style.display = 'none';
+// ═══ DETAIL ANSICHT ═══
+function openDetail(id){
+  const a=auftraege.find(x=>x.id===id);
+  if(!a)return;
+  detailId=id;
+  document.getElementById('detailTitel').textContent=a.ks||'Auftrag';
+  renderDetail(a);
+  document.getElementById('listView').classList.add('hidden');
+  document.getElementById('detailView').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function zurueck(){
+  document.getElementById('detailView').classList.remove('active');
+  document.getElementById('listView').classList.remove('hidden');
+  detailId=null;
+}
+
+function val(v,leer='–'){
+  if(!v||v==='(noch offen)') return `<span class="detail-value offen">${leer}</span>`;
+  return `<span class="detail-value">${esc(v)}</span>`;
+}
+function telLink(t){
+  if(!t||t==='(noch offen)') return `<span class="detail-value offen">–</span>`;
+  const nr=formatTel(t);
+  return `<span class="detail-value"><a class="tel" href="tel:${nr}">📞 ${esc(t)}</a></span>`;
+}
+function mailLink(m){
+  if(!m||m==='(noch offen)') return `<span class="detail-value offen">–</span>`;
+  return `<span class="detail-value"><a class="mail" href="mailto:${esc(m)}">✉ ${esc(m)}</a></span>`;
+}
+
+function renderDetail(a){
+  const statusLabel={neu:'🔵 Neu',bearbeitung:'🟠 In Bearbeitung',abgeschlossen:'🟢 Abgeschlossen'}[a.status]||a.status;
+  const nextStatus={neu:'bearbeitung',bearbeitung:'abgeschlossen',abgeschlossen:'neu'};
+  const nextLabel={neu:'→ In Bearbeitung',bearbeitung:'→ Abgeschlossen',abgeschlossen:'→ Neu'};
+
+  let html=`
+  <div class="detail-status-bar">
+    <span class="status-badge ${a.status}">${statusLabel}</span>
+    <button class="status-change-btn" onclick="statusWechseln('${nextStatus[a.status]}')">
+      ${nextLabel[a.status]}
+    </button>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-section-title">📋 Auftragsdaten</div>
+    <div class="detail-grid">
+      <div class="detail-row"><div class="detail-label">Kostenstelle</div>${val(a.ks)}</div>
+      <div class="detail-row"><div class="detail-label">Rep.-Nr.</div>${val(a.rep)}</div>
+      <div class="detail-row"><div class="detail-label">Datum</div>${val(a.datum)}</div>
+      <div class="detail-row"><div class="detail-label">Auftraggeber</div>${val(a.ag)}</div>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-section-title">📍 Objekt</div>
+    <div class="detail-row"><div class="detail-label">Hausverwaltung</div>${val(a.hv)}</div>
+    <div class="detail-row"><div class="detail-label">Adresse</div>${val((a.strasse||'')+(a.ort?', '+a.ort:''))}</div>
+    ${a.schaden?`<div class="detail-row"><div class="detail-label">Schadensbild</div><span class="detail-value">${esc(a.schaden)}</span></div>`:''}
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-section-title">👤 Eigentümer</div>
+    <div class="detail-row"><div class="detail-label">Name</div>${val(a.eigentuemer)}</div>
+    <div class="detail-row"><div class="detail-label">Telefon</div>${telLink(a.eigTel)}</div>
+    <div class="detail-row"><div class="detail-label">E-Mail</div>${mailLink(a.eigEmail)}</div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-section-title">🏠 Mieter</div>
+    <div class="detail-row"><div class="detail-label">Name</div>${val(a.mieterName)}</div>
+    <div class="detail-row"><div class="detail-label">Telefon</div>${telLink(a.mieterTel)}</div>
+    <div class="detail-row"><div class="detail-label">E-Mail</div>${mailLink(a.mieterEmail)}</div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-section-title">📅 Termine</div>
+    <div class="detail-grid">
+      <div class="detail-row"><div class="detail-label">Ortstermin</div>${val(a.terminOrt)}</div>
+      <div class="detail-row"><div class="detail-label">Abgabe</div>${val(a.terminAbgabe)}</div>
+    </div>
+  </div>`;
+
+  if(a.gdrive||a.nas||a.notizen){
+    html+=`<div class="detail-section"><div class="detail-section-title">🔗 Verknüpfungen & Notizen</div>`;
+    if(a.gdrive) html+=`<button class="detail-btn drive" onclick="window.open('${esc(a.gdrive)}','_blank')">📁 Fotos in Google Drive öffnen</button>`;
+    if(a.nas) html+=`<button class="detail-btn nas" id="nasCopyBtn" onclick="nasKopieren('${esc(a.nas)}')">💾 NAS-Pfad kopieren</button>`;
+    if(a.notizen) html+=`<div class="detail-row" style="margin-top:8px;"><div class="detail-label">Notizen</div><span class="detail-value">${esc(a.notizen)}</span></div>`;
+    html+=`</div>`;
+  }
+
+  document.getElementById('detailBody').innerHTML=html;
+}
+
+async function statusWechseln(neuerStatus){
+  const idx=auftraege.findIndex(a=>a.id===detailId);
+  if(idx<0)return;
+  auftraege[idx].status=neuerStatus;
+  await saveFile();
+  renderDetail(auftraege[idx]);
+  renderListe();
+  toast('✅ Status geändert');
+}
+
+function nasKopieren(pfad){
+  navigator.clipboard.writeText(pfad).then(()=>{
+    const btn=document.getElementById('nasCopyBtn');
+    if(btn){btn.textContent='✅ Pfad kopiert!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='💾 NAS-Pfad kopieren';btn.classList.remove('copied');},2000);}
+  });
+}
+
+// ═══ FORMULAR ═══
+function openNeu(){
+  detailId=null;
+  document.getElementById('formTitel').textContent='+ Neuer Auftrag';
+  document.getElementById('loeschBtn').style.display='none';
   clearForm();
-  document.getElementById('fDatum').value = new Date().toISOString().split('T')[0];
-  updateHvSelect();
-  document.getElementById('auftragModal').classList.add('open');
+  document.getElementById('fDat').value=new Date().toISOString().split('T')[0];
+  updateHVSel();
+  document.getElementById('formModal').classList.add('open');
 }
 
-function openEditAuftrag(id){
-  const a = auftraege.find(x => x.id === id);
-  if(!a) return;
-  currentId = id;
-  document.getElementById('modalTitle').textContent = '✏ Auftrag bearbeiten';
-  document.getElementById('deleteBtn').style.display = '';
-  document.getElementById('auftragId').value = id;
-  document.getElementById('fKostenstelle').value = a.kostenstelle||'';
-  document.getElementById('fRepNr').value = a.repNr||'';
-  document.getElementById('fDatum').value = a.datum||'';
-  document.getElementById('fStatus').value = a.status||'neu';
-  document.getElementById('fAuftraggeber').value = a.auftraggeber||'';
-  document.getElementById('fKundenNr').value = a.kundenNr||'';
-  document.getElementById('fHausverwaltung').value = a.hausverwaltung||'';
-  document.getElementById('fStrasse').value = a.strasse||'';
-  document.getElementById('fOrt').value = a.ort||'';
-  document.getElementById('fSchaden').value = a.schaden||'';
-  document.getElementById('fEigName').value = a.eigentuemer||'';
-  document.getElementById('fEigTel').value = a.eigTel||'';
-  document.getElementById('fEigEmail').value = a.eigEmail||'';
-  document.getElementById('fMietName').value = a.mieterName||'';
-  document.getElementById('fMietTel').value = a.mieterTel||'';
-  document.getElementById('fMietEmail').value = a.mieterEmail||'';
-  document.getElementById('fTerminOrt').value = a.terminOrt||'';
-  document.getElementById('fTerminAbgabe').value = a.terminAbgabe||'';
-  document.getElementById('fGdrive').value = a.gdrive||'';
-  document.getElementById('fNasPfad').value = a.nasPfad||'';
-  document.getElementById('fNotizen').value = a.notizen||'';
-  updateHvSelect();
-  document.getElementById('auftragModal').classList.add('open');
+function openBearbeiten(){
+  const a=auftraege.find(x=>x.id===detailId);
+  if(!a)return;
+  document.getElementById('formTitel').textContent='✏ Auftrag bearbeiten';
+  document.getElementById('loeschBtn').style.display='';
+  document.getElementById('fId').value=a.id;
+  document.getElementById('fKS').value=a.ks||'';
+  document.getElementById('fRep').value=a.rep||'';
+  document.getElementById('fDat').value=a.datum||'';
+  document.getElementById('fStat').value=a.status||'neu';
+  document.getElementById('fAG').value=a.ag||'';
+  document.getElementById('fKNr').value=a.knr||'';
+  document.getElementById('fHV').value=a.hv||'';
+  document.getElementById('fStr').value=a.strasse||'';
+  document.getElementById('fOrt').value=a.ort||'';
+  document.getElementById('fSch').value=a.schaden||'';
+  document.getElementById('fEN').value=a.eigentuemer||'';
+  document.getElementById('fET').value=a.eigTel||'';
+  document.getElementById('fEE').value=a.eigEmail||'';
+  document.getElementById('fMN').value=a.mieterName||'';
+  document.getElementById('fMT').value=a.mieterTel||'';
+  document.getElementById('fME').value=a.mieterEmail||'';
+  document.getElementById('fTO').value=a.terminOrt||'';
+  document.getElementById('fTA').value=a.terminAbgabe||'';
+  document.getElementById('fGD').value=a.gdrive||'';
+  document.getElementById('fNAS').value=a.nas||'';
+  document.getElementById('fNot').value=a.notizen||'';
+  updateHVSel();
+  document.getElementById('formModal').classList.add('open');
 }
 
-function closeModal(){
-  document.getElementById('auftragModal').classList.remove('open');
-  currentId = null;
-}
+function closeForm(){document.getElementById('formModal').classList.remove('open');}
 
 function clearForm(){
-  ['fKostenstelle','fRepNr','fDatum','fAuftraggeber','fKundenNr','fHausverwaltung',
-   'fStrasse','fOrt','fSchaden','fEigName','fEigTel','fEigEmail',
-   'fMietName','fMietTel','fMietEmail','fTerminOrt','fTerminAbgabe',
-   'fGdrive','fNasPfad','fNotizen'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.value = '';
+  ['fKS','fRep','fDat','fAG','fKNr','fHV','fStr','fOrt','fSch',
+   'fEN','fET','fEE','fMN','fMT','fME','fTO','fTA','fGD','fNAS','fNot'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
   });
-  document.getElementById('fStatus').value = 'neu';
-  document.getElementById('fHvSelect').value = '';
+  document.getElementById('fId').value='';
+  document.getElementById('fStat').value='neu';
+  document.getElementById('fHVSel').value='';
 }
 
-async function saveAuftrag(){
-  const kostenstelle = document.getElementById('fKostenstelle').value.trim();
-  if(!kostenstelle){ showToast('⚠ Kostenstelle ist Pflichtfeld'); return; }
-  const data = {
-    id: currentId || genId(),
-    kostenstelle,
-    repNr:         document.getElementById('fRepNr').value.trim(),
-    datum:         document.getElementById('fDatum').value,
-    status:        document.getElementById('fStatus').value,
-    auftraggeber:  document.getElementById('fAuftraggeber').value.trim(),
-    kundenNr:      document.getElementById('fKundenNr').value.trim(),
-    hausverwaltung:document.getElementById('fHausverwaltung').value.trim(),
-    strasse:       document.getElementById('fStrasse').value.trim(),
-    ort:           document.getElementById('fOrt').value.trim(),
-    schaden:       document.getElementById('fSchaden').value.trim(),
-    eigentuemer:   document.getElementById('fEigName').value.trim(),
-    eigTel:        document.getElementById('fEigTel').value.trim(),
-    eigEmail:      document.getElementById('fEigEmail').value.trim(),
-    mieterName:    document.getElementById('fMietName').value.trim(),
-    mieterTel:     document.getElementById('fMietTel').value.trim(),
-    mieterEmail:   document.getElementById('fMietEmail').value.trim(),
-    terminOrt:     document.getElementById('fTerminOrt').value.trim(),
-    terminAbgabe:  document.getElementById('fTerminAbgabe').value.trim(),
-    gdrive:        document.getElementById('fGdrive').value.trim(),
-    nasPfad:       document.getElementById('fNasPfad').value.trim(),
-    notizen:       document.getElementById('fNotizen').value.trim(),
-    updatedAt:     new Date().toISOString()
+async function speichern(){
+  const ks=document.getElementById('fKS').value.trim();
+  if(!ks){toast('⚠ Kostenstelle fehlt');return;}
+  const existId=document.getElementById('fId').value;
+  const data={
+    id:existId||genId(),
+    ks, rep:document.getElementById('fRep').value.trim(),
+    datum:document.getElementById('fDat').value,
+    status:document.getElementById('fStat').value,
+    ag:document.getElementById('fAG').value.trim(),
+    knr:document.getElementById('fKNr').value.trim(),
+    hv:document.getElementById('fHV').value.trim(),
+    strasse:document.getElementById('fStr').value.trim(),
+    ort:document.getElementById('fOrt').value.trim(),
+    schaden:document.getElementById('fSch').value.trim(),
+    eigentuemer:document.getElementById('fEN').value.trim(),
+    eigTel:document.getElementById('fET').value.trim(),
+    eigEmail:document.getElementById('fEE').value.trim(),
+    mieterName:document.getElementById('fMN').value.trim(),
+    mieterTel:document.getElementById('fMT').value.trim(),
+    mieterEmail:document.getElementById('fME').value.trim(),
+    terminOrt:document.getElementById('fTO').value.trim(),
+    terminAbgabe:document.getElementById('fTA').value.trim(),
+    gdrive:document.getElementById('fGD').value.trim(),
+    nas:document.getElementById('fNAS').value.trim(),
+    notizen:document.getElementById('fNot').value.trim(),
+    updatedAt:new Date().toISOString()
   };
-  if(currentId){
-    const idx = auftraege.findIndex(a => a.id === currentId);
-    if(idx>=0) auftraege[idx] = data;
-  } else {
-    data.createdAt = new Date().toISOString();
+  if(existId){
+    const idx=auftraege.findIndex(a=>a.id===existId);
+    if(idx>=0)auftraege[idx]=data;
+  }else{
+    data.createdAt=new Date().toISOString();
     auftraege.unshift(data);
+    detailId=data.id;
   }
-  await saveToFile();
-  closeModal();
-  renderAll();
-  showToast('✅ Auftrag gespeichert');
+  await saveFile();
+  closeForm();
+  renderListe();
+  if(detailId){
+    const a=auftraege.find(x=>x.id===detailId);
+    if(a){document.getElementById('detailTitel').textContent=a.ks||'Auftrag';renderDetail(a);}
+  }
+  toast('✅ Gespeichert');
 }
 
-async function deleteAuftrag(){
-  if(!currentId) return;
-  if(!confirm('Diesen Auftrag wirklich löschen?')) return;
-  auftraege = auftraege.filter(a => a.id !== currentId);
-  await saveToFile();
-  closeModal();
-  renderAll();
-  showToast('🗑 Auftrag gelöscht');
+async function loeschen(){
+  if(!confirm('Auftrag löschen?'))return;
+  const existId=document.getElementById('fId').value;
+  auftraege=auftraege.filter(a=>a.id!==existId);
+  await saveFile();
+  closeForm();
+  zurueck();
+  renderListe();
+  toast('🗑 Gelöscht');
 }
 
-// ── NAS / GDRIVE ──
-function copyNas(){
-  const val = document.getElementById('fNasPfad').value.trim();
-  if(!val){ showToast('Kein NAS-Pfad eingetragen'); return; }
-  navigator.clipboard.writeText(val).then(() => {
-    const btn = document.getElementById('nasCopyBtn');
-    btn.textContent = '✅ Kopiert!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = '📋 Kopieren'; btn.classList.remove('copied'); }, 2000);
+// ═══ README IMPORT ═══
+function triggerReadme(){document.getElementById('readmeInput').click();}
+function importReadme(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const txt=e.target.result;
+    const v=key=>readVal(txt,key);
+    if(v('Auftrag_Kostenstelle')) document.getElementById('fKS').value=v('Auftrag_Kostenstelle');
+    if(v('Rep_Nr')) document.getElementById('fRep').value=v('Rep_Nr');
+    const dat=v('Auftrag_Datum');
+    if(dat){const p=dat.split('.');if(p.length===3)document.getElementById('fDat').value=p[2]+'-'+p[1]+'-'+p[0];}
+    if(v('Auftraggeber')) document.getElementById('fAG').value=v('Auftraggeber');
+    if(v('Kunden_Nr')) document.getElementById('fKNr').value=v('Kunden_Nr');
+    const hv=v('Objekt_Hausverwaltung');
+    if(hv){
+      document.getElementById('fHV').value=hv;
+      const gefunden=hvListe.find(h=>hv.toLowerCase().includes(h.name.toLowerCase())||h.name.toLowerCase().includes(hv.toLowerCase()));
+      if(gefunden&&gefunden.driveLink) document.getElementById('fGD').value=gefunden.driveLink;
+    }
+    const str=v('Objekt_Strasse');
+    if(str){
+      const m=str.match(/^(.+?),\s*(\d{5}.+)$/);
+      if(m){document.getElementById('fStr').value=m[1].trim();document.getElementById('fOrt').value=m[2].trim();}
+      else document.getElementById('fStr').value=str;
+    }
+    if(v('Baustelle_Schadensbild')) document.getElementById('fSch').value=v('Baustelle_Schadensbild');
+    if(v('Eigentuemer_Name')) document.getElementById('fEN').value=v('Eigentuemer_Name');
+    if(v('Eigentuemer_Telefon')) document.getElementById('fET').value=v('Eigentuemer_Telefon');
+    if(v('Eigentuemer_Email')) document.getElementById('fEE').value=v('Eigentuemer_Email');
+    if(v('Mieter_Name')) document.getElementById('fMN').value=v('Mieter_Name');
+    if(v('Mieter_Telefon')) document.getElementById('fMT').value=v('Mieter_Telefon');
+    if(v('Mieter_Email')) document.getElementById('fME').value=v('Mieter_Email');
+    if(v('Termin_Ortstermin')) document.getElementById('fTO').value=v('Termin_Ortstermin');
+    if(v('Termin_Abgabe')) document.getElementById('fTA').value=v('Termin_Abgabe');
+    if(v('Google_Drive_Link')) document.getElementById('fGD').value=v('Google_Drive_Link');
+    if(v('NAS_Auftragsordner')) document.getElementById('fNAS').value=v('NAS_Auftragsordner');
+    toast('✅ README importiert');
+    event.target.value='';
+  };
+  reader.readAsText(file,'windows-1252');
+}
+
+// ═══ HV LISTE ═══
+function saveHV(){localStorage.setItem('bau_hv',JSON.stringify(hvListe));saveFile();}
+function renderHV(){
+  const el=document.getElementById('hvListe');
+  if(!hvListe.length){el.innerHTML='<p style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">Noch keine HV angelegt.</p>';return;}
+  el.innerHTML=hvListe.map((h,i)=>`
+    <div class="hv-row">
+      <div class="hv-name">🏢 ${esc(h.name)}</div>
+      <div class="hv-drive">${h.driveLink?'📁 '+esc(h.driveLink):'<span style="color:var(--text2)">kein Link</span>'}</div>
+      <div style="display:flex;gap:4px;">
+        <button class="icon-btn" onclick="hvEdit(${i})">✏</button>
+        <button class="icon-btn del" onclick="hvDel(${i})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function updateHVSel(){
+  const s=document.getElementById('fHVSel');
+  const c=s.value;
+  s.innerHTML='<option value="">– aus Liste –</option>';
+  hvListe.forEach(h=>{const o=document.createElement('option');o.value=h.name;o.textContent=h.name;s.appendChild(o);});
+  s.value=c;
+}
+function hvGewaehlt(){
+  const name=document.getElementById('fHVSel').value;
+  if(!name)return;
+  document.getElementById('fHV').value=name;
+  const h=hvListe.find(x=>x.name===name);
+  if(h&&h.driveLink){document.getElementById('fGD').value=h.driveLink;toast('📁 Drive-Link eingetragen');}
+}
+function hvHinzu(){
+  const name=document.getElementById('hvName').value.trim();
+  const drive=document.getElementById('hvDrive').value.trim();
+  if(!name){toast('⚠ Name fehlt');return;}
+  hvListe.push({name,driveLink:drive});
+  document.getElementById('hvName').value='';
+  document.getElementById('hvDrive').value='';
+  saveHV();renderHV();updateHVSel();toast('✅ HV gespeichert');
+}
+function hvDel(i){if(!confirm('HV "'+hvListe[i].name+'" löschen?'))return;hvListe.splice(i,1);saveHV();renderHV();updateHVSel();}
+function hvEdit(i){
+  const h=hvListe[i];
+  const n=prompt('Name:',h.name);if(n===null)return;
+  const d=prompt('Google Drive Link:',h.driveLink||'');if(d===null)return;
+  hvListe[i]={name:n.trim(),driveLink:d.trim()};
+  saveHV();renderHV();updateHVSel();toast('✅ Aktualisiert');
+}
+function openHvModal(){renderHV();document.getElementById('hvModal').classList.add('open');}
+function closeHv(){document.getElementById('hvModal').classList.remove('open');}
+
+// ═══ FORM HELPERS ═══
+function driveOeffnen(){const u=document.getElementById('fGD').value.trim();if(!u){toast('Kein Drive-Link');return;}window.open(u,'_blank');}
+function nasKopierenForm(){
+  const v=document.getElementById('fNAS').value.trim();
+  if(!v){toast('Kein NAS-Pfad');return;}
+  navigator.clipboard.writeText(v).then(()=>{
+    const b=document.getElementById('nasBtnForm');
+    b.textContent='✅';b.classList.add('copied');
+    setTimeout(()=>{b.textContent='📋';b.classList.remove('copied');},2000);
   });
 }
 
-function openGdrive(){
-  const url = document.getElementById('fGdrive').value.trim();
-  if(!url){ showToast('Kein Google Drive Link eingetragen'); return; }
-  window.open(url, '_blank');
-}
+// ═══ START / TOAST ═══
+function closeStart(){document.getElementById('startModal').classList.remove('open');}
+function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 
-// ── START MODAL ──
-function closeStartModal(){
-  document.getElementById('startModal').classList.remove('open');
-}
-
-// ── TOAST ──
-function showToast(msg, duration=2800){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
-}
-
-// ── KEYBOARD ──
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape'){
-    document.getElementById('auftragModal').classList.remove('open');
-    document.getElementById('hvModal').classList.remove('open');
-  }
-  if((e.ctrlKey||e.metaKey) && e.key==='s'){
-    e.preventDefault();
-    if(document.getElementById('auftragModal').classList.contains('open')){
-      saveAuftrag();
-    } else {
-      saveToFile().then(()=>showToast('✅ Gespeichert'));
-    }
-  }
+// ═══ KEYBOARD ═══
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){document.getElementById('formModal').classList.remove('open');document.getElementById('hvModal').classList.remove('open');}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();speichern();}
 });
+document.getElementById('formModal').addEventListener('click',function(e){if(e.target===this)closeForm();});
+document.getElementById('hvModal').addEventListener('click',function(e){if(e.target===this)closeHv();});
 
-document.getElementById('auftragModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
-document.getElementById('hvModal').addEventListener('click', function(e){ if(e.target===this) closeHvModal(); });
-
-// ── INIT ──
-updateHvSelect();
-renderAll();
+// ═══ INIT ═══
+updateHVSel();
+renderListe();
 </script>
 </body>
 </html>
