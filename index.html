@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bau-Doku</title>
+<style>
+:root {
+  --bg:#1a1b2e; --bg2:#232440; --bg3:#2a2b4a; --bg4:#33345a;
+  --text:#e0e0f0; --text2:#a0a0c0;
+  --accent:#6c63ff; --accent2:#8b83ff;
+  --green:#2ecc71; --orange:#f39c12; --red:#e74c3c;
+  --border:#3a3b5a; --shadow:rgba(0,0,0,0.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+button{cursor:pointer;border:none;font-family:inherit;}
+input,select,textarea{font-family:inherit;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;gap:8px;}
+.logo{font-size:20px;font-weight:700;color:var(--accent2);letter-spacing:1px;}
+.logo span{color:var(--text2);font-size:13px;font-weight:400;margin-left:8px;}
+.topbar-center{flex:1;max-width:340px;margin:0 16px;position:relative;}
+.search-input{width:100%;padding:7px 12px 7px 34px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;}
+.search-input:focus{border-color:var(--accent);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px;pointer-events:none;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+.btn-secondary:hover{background:var(--bg4);color:var(--text);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{opacity:.85;}
+
+/* FILEBAR */
+.filebar{display:flex;align-items:center;justify-content:space-between;padding:5px 20px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;gap:6px;}
+.filebar-left{display:flex;align-items:center;gap:8px;}
+.file-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.file-dot.ok{background:var(--green);}
+.file-dot.unsaved{background:var(--orange);}
+.file-dot.none{background:var(--text2);}
+.file-name{color:var(--text2);font-size:12px;}
+.filebar-right{display:flex;gap:6px;}
+.file-btn{padding:3px 10px;border-radius:4px;font-size:11px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);transition:all .15s;}
+.file-btn:hover{background:var(--bg3);color:var(--text);}
+
+/* FILTER BAR */
+.filterbar{display:flex;align-items:center;gap:8px;padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.filter-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.filter-btn{padding:4px 12px;border-radius:20px;font-size:12px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);transition:all .15s;}
+.filter-btn:hover,.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.filter-count{font-size:11px;color:var(--text2);margin-left:auto;}
+
+/* MAIN */
+.main{flex:1;padding:16px 20px;overflow-y:auto;}
+
+/* KANBAN */
+.kanban{display:flex;gap:14px;align-items:flex-start;}
+.kanban-col{flex:1;min-width:260px;background:var(--bg2);border-radius:10px;display:flex;flex-direction:column;}
+.kanban-col-header{padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;}
+.kanban-col-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
+.kanban-col-dot{width:8px;height:8px;border-radius:50%;}
+.kanban-col-count{font-size:11px;color:var(--text2);background:var(--bg4);padding:1px 7px;border-radius:10px;}
+.kanban-col-body{padding:6px 10px 12px;display:flex;flex-direction:column;gap:8px;min-height:60px;}
+
+/* AUFTRAG CARD */
+.auftrag-card{background:var(--bg3);border-radius:8px;padding:12px;cursor:pointer;transition:all .15s;border:1px solid transparent;position:relative;}
+.auftrag-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px var(--shadow);}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.card-kostenstelle{font-size:13px;font-weight:600;color:var(--accent2);}
+.card-datum{font-size:11px;color:var(--text2);}
+.card-adresse{font-size:12px;color:var(--text);margin-bottom:4px;line-height:1.3;}
+.card-hv{font-size:11px;color:var(--text2);margin-bottom:6px;}
+.card-schaden{font-size:11px;color:var(--text2);font-style:italic;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.card-footer{display:flex;gap:6px;flex-wrap:wrap;}
+.card-badge{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--bg);color:var(--text2);display:flex;align-items:center;gap:4px;}
+.card-badge.has-gdrive{color:var(--green);}
+.card-badge.has-nas{color:var(--accent2);}
+.card-mieter{font-size:11px;color:var(--text2);margin-bottom:4px;}
+
+/* GRID VIEW */
+.grid-view{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border-radius:12px;padding:24px;width:580px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px var(--shadow);}
+.modal h2{font-size:18px;margin-bottom:16px;color:var(--accent2);}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-field{margin-bottom:0;}
+.modal-field.full{grid-column:1/-1;}
+.modal-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;transition:border-color .15s;}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--accent);}
+.modal-field textarea{resize:vertical;min-height:70px;}
+.modal-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.modal-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
+
+/* NAS COPY */
+.nas-row{display:flex;gap:8px;align-items:center;}
+.nas-row input{flex:1;}
+.nas-copy-btn{padding:8px 12px;border-radius:6px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;transition:all .15s;}
+.nas-copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.nas-copy-btn.copied{background:var(--green);color:#fff;border-color:var(--green);}
+
+/* GDRIVE LINK */
+.gdrive-row{display:flex;gap:8px;align-items:center;}
+.gdrive-row input{flex:1;}
+.gdrive-open-btn{padding:8px 12px;border-radius:6px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;text-decoration:none;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.gdrive-open-btn:hover{background:#1a73e8;color:#fff;border-color:#1a73e8;}
+
+/* START MODAL */
+.start-modal{background:var(--bg2);border-radius:14px;padding:32px;width:420px;max-width:90vw;box-shadow:0 20px 60px var(--shadow);text-align:center;}
+.start-modal h2{font-size:22px;font-weight:700;color:var(--accent2);margin-bottom:8px;}
+.start-modal p{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;}
+.start-btns{display:flex;flex-direction:column;gap:10px;}
+.start-btn{padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;transition:all .15s;text-align:left;display:flex;align-items:center;gap:12px;}
+.start-btn-icon{font-size:20px;flex-shrink:0;}
+.start-btn-text{display:flex;flex-direction:column;gap:2px;}
+.start-btn-label{font-size:14px;font-weight:600;}
+.start-btn-sub{font-size:11px;font-weight:400;opacity:.8;}
+.start-btn.primary{background:var(--accent);color:#fff;}
+.start-btn.primary:hover{background:var(--accent2);}
+.start-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
+.start-btn.secondary:hover{background:var(--bg4);}
+.start-btn.ghost{background:transparent;color:var(--text2);font-size:12px;font-weight:400;justify-content:center;padding:8px;}
+.start-btn.ghost:hover{color:var(--text);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);padding:10px 20px;border-radius:8px;font-size:13px;z-index:2000;box-shadow:0 4px 16px var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2);}
+.empty-state-icon{font-size:40px;margin-bottom:12px;}
+.empty-state-text{font-size:14px;}
+
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+
+@media(max-width:600px){
+  .kanban{flex-direction:column;}
+  .topbar-center{max-width:100%;margin:0;}
+  .modal-grid{grid-template-columns:1fr;}
+  .modal-field.full{grid-column:1;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
+    <div class="logo">🏗 Bau-Doku <span>Auftragsübersicht</span></div>
+    <div class="topbar-center">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="Kostenstelle, Adresse, Mieter suchen…" oninput="renderAll()">
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-primary" onclick="openNewAuftrag()">+ Neuer Auftrag</button>
+  </div>
+</div>
+
+<!-- FILEBAR -->
+<div class="filebar">
+  <div class="filebar-left">
+    <span class="file-dot none" id="fileDot"></span>
+    <span class="file-name" id="fileName">Keine Datei geöffnet</span>
+  </div>
+  <div class="filebar-right">
+    <button class="file-btn" onclick="openFile()">📂 Öffnen</button>
+    <button class="file-btn" onclick="createNewFile()">✨ Neue Datei</button>
+    <button class="file-btn" onclick="downloadFile()">⬇ Download</button>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filterbar">
+  <span class="filter-label">Status:</span>
+  <button class="filter-btn active" data-filter="alle" onclick="setFilter('alle',this)">Alle</button>
+  <button class="filter-btn" data-filter="neu" onclick="setFilter('neu',this)">🔵 Neu</button>
+  <button class="filter-btn" data-filter="bearbeitung" onclick="setFilter('bearbeitung',this)">🟠 In Bearbeitung</button>
+  <button class="filter-btn" data-filter="abgeschlossen" onclick="setFilter('abgeschlossen',this)">🟢 Abgeschlossen</button>
+  <span class="filter-count" id="filterCount"></span>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainContent"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- START MODAL -->
+<div class="modal-overlay open" id="startModal">
+  <div class="start-modal">
+    <h2>🏗 Bau-Doku</h2>
+    <p>Wähle eine JSON-Datei für die automatische Speicherung.<br>Alle Aufträge werden dort gespeichert.</p>
+    <div class="start-btns">
+      <button class="start-btn primary" onclick="openFile()">
+        <span class="start-btn-icon">📂</span>
+        <span class="start-btn-text">
+          <span class="start-btn-label">Vorhandene Datei öffnen</span>
+          <span class="start-btn-sub">bau-doku.json vom letzten Mal laden</span>
+        </span>
+      </button>
+      <button class="start-btn secondary" onclick="createNewFile()">
+        <span class="start-btn-icon">✨</span>
+        <span class="start-btn-text">
+          <span class="start-btn-label">Neue Datei anlegen</span>
+          <span class="start-btn-sub">Frisch starten, Datei auf Google Drive speichern</span>
+        </span>
+      </button>
+      <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten (Daten gehen beim Schließen verloren)</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUFTRAG MODAL -->
+<div class="modal-overlay" id="auftragModal">
+  <div class="modal">
+    <h2 id="modalTitle">Neuer Auftrag</h2>
+    <input type="hidden" id="auftragId">
+
+    <div class="modal-section" style="margin-top:0;padding-top:0;border-top:none;">
+      <div class="modal-section-title">📋 Auftragsdaten</div>
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label>Kostenstelle</label>
+          <input type="text" id="fKostenstelle" placeholder="z.B. 260022">
+        </div>
+        <div class="modal-field">
+          <label>Rep.-Nr.</label>
+          <input type="text" id="fRepNr" placeholder="z.B. 3471">
+        </div>
+        <div class="modal-field">
+          <label>Datum</label>
+          <input type="date" id="fDatum">
+        </div>
+        <div class="modal-field">
+          <label>Status</label>
+          <select id="fStatus">
+            <option value="neu">🔵 Neu</option>
+            <option value="bearbeitung">🟠 In Bearbeitung</option>
+            <option value="abgeschlossen">🟢 Abgeschlossen</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Auftraggeber</label>
+          <input type="text" id="fAuftraggeber" placeholder="z.B. Fr. Beck">
+        </div>
+        <div class="modal-field">
+          <label>Kunden-Nr.</label>
+          <input type="text" id="fKundenNr" placeholder="z.B. 777">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">📍 Objekt</div>
+      <div class="modal-grid">
+        <div class="modal-field full">
+          <label>Hausverwaltung</label>
+          <input type="text" id="fHausverwaltung" placeholder="z.B. Alkenbrecher HV GmbH">
+        </div>
+        <div class="modal-field">
+          <label>Straße + Hausnummer</label>
+          <input type="text" id="fStrasse" placeholder="z.B. Humboldtstr. 62">
+        </div>
+        <div class="modal-field">
+          <label>PLZ + Ort</label>
+          <input type="text" id="fOrt" placeholder="z.B. 99096 Erfurt">
+        </div>
+        <div class="modal-field full">
+          <label>Baustelle / Schadensbild</label>
+          <textarea id="fSchaden" placeholder="z.B. 2. OG links, Feuchtigkeit Küche…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">👤 Eigentümer</div>
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label>Name</label>
+          <input type="text" id="fEigName" placeholder="Vor- und Nachname">
+        </div>
+        <div class="modal-field">
+          <label>Telefon</label>
+          <input type="tel" id="fEigTel" placeholder="z.B. 0361/123456">
+        </div>
+        <div class="modal-field full">
+          <label>E-Mail</label>
+          <input type="email" id="fEigEmail" placeholder="name@example.de">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">🏠 Mieter</div>
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label>Name</label>
+          <input type="text" id="fMietName" placeholder="Vor- und Nachname">
+        </div>
+        <div class="modal-field">
+          <label>Telefon</label>
+          <input type="tel" id="fMietTel" placeholder="z.B. 0178/9210453">
+        </div>
+        <div class="modal-field full">
+          <label>E-Mail</label>
+          <input type="email" id="fMietEmail" placeholder="name@example.de">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">📅 Termine</div>
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label>Ortstermin</label>
+          <input type="text" id="fTerminOrt" placeholder="z.B. 15.04.2026 10:00 Uhr">
+        </div>
+        <div class="modal-field">
+          <label>Abgabe</label>
+          <input type="text" id="fTerminAbgabe" placeholder="z.B. 30.04.2026">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">🔗 Verknüpfungen</div>
+      <div class="modal-grid">
+        <div class="modal-field full">
+          <label>Google Drive – Foto-Ordner Link</label>
+          <div class="gdrive-row">
+            <input type="url" id="fGdrive" placeholder="https://drive.google.com/drive/folders/…">
+            <a id="gdriveOpenBtn" class="gdrive-open-btn" href="#" target="_blank" onclick="return openGdrive()">📁 Öffnen</a>
+          </div>
+        </div>
+        <div class="modal-field full">
+          <label>NAS-Pfad (Auftragsordner)</label>
+          <div class="nas-row">
+            <input type="text" id="fNasPfad" placeholder="\\nas-ddbraun\Datenarchiv\Auftrag_erstellen\…">
+            <button class="nas-copy-btn" id="nasCopyBtn" onclick="copyNas()">📋 Kopieren</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">📝 Notizen</div>
+      <div class="modal-field">
+        <label>Interne Notizen</label>
+        <textarea id="fNotizen" placeholder="Weitere Informationen, Hinweise…" style="min-height:80px;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteBtn" onclick="deleteAuftrag()" style="display:none;margin-right:auto;">🗑 Löschen</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveAuftrag()">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let auftraege = [];
+let currentFilter = 'alle';
+let currentId = null;
+let fileHandle = null;
+const hasFileAPI = 'showOpenFilePicker' in window;
+
+function genId(){ return 'a_' + Date.now() + '_' + Math.random().toString(36).substr(2,5); }
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+// ── FILE SYSTEM ──
+function updateFileStatus(state, name){
+  document.getElementById('fileDot').className = 'file-dot ' + state;
+  document.getElementById('fileName').textContent = name;
+}
+
+async function openFile(){
+  closeStartModal();
+  if(!hasFileAPI){ fallbackImport(); return; }
+  try {
+    [fileHandle] = await window.showOpenFilePicker({ types:[{description:'JSON',accept:{'application/json':['.json']}}] });
+    const f = await fileHandle.getFile();
+    const text = await f.text();
+    auftraege = JSON.parse(text) || [];
+    updateFileStatus('ok', fileHandle.name);
+    renderAll();
+  } catch(e){ if(e.name!=='AbortError') showToast('Fehler beim Öffnen'); }
+}
+
+async function createNewFile(){
+  closeStartModal();
+  if(!hasFileAPI){ updateFileStatus('unsaved','Ohne Datei (Download zum Speichern)'); renderAll(); return; }
+  try {
+    fileHandle = await window.showSaveFilePicker({ suggestedName:'bau-doku.json', types:[{description:'JSON',accept:{'application/json':['.json']}}] });
+    auftraege = [];
+    await saveToFile();
+    updateFileStatus('ok', fileHandle.name);
+    renderAll();
+  } catch(e){ if(e.name!=='AbortError') showToast('Datei konnte nicht erstellt werden'); }
+}
+
+function skipFile(){
+  closeStartModal();
+  updateFileStatus('none','Ohne Datei – Daten werden nicht automatisch gespeichert');
+  renderAll();
+}
+
+async function saveToFile(){
+  if(!fileHandle) return;
+  try {
+    const w = await fileHandle.createWritable();
+    await w.write(JSON.stringify(auftraege, null, 2));
+    await w.close();
+    updateFileStatus('ok', fileHandle.name);
+  } catch(e){ showToast('⚠ Speichern fehlgeschlagen'); }
+}
+
+function fallbackImport(){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange = async e => {
+    const text = await e.target.files[0].text();
+    auftraege = JSON.parse(text) || [];
+    updateFileStatus('unsaved','Importiert (Download zum Speichern)');
+    renderAll();
+  };
+  input.click();
+}
+
+function downloadFile(){
+  const blob = new Blob([JSON.stringify(auftraege,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bau-doku.json';
+  a.click();
+  showToast('✅ Datei heruntergeladen');
+}
+
+// ── FILTER & SEARCH ──
+function setFilter(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function getFiltered(){
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  return auftraege.filter(a => {
+    const matchFilter = currentFilter === 'alle' || a.status === currentFilter;
+    if(!matchFilter) return false;
+    if(!q) return true;
+    const haystack = [a.kostenstelle,a.strasse,a.ort,a.hausverwaltung,a.mieterName,a.eigentuemer,a.schaden,a.repNr].join(' ').toLowerCase();
+    return haystack.includes(q);
+  });
+}
+
+// ── RENDER ──
+function renderAll(){
+  const filtered = getFiltered();
+  document.getElementById('filterCount').textContent = filtered.length + ' Auftrag' + (filtered.length!==1?'e':'');
+
+  // Kanban Spalten
+  const spalten = [
+    {key:'neu',       label:'Neu',           color:'#4a90d9'},
+    {key:'bearbeitung',label:'In Bearbeitung', color:'#f39c12'},
+    {key:'abgeschlossen',label:'Abgeschlossen', color:'#2ecc71'}
+  ];
+
+  let html = '';
+
+  if(currentFilter === 'alle'){
+    html = '<div class="kanban">';
+    spalten.forEach(sp => {
+      const cards = filtered.filter(a => a.status === sp.key);
+      html += `<div class="kanban-col">
+        <div class="kanban-col-header">
+          <div class="kanban-col-title">
+            <div class="kanban-col-dot" style="background:${sp.color}"></div>
+            ${sp.label}
+          </div>
+          <span class="kanban-col-count">${cards.length}</span>
+        </div>
+        <div class="kanban-col-body">`;
+      if(cards.length === 0){
+        html += `<div class="empty-state" style="padding:20px 10px;"><div style="font-size:24px;margin-bottom:6px;">📭</div><div style="font-size:12px;">Keine Aufträge</div></div>`;
+      } else {
+        cards.forEach(a => { html += renderCard(a); });
+      }
+      html += '</div></div>';
+    });
+    html += '</div>';
+  } else {
+    // Grid für gefilterte Ansicht
+    html = '<div class="grid-view">';
+    if(filtered.length === 0){
+      html = `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Keine Aufträge gefunden</div></div>`;
+    } else {
+      filtered.forEach(a => { html += renderCard(a); });
+      html += '</div>';
+    }
+  }
+
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+function renderCard(a){
+  const gdriveBadge = a.gdrive ? `<span class="card-badge has-gdrive">📁 Drive</span>` : '';
+  const nasBadge = a.nasPfad ? `<span class="card-badge has-nas">💾 NAS</span>` : '';
+  const mieter = a.mieterName ? `<div class="card-mieter">🏠 ${esc(a.mieterName)}${a.mieterTel?' · '+esc(a.mieterTel):''}</div>` : '';
+  const terminBadge = a.terminOrt ? `<span class="card-badge">📅 ${esc(a.terminOrt)}</span>` : '';
+
+  return `<div class="auftrag-card" onclick="openEditAuftrag('${a.id}')">
+    <div class="card-head">
+      <div class="card-kostenstelle">${esc(a.kostenstelle||'Kostenstelle fehlt')}</div>
+      <div class="card-datum">${esc(a.datum||'')}</div>
+    </div>
+    <div class="card-adresse">📍 ${esc(a.strasse||'')}${a.ort?', '+esc(a.ort):''}</div>
+    <div class="card-hv">🏢 ${esc(a.hausverwaltung||'–')}</div>
+    ${mieter}
+    ${a.schaden ? `<div class="card-schaden">${esc(a.schaden)}</div>` : ''}
+    <div class="card-footer">
+      ${gdriveBadge}${nasBadge}${terminBadge}
+      ${a.repNr?`<span class="card-badge">Rep. ${esc(a.repNr)}</span>`:''}
+    </div>
+  </div>`;
+}
+
+// ── MODAL ──
+function openNewAuftrag(){
+  currentId = null;
+  document.getElementById('modalTitle').textContent = '+ Neuer Auftrag';
+  document.getElementById('deleteBtn').style.display = 'none';
+  clearForm();
+  // Heute als Standard-Datum
+  document.getElementById('fDatum').value = new Date().toISOString().split('T')[0];
+  document.getElementById('auftragModal').classList.add('open');
+}
+
+function openEditAuftrag(id){
+  const a = auftraege.find(x => x.id === id);
+  if(!a) return;
+  currentId = id;
+  document.getElementById('modalTitle').textContent = '✏ Auftrag bearbeiten';
+  document.getElementById('deleteBtn').style.display = '';
+  document.getElementById('auftragId').value = id;
+  document.getElementById('fKostenstelle').value = a.kostenstelle||'';
+  document.getElementById('fRepNr').value = a.repNr||'';
+  document.getElementById('fDatum').value = a.datum||'';
+  document.getElementById('fStatus').value = a.status||'neu';
+  document.getElementById('fAuftraggeber').value = a.auftraggeber||'';
+  document.getElementById('fKundenNr').value = a.kundenNr||'';
+  document.getElementById('fHausverwaltung').value = a.hausverwaltung||'';
+  document.getElementById('fStrasse').value = a.strasse||'';
+  document.getElementById('fOrt').value = a.ort||'';
+  document.getElementById('fSchaden').value = a.schaden||'';
+  document.getElementById('fEigName').value = a.eigentuemer||'';
+  document.getElementById('fEigTel').value = a.eigTel||'';
+  document.getElementById('fEigEmail').value = a.eigEmail||'';
+  document.getElementById('fMietName').value = a.mieterName||'';
+  document.getElementById('fMietTel').value = a.mieterTel||'';
+  document.getElementById('fMietEmail').value = a.mieterEmail||'';
+  document.getElementById('fTerminOrt').value = a.terminOrt||'';
+  document.getElementById('fTerminAbgabe').value = a.terminAbgabe||'';
+  document.getElementById('fGdrive').value = a.gdrive||'';
+  document.getElementById('fNasPfad').value = a.nasPfad||'';
+  document.getElementById('fNotizen').value = a.notizen||'';
+  document.getElementById('auftragModal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('auftragModal').classList.remove('open');
+  currentId = null;
+}
+
+function clearForm(){
+  ['fKostenstelle','fRepNr','fDatum','fAuftraggeber','fKundenNr','fHausverwaltung',
+   'fStrasse','fOrt','fSchaden','fEigName','fEigTel','fEigEmail',
+   'fMietName','fMietTel','fMietEmail','fTerminOrt','fTerminAbgabe',
+   'fGdrive','fNasPfad','fNotizen'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('fStatus').value = 'neu';
+}
+
+async function saveAuftrag(){
+  const kostenstelle = document.getElementById('fKostenstelle').value.trim();
+  if(!kostenstelle){ showToast('⚠ Kostenstelle ist Pflichtfeld'); return; }
+
+  const data = {
+    id: currentId || genId(),
+    kostenstelle,
+    repNr:         document.getElementById('fRepNr').value.trim(),
+    datum:         document.getElementById('fDatum').value,
+    status:        document.getElementById('fStatus').value,
+    auftraggeber:  document.getElementById('fAuftraggeber').value.trim(),
+    kundenNr:      document.getElementById('fKundenNr').value.trim(),
+    hausverwaltung:document.getElementById('fHausverwaltung').value.trim(),
+    strasse:       document.getElementById('fStrasse').value.trim(),
+    ort:           document.getElementById('fOrt').value.trim(),
+    schaden:       document.getElementById('fSchaden').value.trim(),
+    eigentuemer:   document.getElementById('fEigName').value.trim(),
+    eigTel:        document.getElementById('fEigTel').value.trim(),
+    eigEmail:      document.getElementById('fEigEmail').value.trim(),
+    mieterName:    document.getElementById('fMietName').value.trim(),
+    mieterTel:     document.getElementById('fMietTel').value.trim(),
+    mieterEmail:   document.getElementById('fMietEmail').value.trim(),
+    terminOrt:     document.getElementById('fTerminOrt').value.trim(),
+    terminAbgabe:  document.getElementById('fTerminAbgabe').value.trim(),
+    gdrive:        document.getElementById('fGdrive').value.trim(),
+    nasPfad:       document.getElementById('fNasPfad').value.trim(),
+    notizen:       document.getElementById('fNotizen').value.trim(),
+    updatedAt:     new Date().toISOString()
+  };
+
+  if(currentId){
+    const idx = auftraege.findIndex(a => a.id === currentId);
+    if(idx>=0) auftraege[idx] = data;
+  } else {
+    data.createdAt = new Date().toISOString();
+    auftraege.unshift(data);
+  }
+
+  await saveToFile();
+  closeModal();
+  renderAll();
+  showToast('✅ Auftrag gespeichert');
+}
+
+async function deleteAuftrag(){
+  if(!currentId) return;
+  if(!confirm('Diesen Auftrag wirklich löschen?')) return;
+  auftraege = auftraege.filter(a => a.id !== currentId);
+  await saveToFile();
+  closeModal();
+  renderAll();
+  showToast('🗑 Auftrag gelöscht');
+}
+
+// ── NAS COPY ──
+function copyNas(){
+  const val = document.getElementById('fNasPfad').value.trim();
+  if(!val){ showToast('Kein NAS-Pfad eingetragen'); return; }
+  navigator.clipboard.writeText(val).then(() => {
+    const btn = document.getElementById('nasCopyBtn');
+    btn.textContent = '✅ Kopiert!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Kopieren'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── GDRIVE ──
+function openGdrive(){
+  const url = document.getElementById('fGdrive').value.trim();
+  if(!url){ showToast('Kein Google Drive Link eingetragen'); return false; }
+  window.open(url, '_blank');
+  return false;
+}
+
+// ── START MODAL ──
+function closeStartModal(){
+  document.getElementById('startModal').classList.remove('open');
+}
+
+// ── TOAST ──
+function showToast(msg, duration=2500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    document.getElementById('auftragModal').classList.remove('open');
+  }
+  if((e.ctrlKey||e.metaKey) && e.key==='s'){
+    e.preventDefault();
+    if(document.getElementById('auftragModal').classList.contains('open')){
+      saveAuftrag();
+    } else {
+      saveToFile().then(()=>showToast('✅ Gespeichert'));
+    }
+  }
+});
+
+// Klick außerhalb Modal schließt es
+document.getElementById('auftragModal').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+
+// ── INIT ──
+renderAll();
+</script>
+</body>
+</html>
