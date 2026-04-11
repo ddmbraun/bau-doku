@@ -33,6 +33,8 @@ input,select,textarea{font-family:inherit;}
 .btn-secondary:hover{background:var(--bg4);color:var(--text);}
 .btn-danger{background:var(--red);color:#fff;}
 .btn-danger:hover{opacity:.85;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{opacity:.85;}
 
 /* FILEBAR */
 .filebar{display:flex;align-items:center;justify-content:space-between;padding:5px 20px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;gap:6px;}
@@ -86,7 +88,7 @@ input,select,textarea{font-family:inherit;}
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px;}
 .modal-overlay.open{opacity:1;pointer-events:all;}
-.modal{background:var(--bg2);border-radius:12px;padding:24px;width:580px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px var(--shadow);}
+.modal{background:var(--bg2);border-radius:12px;padding:24px;width:600px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px var(--shadow);}
 .modal h2{font-size:18px;margin-bottom:16px;color:var(--accent2);}
 .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .modal-field{margin-bottom:0;}
@@ -96,7 +98,7 @@ input,select,textarea{font-family:inherit;}
 .modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--accent);}
 .modal-field textarea{resize:vertical;min-height:70px;}
 .modal-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
-.modal-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.modal-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
 
 /* NAS COPY */
@@ -106,11 +108,27 @@ input,select,textarea{font-family:inherit;}
 .nas-copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 .nas-copy-btn.copied{background:var(--green);color:#fff;border-color:var(--green);}
 
-/* GDRIVE LINK */
+/* GDRIVE */
 .gdrive-row{display:flex;gap:8px;align-items:center;}
 .gdrive-row input{flex:1;}
-.gdrive-open-btn{padding:8px 12px;border-radius:6px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;text-decoration:none;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.gdrive-open-btn{padding:8px 12px;border-radius:6px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;text-decoration:none;transition:all .15s;display:flex;align-items:center;gap:4px;cursor:pointer;}
 .gdrive-open-btn:hover{background:#1a73e8;color:#fff;border-color:#1a73e8;}
+
+/* README IMPORT BANNER */
+.readme-import-bar{display:flex;align-items:center;gap:10px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;}
+.readme-import-bar span{flex:1;font-size:12px;color:var(--text2);}
+
+/* HV STAMMLISTE */
+.hv-row{display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:8px;padding:8px 10px;border:1px solid var(--border);margin-bottom:8px;}
+.hv-row-name{flex:1;font-size:13px;font-weight:500;}
+.hv-row-drive{font-size:11px;color:var(--green);flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hv-row-btns{display:flex;gap:4px;}
+.icon-btn{width:26px;height:26px;border-radius:4px;background:var(--bg4);color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.icon-btn:hover{background:var(--accent);color:#fff;}
+.icon-btn.del:hover{background:var(--red);color:#fff;}
+.hv-add-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:12px;}
+.hv-add-row input{padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;}
+.hv-add-row input:focus{border-color:var(--accent);}
 
 /* START MODAL */
 .start-modal{background:var(--bg2);border-radius:14px;padding:32px;width:420px;max-width:90vw;box-shadow:0 20px 60px var(--shadow);text-align:center;}
@@ -148,6 +166,7 @@ input,select,textarea{font-family:inherit;}
   .topbar-center{max-width:100%;margin:0;}
   .modal-grid{grid-template-columns:1fr;}
   .modal-field.full{grid-column:1;}
+  .hv-add-row{grid-template-columns:1fr;gap:6px;}
 }
 </style>
 </head>
@@ -163,6 +182,7 @@ input,select,textarea{font-family:inherit;}
     </div>
   </div>
   <div class="topbar-right">
+    <button class="btn btn-secondary" onclick="openHvModal()" title="Hausverwaltungen verwalten">🏢 HV-Liste</button>
     <button class="btn btn-primary" onclick="openNewAuftrag()">+ Neuer Auftrag</button>
   </div>
 </div>
@@ -200,7 +220,7 @@ input,select,textarea{font-family:inherit;}
 <div class="modal-overlay open" id="startModal">
   <div class="start-modal">
     <h2>🏗 Bau-Doku</h2>
-    <p>Wähle eine JSON-Datei für die automatische Speicherung.<br>Alle Aufträge werden dort gespeichert.</p>
+    <p>Wähle eine JSON-Datei für die automatische Speicherung.<br>Datei direkt auf Google Drive speichern!</p>
     <div class="start-btns">
       <button class="start-btn primary" onclick="openFile()">
         <span class="start-btn-icon">📂</span>
@@ -213,7 +233,7 @@ input,select,textarea{font-family:inherit;}
         <span class="start-btn-icon">✨</span>
         <span class="start-btn-text">
           <span class="start-btn-label">Neue Datei anlegen</span>
-          <span class="start-btn-sub">Frisch starten, Datei auf Google Drive speichern</span>
+          <span class="start-btn-sub">Frisch starten – Datei auf Google Drive speichern</span>
         </span>
       </button>
       <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten (Daten gehen beim Schließen verloren)</button>
@@ -227,11 +247,19 @@ input,select,textarea{font-family:inherit;}
     <h2 id="modalTitle">Neuer Auftrag</h2>
     <input type="hidden" id="auftragId">
 
+    <!-- README IMPORT -->
+    <div class="readme-import-bar">
+      <span>📄 README.txt aus Auftragsordner importieren → Felder werden automatisch ausgefüllt</span>
+      <button class="btn btn-secondary" style="white-space:nowrap;" onclick="triggerReadmeImport()">📥 README importieren</button>
+      <input type="file" id="readmeFileInput" accept=".txt" style="display:none" onchange="importReadme(event)">
+    </div>
+
+    <!-- AUFTRAGSDATEN -->
     <div class="modal-section" style="margin-top:0;padding-top:0;border-top:none;">
       <div class="modal-section-title">📋 Auftragsdaten</div>
       <div class="modal-grid">
         <div class="modal-field">
-          <label>Kostenstelle</label>
+          <label>Kostenstelle *</label>
           <input type="text" id="fKostenstelle" placeholder="z.B. 260022">
         </div>
         <div class="modal-field">
@@ -261,12 +289,18 @@ input,select,textarea{font-family:inherit;}
       </div>
     </div>
 
+    <!-- OBJEKT -->
     <div class="modal-section">
       <div class="modal-section-title">📍 Objekt</div>
       <div class="modal-grid">
         <div class="modal-field full">
           <label>Hausverwaltung</label>
-          <input type="text" id="fHausverwaltung" placeholder="z.B. Alkenbrecher HV GmbH">
+          <div style="display:flex;gap:8px;">
+            <select id="fHvSelect" style="flex:1;" onchange="hvSelected()">
+              <option value="">– aus Liste wählen –</option>
+            </select>
+            <input type="text" id="fHausverwaltung" style="flex:2;" placeholder="oder direkt eingeben">
+          </div>
         </div>
         <div class="modal-field">
           <label>Straße + Hausnummer</label>
@@ -283,6 +317,7 @@ input,select,textarea{font-family:inherit;}
       </div>
     </div>
 
+    <!-- EIGENTUEMER -->
     <div class="modal-section">
       <div class="modal-section-title">👤 Eigentümer</div>
       <div class="modal-grid">
@@ -301,6 +336,7 @@ input,select,textarea{font-family:inherit;}
       </div>
     </div>
 
+    <!-- MIETER -->
     <div class="modal-section">
       <div class="modal-section-title">🏠 Mieter</div>
       <div class="modal-grid">
@@ -319,6 +355,7 @@ input,select,textarea{font-family:inherit;}
       </div>
     </div>
 
+    <!-- TERMINE -->
     <div class="modal-section">
       <div class="modal-section-title">📅 Termine</div>
       <div class="modal-grid">
@@ -333,26 +370,28 @@ input,select,textarea{font-family:inherit;}
       </div>
     </div>
 
+    <!-- VERKNÜPFUNGEN -->
     <div class="modal-section">
       <div class="modal-section-title">🔗 Verknüpfungen</div>
       <div class="modal-grid">
         <div class="modal-field full">
-          <label>Google Drive – Foto-Ordner Link</label>
+          <label>Google Drive – Foto-Ordner</label>
           <div class="gdrive-row">
             <input type="url" id="fGdrive" placeholder="https://drive.google.com/drive/folders/…">
-            <a id="gdriveOpenBtn" class="gdrive-open-btn" href="#" target="_blank" onclick="return openGdrive()">📁 Öffnen</a>
+            <button class="gdrive-open-btn" onclick="openGdrive()">📁 Öffnen</button>
           </div>
         </div>
         <div class="modal-field full">
           <label>NAS-Pfad (Auftragsordner)</label>
           <div class="nas-row">
-            <input type="text" id="fNasPfad" placeholder="\\nas-ddbraun\Datenarchiv\Auftrag_erstellen\…">
+            <input type="text" id="fNasPfad" placeholder="\\nas-ddbraun\Datenarchiv\…">
             <button class="nas-copy-btn" id="nasCopyBtn" onclick="copyNas()">📋 Kopieren</button>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- NOTIZEN -->
     <div class="modal-section">
       <div class="modal-section-title">📝 Notizen</div>
       <div class="modal-field">
@@ -369,9 +408,27 @@ input,select,textarea{font-family:inherit;}
   </div>
 </div>
 
+<!-- HV STAMMLISTE MODAL -->
+<div class="modal-overlay" id="hvModal">
+  <div class="modal" style="width:660px;">
+    <h2>🏢 Hausverwaltungen – Stammliste</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;">Einmal anlegen → beim Auftrag nur noch auswählen → Google Drive Link wird automatisch eingetragen.</p>
+    <div id="hvList"></div>
+    <div class="hv-add-row">
+      <input type="text" id="hvNewName" placeholder="HV Name (z.B. Alkenbrecher)">
+      <input type="url" id="hvNewDrive" placeholder="Google Drive Ordner-Link">
+      <button class="btn btn-primary" onclick="addHv()">+ Hinzufügen</button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-secondary" onclick="closeHvModal()">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── STATE ──
 let auftraege = [];
+let hvListe = JSON.parse(localStorage.getItem('bau_hv') || '[]');
 let currentFilter = 'alle';
 let currentId = null;
 let fileHandle = null;
@@ -379,6 +436,13 @@ const hasFileAPI = 'showOpenFilePicker' in window;
 
 function genId(){ return 'a_' + Date.now() + '_' + Math.random().toString(36).substr(2,5); }
 function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function readVal(txt, key){ // "noch offen" = leer lassen
+  const r = new RegExp(key + ':\\s*(.+)', 'i');
+  const m = txt.match(r);
+  if(!m) return '';
+  const v = m[1].trim();
+  return (v === '(noch offen)' || v === 'noch offen') ? '' : v;
+}
 
 // ── FILE SYSTEM ──
 function updateFileStatus(state, name){
@@ -393,7 +457,9 @@ async function openFile(){
     [fileHandle] = await window.showOpenFilePicker({ types:[{description:'JSON',accept:{'application/json':['.json']}}] });
     const f = await fileHandle.getFile();
     const text = await f.text();
-    auftraege = JSON.parse(text) || [];
+    const data = JSON.parse(text) || {};
+    auftraege = Array.isArray(data) ? data : (data.auftraege || []);
+    if(data.hvListe){ hvListe = data.hvListe; localStorage.setItem('bau_hv', JSON.stringify(hvListe)); }
     updateFileStatus('ok', fileHandle.name);
     renderAll();
   } catch(e){ if(e.name!=='AbortError') showToast('Fehler beim Öffnen'); }
@@ -420,8 +486,9 @@ function skipFile(){
 async function saveToFile(){
   if(!fileHandle) return;
   try {
+    const payload = { auftraege, hvListe };
     const w = await fileHandle.createWritable();
-    await w.write(JSON.stringify(auftraege, null, 2));
+    await w.write(JSON.stringify(payload, null, 2));
     await w.close();
     updateFileStatus('ok', fileHandle.name);
   } catch(e){ showToast('⚠ Speichern fehlgeschlagen'); }
@@ -432,7 +499,9 @@ function fallbackImport(){
   input.type='file'; input.accept='.json';
   input.onchange = async e => {
     const text = await e.target.files[0].text();
-    auftraege = JSON.parse(text) || [];
+    const data = JSON.parse(text) || {};
+    auftraege = Array.isArray(data) ? data : (data.auftraege || []);
+    if(data.hvListe){ hvListe = data.hvListe; localStorage.setItem('bau_hv', JSON.stringify(hvListe)); }
     updateFileStatus('unsaved','Importiert (Download zum Speichern)');
     renderAll();
   };
@@ -440,12 +509,181 @@ function fallbackImport(){
 }
 
 function downloadFile(){
-  const blob = new Blob([JSON.stringify(auftraege,null,2)],{type:'application/json'});
+  const payload = { auftraege, hvListe };
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'bau-doku.json';
   a.click();
   showToast('✅ Datei heruntergeladen');
+}
+
+// ── README IMPORT ──
+function triggerReadmeImport(){
+  document.getElementById('readmeFileInput').click();
+}
+
+function importReadme(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const txt = e.target.result;
+    // Felder befüllen
+    const v = key => readVal(txt, key);
+    const ks = v('Auftrag_Kostenstelle');
+    if(ks) document.getElementById('fKostenstelle').value = ks;
+    const repNr = v('Rep_Nr');
+    if(repNr) document.getElementById('fRepNr').value = repNr;
+    const datum = v('Auftrag_Datum');
+    if(datum){
+      // Datum von DD.MM.YYYY auf YYYY-MM-DD umwandeln
+      const p = datum.split('.');
+      if(p.length===3) document.getElementById('fDatum').value = p[2]+'-'+p[1]+'-'+p[0];
+    }
+    const auftraggeber = v('Auftraggeber');
+    if(auftraggeber) document.getElementById('fAuftraggeber').value = auftraggeber;
+    const kundenNr = v('Kunden_Nr');
+    if(kundenNr) document.getElementById('fKundenNr').value = kundenNr;
+    // Hausverwaltung
+    const hv = v('Objekt_Hausverwaltung');
+    if(hv){
+      document.getElementById('fHausverwaltung').value = hv;
+      // Automatisch HV-Stammliste suchen und Drive-Link eintragen
+      const gefunden = hvListe.find(h => hv.toLowerCase().includes(h.name.toLowerCase()) || h.name.toLowerCase().includes(hv.toLowerCase()));
+      if(gefunden && gefunden.driveLink){
+        document.getElementById('fGdrive').value = gefunden.driveLink;
+        showToast('✅ Drive-Link aus HV-Liste automatisch eingetragen!');
+      }
+    }
+    // Adresse
+    const strasse = v('Objekt_Strasse');
+    if(strasse){
+      // Versuche PLZ/Ort zu trennen
+      const plzMatch = strasse.match(/^(.+?),\s*(\d{5}.+)$/);
+      if(plzMatch){
+        document.getElementById('fStrasse').value = plzMatch[1].trim();
+        document.getElementById('fOrt').value = plzMatch[2].trim();
+      } else {
+        document.getElementById('fStrasse').value = strasse;
+      }
+    }
+    // Schaden
+    const schaden = v('Baustelle_Schadensbild');
+    if(schaden) document.getElementById('fSchaden').value = schaden;
+    // Eigentümer
+    const eigName = v('Eigentuemer_Name');
+    if(eigName) document.getElementById('fEigName').value = eigName;
+    const eigTel = v('Eigentuemer_Telefon');
+    if(eigTel) document.getElementById('fEigTel').value = eigTel;
+    const eigEmail = v('Eigentuemer_Email');
+    if(eigEmail) document.getElementById('fEigEmail').value = eigEmail;
+    // Mieter
+    const mietName = v('Mieter_Name');
+    if(mietName) document.getElementById('fMietName').value = mietName;
+    const mietTel = v('Mieter_Telefon');
+    if(mietTel) document.getElementById('fMietTel').value = mietTel;
+    const mietEmail = v('Mieter_Email');
+    if(mietEmail) document.getElementById('fMietEmail').value = mietEmail;
+    // Termine
+    const terminOrt = v('Termin_Ortstermin');
+    if(terminOrt) document.getElementById('fTerminOrt').value = terminOrt;
+    const terminAbg = v('Termin_Abgabe');
+    if(terminAbg) document.getElementById('fTerminAbgabe').value = terminAbg;
+
+    showToast('✅ README importiert – bitte fehlende Felder ergänzen');
+    event.target.value = ''; // reset
+  };
+  reader.readAsText(file, 'windows-1252');
+}
+
+// ── HV STAMMLISTE ──
+function saveHvListe(){
+  localStorage.setItem('bau_hv', JSON.stringify(hvListe));
+  saveToFile();
+}
+
+function renderHvList(){
+  const el = document.getElementById('hvList');
+  if(hvListe.length === 0){
+    el.innerHTML = '<p style="font-size:12px;color:var(--text2);text-align:center;padding:16px;">Noch keine Hausverwaltungen angelegt.</p>';
+    return;
+  }
+  el.innerHTML = hvListe.map((hv, i) => `
+    <div class="hv-row">
+      <div class="hv-row-name">🏢 ${esc(hv.name)}</div>
+      <div class="hv-row-drive">${hv.driveLink ? '📁 '+esc(hv.driveLink) : '<span style="color:var(--text2)">Kein Drive-Link</span>'}</div>
+      <div class="hv-row-btns">
+        <button class="icon-btn" onclick="editHv(${i})" title="Bearbeiten">✏</button>
+        <button class="icon-btn del" onclick="deleteHv(${i})" title="Löschen">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function addHv(){
+  const name = document.getElementById('hvNewName').value.trim();
+  const driveLink = document.getElementById('hvNewDrive').value.trim();
+  if(!name){ showToast('⚠ Name eingeben'); return; }
+  hvListe.push({ name, driveLink });
+  document.getElementById('hvNewName').value = '';
+  document.getElementById('hvNewDrive').value = '';
+  saveHvListe();
+  renderHvList();
+  updateHvSelect();
+  showToast('✅ Hausverwaltung gespeichert');
+}
+
+function deleteHv(i){
+  if(!confirm('Hausverwaltung "'+hvListe[i].name+'" löschen?')) return;
+  hvListe.splice(i, 1);
+  saveHvListe();
+  renderHvList();
+  updateHvSelect();
+}
+
+function editHv(i){
+  const hv = hvListe[i];
+  const name = prompt('Name:', hv.name);
+  if(name === null) return;
+  const drive = prompt('Google Drive Link:', hv.driveLink || '');
+  if(drive === null) return;
+  hvListe[i] = { name: name.trim(), driveLink: drive.trim() };
+  saveHvListe();
+  renderHvList();
+  updateHvSelect();
+  showToast('✅ Aktualisiert');
+}
+
+function updateHvSelect(){
+  const sel = document.getElementById('fHvSelect');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">– aus Liste wählen –</option>';
+  hvListe.forEach(hv => {
+    const opt = document.createElement('option');
+    opt.value = hv.name;
+    opt.textContent = hv.name;
+    sel.appendChild(opt);
+  });
+  sel.value = cur;
+}
+
+function hvSelected(){
+  const name = document.getElementById('fHvSelect').value;
+  if(!name) return;
+  document.getElementById('fHausverwaltung').value = name;
+  const hv = hvListe.find(h => h.name === name);
+  if(hv && hv.driveLink){
+    document.getElementById('fGdrive').value = hv.driveLink;
+    showToast('📁 Drive-Link automatisch eingetragen');
+  }
+}
+
+function openHvModal(){
+  renderHvList();
+  document.getElementById('hvModal').classList.add('open');
+}
+function closeHvModal(){
+  document.getElementById('hvModal').classList.remove('open');
 }
 
 // ── FILTER & SEARCH ──
@@ -471,26 +709,19 @@ function getFiltered(){
 function renderAll(){
   const filtered = getFiltered();
   document.getElementById('filterCount').textContent = filtered.length + ' Auftrag' + (filtered.length!==1?'e':'');
-
-  // Kanban Spalten
   const spalten = [
-    {key:'neu',       label:'Neu',           color:'#4a90d9'},
-    {key:'bearbeitung',label:'In Bearbeitung', color:'#f39c12'},
-    {key:'abgeschlossen',label:'Abgeschlossen', color:'#2ecc71'}
+    {key:'neu',          label:'Neu',            color:'#4a90d9'},
+    {key:'bearbeitung',  label:'In Bearbeitung',  color:'#f39c12'},
+    {key:'abgeschlossen',label:'Abgeschlossen',   color:'#2ecc71'}
   ];
-
   let html = '';
-
   if(currentFilter === 'alle'){
     html = '<div class="kanban">';
     spalten.forEach(sp => {
       const cards = filtered.filter(a => a.status === sp.key);
       html += `<div class="kanban-col">
         <div class="kanban-col-header">
-          <div class="kanban-col-title">
-            <div class="kanban-col-dot" style="background:${sp.color}"></div>
-            ${sp.label}
-          </div>
+          <div class="kanban-col-title"><div class="kanban-col-dot" style="background:${sp.color}"></div>${sp.label}</div>
           <span class="kanban-col-count">${cards.length}</span>
         </div>
         <div class="kanban-col-body">`;
@@ -503,16 +734,14 @@ function renderAll(){
     });
     html += '</div>';
   } else {
-    // Grid für gefilterte Ansicht
-    html = '<div class="grid-view">';
     if(filtered.length === 0){
       html = `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Keine Aufträge gefunden</div></div>`;
     } else {
+      html = '<div class="grid-view">';
       filtered.forEach(a => { html += renderCard(a); });
       html += '</div>';
     }
   }
-
   document.getElementById('mainContent').innerHTML = html;
 }
 
@@ -521,7 +750,6 @@ function renderCard(a){
   const nasBadge = a.nasPfad ? `<span class="card-badge has-nas">💾 NAS</span>` : '';
   const mieter = a.mieterName ? `<div class="card-mieter">🏠 ${esc(a.mieterName)}${a.mieterTel?' · '+esc(a.mieterTel):''}</div>` : '';
   const terminBadge = a.terminOrt ? `<span class="card-badge">📅 ${esc(a.terminOrt)}</span>` : '';
-
   return `<div class="auftrag-card" onclick="openEditAuftrag('${a.id}')">
     <div class="card-head">
       <div class="card-kostenstelle">${esc(a.kostenstelle||'Kostenstelle fehlt')}</div>
@@ -531,10 +759,7 @@ function renderCard(a){
     <div class="card-hv">🏢 ${esc(a.hausverwaltung||'–')}</div>
     ${mieter}
     ${a.schaden ? `<div class="card-schaden">${esc(a.schaden)}</div>` : ''}
-    <div class="card-footer">
-      ${gdriveBadge}${nasBadge}${terminBadge}
-      ${a.repNr?`<span class="card-badge">Rep. ${esc(a.repNr)}</span>`:''}
-    </div>
+    <div class="card-footer">${gdriveBadge}${nasBadge}${terminBadge}${a.repNr?`<span class="card-badge">Rep. ${esc(a.repNr)}</span>`:''}</div>
   </div>`;
 }
 
@@ -544,8 +769,8 @@ function openNewAuftrag(){
   document.getElementById('modalTitle').textContent = '+ Neuer Auftrag';
   document.getElementById('deleteBtn').style.display = 'none';
   clearForm();
-  // Heute als Standard-Datum
   document.getElementById('fDatum').value = new Date().toISOString().split('T')[0];
+  updateHvSelect();
   document.getElementById('auftragModal').classList.add('open');
 }
 
@@ -577,6 +802,7 @@ function openEditAuftrag(id){
   document.getElementById('fGdrive').value = a.gdrive||'';
   document.getElementById('fNasPfad').value = a.nasPfad||'';
   document.getElementById('fNotizen').value = a.notizen||'';
+  updateHvSelect();
   document.getElementById('auftragModal').classList.add('open');
 }
 
@@ -594,12 +820,12 @@ function clearForm(){
     if(el) el.value = '';
   });
   document.getElementById('fStatus').value = 'neu';
+  document.getElementById('fHvSelect').value = '';
 }
 
 async function saveAuftrag(){
   const kostenstelle = document.getElementById('fKostenstelle').value.trim();
   if(!kostenstelle){ showToast('⚠ Kostenstelle ist Pflichtfeld'); return; }
-
   const data = {
     id: currentId || genId(),
     kostenstelle,
@@ -625,7 +851,6 @@ async function saveAuftrag(){
     notizen:       document.getElementById('fNotizen').value.trim(),
     updatedAt:     new Date().toISOString()
   };
-
   if(currentId){
     const idx = auftraege.findIndex(a => a.id === currentId);
     if(idx>=0) auftraege[idx] = data;
@@ -633,7 +858,6 @@ async function saveAuftrag(){
     data.createdAt = new Date().toISOString();
     auftraege.unshift(data);
   }
-
   await saveToFile();
   closeModal();
   renderAll();
@@ -650,7 +874,7 @@ async function deleteAuftrag(){
   showToast('🗑 Auftrag gelöscht');
 }
 
-// ── NAS COPY ──
+// ── NAS / GDRIVE ──
 function copyNas(){
   const val = document.getElementById('fNasPfad').value.trim();
   if(!val){ showToast('Kein NAS-Pfad eingetragen'); return; }
@@ -662,12 +886,10 @@ function copyNas(){
   });
 }
 
-// ── GDRIVE ──
 function openGdrive(){
   const url = document.getElementById('fGdrive').value.trim();
-  if(!url){ showToast('Kein Google Drive Link eingetragen'); return false; }
+  if(!url){ showToast('Kein Google Drive Link eingetragen'); return; }
   window.open(url, '_blank');
-  return false;
 }
 
 // ── START MODAL ──
@@ -676,7 +898,7 @@ function closeStartModal(){
 }
 
 // ── TOAST ──
-function showToast(msg, duration=2500){
+function showToast(msg, duration=2800){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
@@ -687,6 +909,7 @@ function showToast(msg, duration=2500){
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){
     document.getElementById('auftragModal').classList.remove('open');
+    document.getElementById('hvModal').classList.remove('open');
   }
   if((e.ctrlKey||e.metaKey) && e.key==='s'){
     e.preventDefault();
@@ -698,12 +921,11 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Klick außerhalb Modal schließt es
-document.getElementById('auftragModal').addEventListener('click', function(e){
-  if(e.target === this) closeModal();
-});
+document.getElementById('auftragModal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+document.getElementById('hvModal').addEventListener('click', function(e){ if(e.target===this) closeHvModal(); });
 
 // ── INIT ──
+updateHvSelect();
 renderAll();
 </script>
 </body>
