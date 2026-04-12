@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Bau-Doku</title>
+<script src="https://accounts.google.com/gsi/client" async defer onload="gdriveInit()"></script>
 <style>
 :root {
   --bg:#1a1b2e; --bg2:#232440; --bg3:#2a2b4a; --bg4:#33345a;
@@ -229,6 +230,26 @@ a{color:inherit;text-decoration:none;}
 .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;z-index:3000;box-shadow:0 4px 16px var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 
+/* ── TIMER (im Formular) ── */
+.timer-display{font-size:32px;font-weight:700;color:var(--accent2);font-variant-numeric:tabular-nums;letter-spacing:3px;text-align:center;padding:8px 0 6px;font-family:'Courier New',monospace;}
+.timer-display.running{color:var(--green);animation:timerPulse 1s ease-in-out infinite;}
+@keyframes timerPulse{0%,100%{opacity:1;}50%{opacity:.65;}}
+.timer-start-btn{width:100%;padding:9px 0;border-radius:8px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;background:rgba(46,204,113,.12);color:var(--green);border:1.5px solid var(--green);cursor:pointer;}
+.timer-start-btn:hover{background:rgba(46,204,113,.24);}
+.timer-stop-btn{width:100%;padding:9px 0;border-radius:8px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;background:rgba(231,76,60,.12);color:var(--red);border:1.5px solid var(--red);cursor:pointer;}
+.timer-stop-btn:hover{background:rgba(231,76,60,.24);}
+.timer-divider{text-align:center;font-size:10px;color:var(--text2);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
+.timer-divider::before,.timer-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── AUSKLAPPBARE FORMULAR-SEKTIONEN ── */
+.form-collapse{margin-top:14px;padding-top:0;border-top:1px solid var(--border);}
+.form-collapse-header{display:flex;align-items:center;justify-content:space-between;padding:11px 0 9px;cursor:pointer;-webkit-user-select:none;user-select:none;}
+.form-collapse-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+.form-collapse-arrow{color:var(--text2);font-size:13px;transition:transform .2s;}
+.form-collapse-body{display:none;padding-bottom:4px;}
+.form-collapse.open .form-collapse-arrow{transform:rotate(180deg);}
+.form-collapse.open .form-collapse-body{display:block;}
+
 /* ── LEER ── */
 .empty{text-align:center;padding:48px 24px;color:var(--text2);}
 .empty-icon{font-size:44px;margin-bottom:12px;}
@@ -326,11 +347,11 @@ a{color:inherit;text-decoration:none;}
     <h2>🏗 Bau-Doku</h2>
     <p>Wähle einen Speicherort für deine Daten.<br>Alle Änderungen werden automatisch gespeichert.</p>
     <div class="start-btns">
-      <button class="start-btn drive-open" onclick="openFileDrive()">
+      <button class="start-btn drive-open" onclick="gdriveOpenExisting()">
         <span class="start-btn-icon">☁️</span>
         <span class="start-btn-text"><span class="start-btn-label">Google Drive öffnen</span><span class="start-btn-sub">Vorhandene bau-doku.json aus Drive laden</span></span>
       </button>
-      <button class="start-btn drive-new" onclick="createNewFileDrive()">
+      <button class="start-btn drive-new" onclick="gdriveCreateNew()">
         <span class="start-btn-icon">✨</span>
         <span class="start-btn-text"><span class="start-btn-label">Neue Datei in Google Drive</span><span class="start-btn-sub">Neue bau-doku.json in Drive anlegen</span></span>
       </button>
@@ -390,51 +411,79 @@ a{color:inherit;text-decoration:none;}
             <input type="text" id="fHV" style="flex:2;" placeholder="oder eingeben">
           </div>
         </div>
-        <div class="modal-field"><label>Straße + Nr.</label><input type="text" id="fStr" placeholder="Teststrasse 44"></div>
-        <div class="modal-field"><label>PLZ + Ort</label><input type="text" id="fOrt" placeholder="99086 Erfurt"></div>
+        <div class="modal-field full">
+          <label>Adresse (Straße + PLZ + Ort)</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="fAdr" placeholder="Teststrasse 44, 99086 Erfurt" style="flex:1;">
+            <button type="button" onclick="formMapsOeffnen()" style="padding:10px 16px;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">🗺 Maps</button>
+          </div>
+        </div>
         <div class="modal-field full"><label>Schadensbild</label><textarea id="fSch" placeholder="2. OG links, Feuchtigkeit Küche…"></textarea></div>
       </div>
     </div>
 
-    <!-- Mieter (zuerst) -->
-    <div class="modal-section">
-      <div class="modal-section-title">🏠 Mieter</div>
-      <div class="modal-grid">
-        <div class="modal-field"><label>Name</label><input type="text" id="fMN" placeholder="Frau Tester"></div>
-        <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="03611234"></div>
-        <div class="modal-field full"><label>E-Mail</label><input type="email" id="fME"></div>
+    <!-- Mieter (ausklappbar, offen) -->
+    <div class="form-collapse open" id="mietersect">
+      <div class="form-collapse-header" onclick="toggleFormSection('mietersect')">
+        <span class="form-collapse-title">🏠 Mieter</span>
+        <span class="form-collapse-arrow">▾</span>
+      </div>
+      <div class="form-collapse-body">
+        <div class="modal-grid">
+          <div class="modal-field"><label>Name</label><input type="text" id="fMN" placeholder="Frau Tester"></div>
+          <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="03611234"></div>
+          <div class="modal-field full"><label>E-Mail</label><input type="email" id="fME"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Eigentümer -->
-    <div class="modal-section">
-      <div class="modal-section-title">👤 Eigentümer</div>
-      <div class="modal-grid">
-        <div class="modal-field"><label>Name</label><input type="text" id="fEN"></div>
-        <div class="modal-field"><label>Telefon</label><input type="tel" id="fET" placeholder="0361/123456"></div>
-        <div class="modal-field full"><label>E-Mail</label><input type="email" id="fEE"></div>
+    <!-- Eigentümer (ausklappbar, zugeklappt) -->
+    <div class="form-collapse" id="eigsect">
+      <div class="form-collapse-header" onclick="toggleFormSection('eigsect')">
+        <span class="form-collapse-title">👤 Eigentümer</span>
+        <span class="form-collapse-arrow">▾</span>
+      </div>
+      <div class="form-collapse-body">
+        <div class="modal-grid">
+          <div class="modal-field"><label>Name</label><input type="text" id="fEN"></div>
+          <div class="modal-field"><label>Telefon</label><input type="tel" id="fET" placeholder="0361/123456"></div>
+          <div class="modal-field full"><label>E-Mail</label><input type="email" id="fEE"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Ortstermine -->
-    <div class="modal-section">
-      <div class="modal-section-title">📅 Ortstermine</div>
-      <div class="row-header">
-        <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
+    <!-- Außerhaus-Termine (ausklappbar) -->
+    <div class="form-collapse" id="terminesect">
+      <div class="form-collapse-header" onclick="toggleFormSection('terminesect')">
+        <span class="form-collapse-title">📅 Außerhaus-Termine</span>
+        <span class="form-collapse-arrow">▾</span>
       </div>
-      <div id="termineContainer"></div>
-      <button class="add-row-btn" onclick="addTermin()">+ Termin hinzufügen</button>
+      <div class="form-collapse-body">
+        <div class="row-header">
+          <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
+        </div>
+        <div id="termineContainer"></div>
+        <button class="add-row-btn" onclick="addTermin()">+ Termin hinzufügen</button>
+      </div>
     </div>
 
-    <!-- Zeiterfassung -->
-    <div class="modal-section">
-      <div class="modal-section-title">⏱ Zeiterfassung</div>
-      <div class="row-header">
-        <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
+    <!-- Zeiterfassung (ausklappbar + Live-Timer) -->
+    <div class="form-collapse" id="zeitsect">
+      <div class="form-collapse-header" onclick="toggleFormSection('zeitsect')">
+        <span class="form-collapse-title">⏱ Zeiterfassung</span>
+        <span class="form-collapse-arrow">▾</span>
       </div>
-      <div id="zeitContainer"></div>
-      <button class="add-row-btn" onclick="addZeit()">+ Zeit hinzufügen</button>
-      <div class="zeit-gesamt-form" id="zeitGesamtForm"></div>
+      <div class="form-collapse-body">
+        <div id="timerDisplayForm" class="timer-display">00:00:00</div>
+        <button id="timerBtnForm" class="timer-start-btn" onclick="toggleTimer()">▶ Aufzeichnung starten</button>
+        <div class="timer-divider">oder manuell erfassen</div>
+        <div class="row-header">
+          <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
+        </div>
+        <div id="zeitContainer"></div>
+        <button class="add-row-btn" onclick="addZeit()">+ Zeit hinzufügen</button>
+        <div class="zeit-gesamt-form" id="zeitGesamtForm"></div>
+      </div>
     </div>
 
     <!-- Verknüpfungen -->
@@ -511,11 +560,15 @@ function genId(){ return 'a_'+Date.now()+'_'+Math.random().toString(36).substr(2
 function titelFormat(a){
   const teile=[];
   if(a.ks)teile.push(a.ks);
-  const adr=[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
+  const adr=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   if(adr)teile.push(adr);
   const person=a.mieterName||a.eigentuemer||'';
   if(person)teile.push(person);
   return teile.join(' | ')||'Auftrag';
+}
+function mapsUrl(adresse){
+  if(!adresse)return null;
+  return 'https://maps.google.com/?q='+encodeURIComponent(adresse);
 }
 function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
 function readVal(txt,key){
@@ -551,11 +604,7 @@ function zeitDauer(von,bis){
   return h>0?(m>0?h+'h '+m+'min':h+'h'):m+'min';
 }
 
-function mapsUrl(strasse,ort){
-  const parts=[strasse,ort].filter(Boolean);
-  if(!parts.length)return null;
-  return 'https://maps.google.com/?q='+encodeURIComponent(parts.join(', '));
-}
+// mapsUrl(adresse) – Einzel-String Version
 
 // ═══ ZOOM ═══
 function setZoom(v){
@@ -583,6 +632,10 @@ function migrateAuftrag(a){
     if(a.terminOrt)a.termine.push({datum:'',von:'',bis:'',beschreibung:a.terminOrt});
   }
   if(!a.zeiterfassung)a.zeiterfassung=[];
+  // Adresse: kombiniere strasse+ort falls noch kein adresse-Feld
+  if(!a.adresse){
+    a.adresse=[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
+  }
   return a;
 }
 
@@ -648,6 +701,7 @@ async function createNewFile(){
 }
 function skipFile(){closeStart();updateFileStatus('none','Ohne Datei');renderListe();}
 async function saveFile(){
+  if(gdriveFileId){gdriveSaveData();return;}
   if(!fileHandle)return;
   try{
     const w=await fileHandle.createWritable();
@@ -765,8 +819,8 @@ function renderDetail(a){
   const nextLabel={neu:'→ In Bearbeitung',bearbeitung:'→ Abgeschlossen',abgeschlossen:'→ Neu'};
 
   // Adresse + Google Maps
-  const adresse=[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
-  const mLink=mapsUrl(a.strasse,a.ort);
+  const adresse=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
+  const mLink=mapsUrl(adresse);
   const adresseHtml=mLink
     ?'<span class="detail-value"><a class="maps" href="'+mLink+'" target="_blank">📍 '+esc(adresse)+'</a></span>'
     :val(adresse);
@@ -893,7 +947,7 @@ function exportReadme(id){
   L('Kunden_Nr: '+(a.knr||'(noch offen)'));
   L('');
   L('OBJEKT');
-  L('Objekt_Strasse: '+[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', '));
+  L('Objekt_Strasse: '+(a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ')));
   L('Objekt_Hausverwaltung: '+(a.hv||'(noch offen)'));
   L('Baustelle_Schadensbild: '+(a.schaden||'(noch offen)'));
   L('');
@@ -944,6 +998,58 @@ function exportReadme(id){
   link.href=url;link.download='README.txt';link.click();
   URL.revokeObjectURL(url);
   toast('📄 README.txt heruntergeladen');
+}
+
+// ═══ FORM HELPERS (ADRESSE / TIMER / TOGGLE) ═══
+function formMapsOeffnen(){
+  const adr=document.getElementById('fAdr').value.trim();
+  if(!adr){toast('⚠ Adresse fehlt');return;}
+  window.open('https://maps.google.com/?q='+encodeURIComponent(adr),'_blank');
+}
+function toggleFormSection(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── Live-Timer ──
+let timerInterval=null;
+let timerStartMs=null;
+
+function toggleTimer(){
+  if(timerInterval)stopFormTimer();
+  else startFormTimer();
+}
+function startFormTimer(){
+  timerStartMs=Date.now();
+  timerInterval=setInterval(renderTimerDisplayLive,1000);
+  const btn=document.getElementById('timerBtnForm');
+  if(btn){btn.className='timer-stop-btn';btn.innerHTML='⏹ Aufzeichnung beenden';}
+  const disp=document.getElementById('timerDisplayForm');
+  if(disp)disp.classList.add('running');
+  // Öffne den Zeiterfassungs-Abschnitt automatisch
+  const sect=document.getElementById('zeitsect');if(sect)sect.classList.add('open');
+}
+function stopFormTimer(){
+  if(!timerInterval||!timerStartMs)return;
+  clearInterval(timerInterval);
+  const endMs=Date.now();
+  const s=new Date(timerStartMs),e=new Date(endMs);
+  const datum=s.toISOString().split('T')[0];
+  const von=String(s.getHours()).padStart(2,'0')+':'+String(s.getMinutes()).padStart(2,'0');
+  const bis=String(e.getHours()).padStart(2,'0')+':'+String(e.getMinutes()).padStart(2,'0');
+  timerInterval=null;timerStartMs=null;
+  addZeit(datum,von,bis,'Stoppuhr');
+  const btn=document.getElementById('timerBtnForm');
+  if(btn){btn.className='timer-start-btn';btn.innerHTML='▶ Aufzeichnung starten';}
+  const disp=document.getElementById('timerDisplayForm');
+  if(disp){disp.classList.remove('running');disp.textContent='00:00:00';}
+  updateZeitGesamt();
+}
+function renderTimerDisplayLive(){
+  if(!timerStartMs)return;
+  const d=Math.floor((Date.now()-timerStartMs)/1000);
+  const h=Math.floor(d/3600),m=Math.floor((d%3600)/60),s=d%60;
+  const el=document.getElementById('timerDisplayForm');
+  if(el)el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
 
 // ═══ TERMINE FORMULAR ═══
@@ -1028,8 +1134,7 @@ function openBearbeiten(){
   document.getElementById('fAG').value=a.ag||'';
   document.getElementById('fKNr').value=a.knr||'';
   document.getElementById('fHV').value=a.hv||'';
-  document.getElementById('fStr').value=a.strasse||'';
-  document.getElementById('fOrt').value=a.ort||'';
+  document.getElementById('fAdr').value=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   document.getElementById('fSch').value=a.schaden||'';
   document.getElementById('fMN').value=a.mieterName||'';
   document.getElementById('fMT').value=a.mieterTel||'';
@@ -1048,7 +1153,7 @@ function openBearbeiten(){
 }
 function closeForm(){document.getElementById('formModal').classList.remove('open');}
 function clearForm(){
-  ['fKS','fRep','fDat','fAG','fKNr','fHV','fStr','fOrt','fSch',
+  ['fKS','fRep','fDat','fAG','fKNr','fHV','fAdr','fSch',
    'fMN','fMT','fME','fEN','fET','fEE','fGD','fNAS','fNot'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
@@ -1070,8 +1175,9 @@ async function speichern(){
     ag:document.getElementById('fAG').value.trim(),
     knr:document.getElementById('fKNr').value.trim(),
     hv:document.getElementById('fHV').value.trim(),
-    strasse:document.getElementById('fStr').value.trim(),
-    ort:document.getElementById('fOrt').value.trim(),
+    adresse:document.getElementById('fAdr').value.trim(),
+    strasse:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/^(.+?),\s*\d{5}/);return m?m[1].trim():a;})(),
+    ort:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/,\s*(\d{5}.+)$/);return m?m[1].trim():'';})(),
     schaden:document.getElementById('fSch').value.trim(),
     mieterName:document.getElementById('fMN').value.trim(),
     mieterTel:document.getElementById('fMT').value.trim(),
@@ -1125,11 +1231,7 @@ function importReadme(event){
       if(gef&&gef.driveLink)document.getElementById('fGD').value=gef.driveLink;
     }
     const str=v('Objekt_Strasse');
-    if(str){
-      const m=str.match(/^(.+?),\s*(\d{5}.+)$/);
-      if(m){document.getElementById('fStr').value=m[1].trim();document.getElementById('fOrt').value=m[2].trim();}
-      else document.getElementById('fStr').value=str;
-    }
+    if(str)document.getElementById('fAdr').value=str;
     if(v('Baustelle_Schadensbild'))document.getElementById('fSch').value=v('Baustelle_Schadensbild');
     if(v('Eigentuemer_Name'))document.getElementById('fEN').value=v('Eigentuemer_Name');
     if(v('Eigentuemer_Telefon'))document.getElementById('fET').value=v('Eigentuemer_Telefon');
@@ -1193,6 +1295,118 @@ function nasKopierenForm(){
     b.textContent='✅';b.classList.add('copied');
     setTimeout(()=>{b.textContent='📋';b.classList.remove('copied');},2000);
   });
+}
+
+// ═══ GOOGLE DRIVE OAUTH ═══
+// Client ID aus dem PTP Workboard – ggf. eigene in Google Cloud Console erstellen
+// Autorisierte Herkunft muss für die eigene Domain eingetragen sein:
+// https://console.cloud.google.com/apis/credentials
+const GDRIVE_CLIENT_ID='56419258975-2ri3eujer9p6saph1mesa5hihlcae1pl.apps.googleusercontent.com';
+const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.file';
+
+let gdriveToken=null;
+let gdriveFileId=null;
+let gdriveFileName='bau-doku.json';
+let gdriveTokenClient=null;
+let gdrivePendingAction=null;
+let gdriveSaving=false;
+
+function gdriveInit(){
+  if(!window.google||!window.google.accounts)return;
+  gdriveTokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GDRIVE_CLIENT_ID,
+    scope:GDRIVE_SCOPE,
+    callback:gdriveTokenCallback,
+  });
+}
+function gdriveTokenCallback(resp){
+  if(resp.error){toast('⚠ Google Drive: '+resp.error);return;}
+  gdriveToken=resp.access_token;
+  const action=gdrivePendingAction;gdrivePendingAction=null;
+  if(action==='load')gdrivePickAndLoad();
+  else if(action==='new')gdriveCreateFile();
+  else if(action==='save')gdriveSaveData();
+}
+function gdriveRequestToken(action){
+  gdrivePendingAction=action;
+  if(!gdriveTokenClient){gdriveInit();if(!gdriveTokenClient){toast('⚠ Google-Dienste noch nicht geladen – kurz warten');return;}}
+  gdriveTokenClient.requestAccessToken();
+}
+function gdriveOpenExisting(){
+  closeStart();fileSource='drive';
+  if(!gdriveToken){gdriveRequestToken('load');return;}
+  gdrivePickAndLoad();
+}
+function gdriveCreateNew(){
+  closeStart();fileSource='drive';
+  if(!gdriveToken){gdriveRequestToken('new');return;}
+  gdriveCreateFile();
+}
+async function gdrivePickAndLoad(){
+  updateFileStatus('none','☁️ Suche in Google Drive…');
+  try{
+    const r=await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=name%3D'bau-doku.json'%20and%20mimeType%3D'application%2Fjson'%20and%20trashed%3Dfalse&fields=files(id%2Cname%2CmodifiedTime)&orderBy=modifiedTime%20desc",
+      {headers:{Authorization:'Bearer '+gdriveToken}}
+    );
+    const json=await r.json();
+    const files=json.files||[];
+    if(!files.length){
+      if(confirm('Keine bau-doku.json in Google Drive gefunden.\nJetzt eine neue Datei erstellen?'))gdriveCreateFile();
+      else updateFileStatus('none','Keine Datei');
+      return;
+    }
+    let chosenFile=files[0];
+    if(files.length>1){
+      const namen=files.map((f,i)=>(i+1)+'. '+f.name+' ('+new Date(f.modifiedTime).toLocaleDateString('de-DE')+')').join('\n');
+      const idx=parseInt(prompt('Mehrere Dateien gefunden:\n'+namen+'\n\nNummer wählen:','1'));
+      if(isNaN(idx)||idx<1||idx>files.length){updateFileStatus('none','Abgebrochen');return;}
+      chosenFile=files[idx-1];
+    }
+    await gdriveLoadFile(chosenFile.id,chosenFile.name);
+  }catch(e){toast('⚠ Google Drive: '+e.message);updateFileStatus('none','Fehler');}
+}
+async function gdriveLoadFile(fileId,fileName){
+  const r=await fetch('https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media',{headers:{Authorization:'Bearer '+gdriveToken}});
+  const data=await r.json();
+  auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
+  if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
+  gdriveFileId=fileId;gdriveFileName=fileName;
+  updateFileStatus('ok',fileName);
+  renderListe();toast('✅ Von Google Drive geladen');
+}
+async function gdriveCreateFile(){
+  const content=JSON.stringify({auftraege:[],hvListe},null,2);
+  const boundary='bau_boundary_'+Date.now();
+  const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'
+    +JSON.stringify({name:'bau-doku.json',mimeType:'application/json'})
+    +'\r\n--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+content+'\r\n--'+boundary+'--';
+  try{
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+boundary},
+      body
+    });
+    const file=await r.json();
+    gdriveFileId=file.id;gdriveFileName=file.name||'bau-doku.json';
+    auftraege=[];
+    updateFileStatus('ok',gdriveFileName);
+    renderListe();toast('✅ Neue Datei in Google Drive erstellt');
+  }catch(e){toast('⚠ Drive-Fehler: '+e.message);}
+}
+async function gdriveSaveData(){
+  if(!gdriveFileId||!gdriveToken||gdriveSaving)return;
+  gdriveSaving=true;
+  try{
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+gdriveFileId+'?uploadType=media',{
+      method:'PATCH',
+      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
+      body:JSON.stringify({auftraege,hvListe},null,2)
+    });
+    if(r.ok)updateFileStatus('ok',gdriveFileName);
+    else updateFileStatus('unsaved',gdriveFileName);
+  }catch(e){updateFileStatus('unsaved',gdriveFileName);}
+  finally{gdriveSaving=false;}
 }
 
 // ═══ START / TOAST ═══
