@@ -11,7 +11,7 @@
   --accent:#6c63ff; --accent2:#8b83ff;
   --green:#2ecc71; --orange:#f39c12; --red:#e74c3c; --blue:#4a90d9;
   --border:#3a3b5a; --shadow:rgba(0,0,0,0.3);
-  --card-font: 14px;
+  --zoom:1;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
@@ -49,7 +49,7 @@ a{color:inherit;text-decoration:none;}
 .file-btn:hover{background:var(--bg3);color:var(--text);}
 
 /* ── TABS ── */
-.tabs{display:flex;align-items:center;gap:0;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;}
+.tabs{display:flex;align-items:center;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;gap:4px;}
 .tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);background:transparent;border:1px solid transparent;white-space:nowrap;transition:all .15s;}
 .tab:hover{color:var(--text);}
 .tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -58,8 +58,8 @@ a{color:inherit;text-decoration:none;}
 /* ── ZOOM BAR ── */
 .zoombar{display:flex;align-items:center;gap:10px;padding:6px 16px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;}
 .zoom-label{font-size:10px;color:var(--text2);white-space:nowrap;}
-.zoom-slider{flex:1;max-width:160px;accent-color:var(--accent);}
-.zoom-count{font-size:10px;color:var(--text2);min-width:28px;}
+.zoom-slider{flex:1;max-width:200px;accent-color:var(--accent);}
+.zoom-count{font-size:11px;color:var(--accent2);min-width:38px;font-weight:700;}
 
 /* ── MAIN ── */
 .main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
@@ -67,35 +67,41 @@ a{color:inherit;text-decoration:none;}
 /* ── KARTEN LISTE ── */
 .karten-liste{padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
 
-/* ── AUFTRAG KARTE ── */
-.auftrag-karte{background:var(--bg2);border-radius:12px;padding:14px;cursor:pointer;border:1px solid var(--border);transition:all .15s;font-size:var(--card-font);}
-.auftrag-karte:active{transform:scale(.98);border-color:var(--accent);}
+/* ── KARTE ── */
+.auftrag-karte{background:var(--bg2);border-radius:12px;padding:14px;cursor:pointer;border:1px solid var(--border);transition:border-color .15s;}
+.auftrag-karte:active{border-color:var(--accent);}
 .karte-kopf{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-.karte-ks{font-size:calc(var(--card-font) + 1px);font-weight:700;color:var(--accent2);}
-.karte-datum{font-size:calc(var(--card-font) - 3px);color:var(--text2);}
-.karte-adresse{font-size:var(--card-font);color:var(--text);margin-bottom:3px;}
-.karte-hv{font-size:calc(var(--card-font) - 2px);color:var(--text2);margin-bottom:3px;}
-.karte-mieter{font-size:calc(var(--card-font) - 2px);color:var(--text2);margin-bottom:6px;}
-.karte-schaden{font-size:calc(var(--card-font) - 2px);color:var(--text2);font-style:italic;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.karte-ks{font-size:calc(15px * var(--zoom));font-weight:700;color:var(--accent2);}
+.karte-datum{font-size:calc(11px * var(--zoom));color:var(--text2);}
+.karte-adresse{font-size:calc(14px * var(--zoom));color:var(--text);margin-bottom:3px;}
+.karte-hv{font-size:calc(12px * var(--zoom));color:var(--text2);margin-bottom:3px;}
+.karte-mieter{font-size:calc(12px * var(--zoom));color:var(--text2);margin-bottom:6px;}
+.karte-schaden{font-size:calc(12px * var(--zoom));color:var(--text2);font-style:italic;margin-bottom:8px;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  cursor:pointer;user-select:none;-webkit-user-select:none;}
+.karte-schaden.expanded{-webkit-line-clamp:unset;display:block;}
 .karte-footer{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
-.badge{font-size:calc(var(--card-font) - 4px);padding:2px 7px;border-radius:4px;background:var(--bg4);color:var(--text2);display:inline-flex;align-items:center;gap:3px;}
+.badge{font-size:calc(10px * var(--zoom));padding:2px 7px;border-radius:4px;background:var(--bg4);color:var(--text2);display:inline-flex;align-items:center;gap:3px;}
 .badge.drive{color:var(--green);}
 .badge.nas{color:var(--accent2);}
 .status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
 
-/* ── DETAIL ANSICHT ── */
+/* ── ZWEI ANSICHTEN ── */
 .detail-view{display:none;flex-direction:column;flex:1;}
 .detail-view.active{display:flex;}
 .list-view{display:flex;flex-direction:column;flex:1;}
 .list-view.hidden{display:none;}
 
+/* ── DETAIL TOPBAR ── */
 .detail-topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
 .back-btn{display:flex;align-items:center;gap:6px;color:var(--accent2);font-size:14px;font-weight:600;background:none;padding:4px 0;}
-.detail-title{flex:1;font-size:15px;font-weight:700;color:var(--text);}
-.detail-actions{display:flex;gap:6px;}
+.detail-title{flex:1;font-size:14px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.detail-actions{display:flex;gap:6px;flex-shrink:0;}
 
+/* ── DETAIL BODY ── */
 .detail-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;}
 
+/* ── STATUS BAR ── */
 .detail-status-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
 .status-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;}
 .status-badge.neu{background:rgba(74,144,217,.2);color:#4a90d9;border:1px solid #4a90d9;}
@@ -103,6 +109,7 @@ a{color:inherit;text-decoration:none;}
 .status-badge.abgeschlossen{background:rgba(46,204,113,.2);color:#2ecc71;border:1px solid #2ecc71;}
 .status-change-btn{font-size:11px;padding:4px 10px;border-radius:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
 
+/* ── DETAIL SEKTION ── */
 .detail-section{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:12px;}
 .detail-section-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
 .detail-row{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
@@ -110,17 +117,40 @@ a{color:inherit;text-decoration:none;}
 .detail-label{font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
 .detail-value{font-size:14px;color:var(--text);line-height:1.4;}
 .detail-value.offen{color:var(--text2);font-style:italic;}
-.detail-value a{color:var(--accent2);}
-.detail-value a.tel{color:var(--green);display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;padding:4px 0;}
+.detail-value a.tel{color:var(--green);display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;padding:6px 0;}
 .detail-value a.mail{color:var(--accent2);}
+.detail-value a.maps{color:var(--blue);display:inline-flex;align-items:center;gap:5px;}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
+/* ── AUSKLAPPBARE SEKTIONEN ── */
+.detail-collapse{background:var(--bg2);border-radius:12px;margin-bottom:12px;border:1px solid var(--border);overflow:hidden;}
+.detail-collapse summary{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;padding:13px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;list-style:none;-webkit-user-select:none;user-select:none;}
+.detail-collapse summary::-webkit-details-marker{display:none;}
+.detail-collapse summary::after{content:'▾';margin-left:auto;font-size:14px;transition:transform .2s;}
+.detail-collapse[open]>summary::after{transform:rotate(180deg);}
+.collapse-body{padding:4px 14px 14px;}
+
+/* ── TERMIN EINTRÄGE (Detail) ── */
+.termin-entry{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--accent);}
+.termin-entry:last-child{margin-bottom:0;}
+.termin-zeit{font-size:12px;color:var(--accent2);font-weight:600;margin-bottom:2px;}
+.termin-bes{font-size:13px;color:var(--text);}
+
+/* ── ZEITERFASSUNG (Detail) ── */
+.zeit-total-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:700;padding:6px 12px;background:rgba(46,204,113,.1);border-radius:8px;border:1px solid rgba(46,204,113,.25);margin-bottom:12px;}
+.zeit-entry{padding:8px 0;border-bottom:1px solid var(--border);}
+.zeit-entry:last-child{border-bottom:none;padding-bottom:0;}
+.zeit-datum-uhr{font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:2px;}
+.zeit-bes-txt{font-size:13px;color:var(--text);}
+
+/* ── AKTIONS-BUTTONS ── */
 .detail-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:8px;transition:all .15s;}
 .detail-btn.drive{background:rgba(26,115,232,.15);color:#4a90ff;border:1px solid rgba(26,115,232,.3);}
 .detail-btn.drive:hover{background:rgba(26,115,232,.3);}
 .detail-btn.nas{background:rgba(108,99,255,.15);color:var(--accent2);border:1px solid rgba(108,99,255,.3);}
-.detail-btn.nas:hover{background:rgba(108,99,255,.3);}
 .detail-btn.nas.copied{background:rgba(46,204,113,.2);color:var(--green);border-color:var(--green);}
+.detail-btn.readme{background:rgba(243,156,18,.1);color:var(--orange);border:1px solid rgba(243,156,18,.3);}
+.detail-btn.readme:hover{background:rgba(243,156,18,.2);}
 
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
@@ -134,20 +164,32 @@ a{color:inherit;text-decoration:none;}
 .modal-field label{display:block;font-size:10px;color:var(--text2);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
 .modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;outline:none;}
 .modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--accent);}
-.modal-field textarea{resize:vertical;min-height:70px;}
-.modal-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.modal-field textarea{resize:vertical;min-height:60px;}
+.modal-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
 .modal-section-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
 
-/* ── README IMPORT ── */
+/* ── TERMIN / ZEIT FORMULAR ZEILEN ── */
+.row-header{display:grid;grid-template-columns:1fr 70px 70px 1fr 28px;gap:6px;padding:0 2px;margin-bottom:4px;}
+.row-header span{font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.termin-row-form,.zeit-row-form{display:grid;grid-template-columns:1fr 70px 70px 1fr 28px;gap:6px;align-items:center;margin-bottom:6px;}
+.termin-row-form input,.zeit-row-form input{padding:8px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;width:100%;}
+.termin-row-form input:focus,.zeit-row-form input:focus{border-color:var(--accent);}
+.rm-btn{width:28px;height:34px;border-radius:6px;background:var(--bg4);color:var(--red);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);}
+.rm-btn:hover{background:var(--red);color:#fff;border-color:var(--red);}
+.add-row-btn{width:100%;padding:8px;border-radius:7px;font-size:12px;color:var(--accent2);background:rgba(108,99,255,.1);border:1px dashed rgba(108,99,255,.4);margin-top:4px;transition:all .15s;}
+.add-row-btn:hover{background:rgba(108,99,255,.2);}
+.zeit-gesamt-form{font-size:12px;color:var(--green);font-weight:600;margin-top:8px;text-align:right;}
+
+/* ── README BAR ── */
 .readme-bar{display:flex;align-items:center;gap:8px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;padding:10px 12px;margin-bottom:14px;}
 .readme-bar span{flex:1;font-size:12px;color:var(--text2);}
 
-/* ── NAS / GDRIVE FELDER ── */
+/* ── LINK ROWS ── */
 .link-row{display:flex;gap:6px;}
 .link-row input{flex:1;}
 .link-btn{padding:10px 12px;border-radius:8px;font-size:12px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);flex-shrink:0;transition:all .15s;}
-.link-btn:hover,.link-btn:active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.link-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 .link-btn.copied{background:var(--green);color:#fff;border-color:var(--green);}
 
 /* ── HV LISTE ── */
@@ -193,10 +235,22 @@ a{color:inherit;text-decoration:none;}
   .modal-handle{display:none;}
   .hv-add-row{grid-template-columns:1fr 2fr auto;}
 }
-@media(max-width:400px){
+@media(max-width:480px){
   .modal-grid{grid-template-columns:1fr;}
   .modal-field.full{grid-column:1;}
   .hv-add-row{grid-template-columns:1fr;}
+  .row-header,.termin-row-form,.zeit-row-form{
+    grid-template-columns:1fr 60px 60px 1fr 28px;
+  }
+}
+@media(max-width:360px){
+  .row-header{display:none;}
+  .termin-row-form,.zeit-row-form{
+    grid-template-columns:1fr 1fr 28px;
+    grid-template-rows:auto auto;
+  }
+  .termin-row-form .t-bes,.zeit-row-form .z-bes{grid-column:1/3;}
+  .rm-btn{grid-row:1;grid-column:3;}
 }
 </style>
 </head>
@@ -205,7 +259,6 @@ a{color:inherit;text-decoration:none;}
 <!-- ═══ LISTEN-ANSICHT ═══ -->
 <div class="list-view" id="listView">
 
-  <!-- Topbar -->
   <div class="topbar">
     <div class="logo">🏗 Bau-Doku <small>Aufträge</small></div>
     <div class="search-wrap">
@@ -218,7 +271,6 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 
-  <!-- Filebar -->
   <div class="filebar">
     <div class="filebar-left">
       <span class="file-dot none" id="fileDot"></span>
@@ -231,22 +283,19 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs">
-    <button class="tab active" data-f="alle" onclick="setFilter('alle',this)">Alle <span class="tab-count" id="tc-alle">0</span></button>
-    <button class="tab" data-f="neu" onclick="setFilter('neu',this)">🔵 Neu <span class="tab-count" id="tc-neu">0</span></button>
-    <button class="tab" data-f="bearbeitung" onclick="setFilter('bearbeitung',this)">🟠 Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
-    <button class="tab" data-f="abgeschlossen" onclick="setFilter('abgeschlossen',this)">🟢 Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
+    <button class="tab active" onclick="setFilter('alle',this)">Alle <span class="tab-count" id="tc-alle">0</span></button>
+    <button class="tab" onclick="setFilter('neu',this)">🔵 Neu <span class="tab-count" id="tc-neu">0</span></button>
+    <button class="tab" onclick="setFilter('bearbeitung',this)">🟠 Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
+    <button class="tab" onclick="setFilter('abgeschlossen',this)">🟢 Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
   </div>
 
-  <!-- Zoom -->
   <div class="zoombar">
     <span class="zoom-label">🔤 Kartengröße:</span>
-    <input type="range" class="zoom-slider" id="zoomSlider" min="11" max="18" value="14" oninput="setZoom(this.value)">
-    <span class="zoom-count" id="zoomVal">14px</span>
+    <input type="range" class="zoom-slider" id="zoomSlider" min="70" max="130" value="100" oninput="setZoom(this.value)">
+    <span class="zoom-count" id="zoomVal">100%</span>
   </div>
 
-  <!-- Karten -->
   <div class="main">
     <div class="karten-liste" id="kartenListe"></div>
   </div>
@@ -255,7 +304,6 @@ a{color:inherit;text-decoration:none;}
 
 <!-- ═══ DETAIL-ANSICHT ═══ -->
 <div class="detail-view" id="detailView">
-
   <div class="detail-topbar">
     <button class="back-btn" onclick="zurueck()">← Zurück</button>
     <div class="detail-title" id="detailTitel">Auftrag</div>
@@ -263,9 +311,7 @@ a{color:inherit;text-decoration:none;}
       <button class="btn btn-secondary btn-sm" onclick="openBearbeiten()">✏ Bearbeiten</button>
     </div>
   </div>
-
   <div class="detail-body" id="detailBody"></div>
-
 </div>
 
 <!-- ═══ TOAST ═══ -->
@@ -291,7 +337,7 @@ a{color:inherit;text-decoration:none;}
   </div>
 </div>
 
-<!-- ═══ FORMULAR MODAL (Neu/Bearbeiten) ═══ -->
+<!-- ═══ FORMULAR MODAL ═══ -->
 <div class="modal-overlay" id="formModal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -304,11 +350,12 @@ a{color:inherit;text-decoration:none;}
       <input type="file" id="readmeInput" accept=".txt" style="display:none" onchange="importReadme(event)">
     </div>
 
+    <!-- Auftrag -->
     <div class="modal-section" style="margin-top:0;padding-top:0;border-top:none;">
       <div class="modal-section-title">📋 Auftrag</div>
       <div class="modal-grid">
-        <div class="modal-field"><label>Kostenstelle *</label><input type="text" id="fKS" placeholder="260022"></div>
-        <div class="modal-field"><label>Rep.-Nr.</label><input type="text" id="fRep" placeholder="3471"></div>
+        <div class="modal-field"><label>Kostenstelle *</label><input type="text" id="fKS" placeholder="260036"></div>
+        <div class="modal-field"><label>Rep.-Nr.</label><input type="text" id="fRep" placeholder="3476"></div>
         <div class="modal-field"><label>Datum</label><input type="date" id="fDat"></div>
         <div class="modal-field"><label>Status</label>
           <select id="fStat">
@@ -322,6 +369,7 @@ a{color:inherit;text-decoration:none;}
       </div>
     </div>
 
+    <!-- Objekt -->
     <div class="modal-section">
       <div class="modal-section-title">📍 Objekt</div>
       <div class="modal-grid">
@@ -332,12 +380,23 @@ a{color:inherit;text-decoration:none;}
             <input type="text" id="fHV" style="flex:2;" placeholder="oder eingeben">
           </div>
         </div>
-        <div class="modal-field"><label>Straße + Nr.</label><input type="text" id="fStr" placeholder="Humboldtstr. 62"></div>
-        <div class="modal-field"><label>PLZ + Ort</label><input type="text" id="fOrt" placeholder="99096 Erfurt"></div>
-        <div class="modal-field full"><label>Baustelle / Schadensbild</label><textarea id="fSch" placeholder="2. OG links, Feuchtigkeit Küche…"></textarea></div>
+        <div class="modal-field"><label>Straße + Nr.</label><input type="text" id="fStr" placeholder="Teststrasse 44"></div>
+        <div class="modal-field"><label>PLZ + Ort</label><input type="text" id="fOrt" placeholder="99086 Erfurt"></div>
+        <div class="modal-field full"><label>Schadensbild</label><textarea id="fSch" placeholder="2. OG links, Feuchtigkeit Küche…"></textarea></div>
       </div>
     </div>
 
+    <!-- Mieter (zuerst) -->
+    <div class="modal-section">
+      <div class="modal-section-title">🏠 Mieter</div>
+      <div class="modal-grid">
+        <div class="modal-field"><label>Name</label><input type="text" id="fMN" placeholder="Frau Tester"></div>
+        <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="03611234"></div>
+        <div class="modal-field full"><label>E-Mail</label><input type="email" id="fME"></div>
+      </div>
+    </div>
+
+    <!-- Eigentümer -->
     <div class="modal-section">
       <div class="modal-section-title">👤 Eigentümer</div>
       <div class="modal-grid">
@@ -347,23 +406,28 @@ a{color:inherit;text-decoration:none;}
       </div>
     </div>
 
+    <!-- Ortstermine -->
     <div class="modal-section">
-      <div class="modal-section-title">🏠 Mieter</div>
-      <div class="modal-grid">
-        <div class="modal-field"><label>Name</label><input type="text" id="fMN"></div>
-        <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="0178/9210453"></div>
-        <div class="modal-field full"><label>E-Mail</label><input type="email" id="fME"></div>
+      <div class="modal-section-title">📅 Ortstermine</div>
+      <div class="row-header">
+        <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
       </div>
+      <div id="termineContainer"></div>
+      <button class="add-row-btn" onclick="addTermin()">+ Termin hinzufügen</button>
     </div>
 
+    <!-- Zeiterfassung -->
     <div class="modal-section">
-      <div class="modal-section-title">📅 Termine</div>
-      <div class="modal-grid">
-        <div class="modal-field"><label>Ortstermin</label><input type="text" id="fTO" placeholder="15.04.2026 10:00 Uhr"></div>
-        <div class="modal-field"><label>Abgabe</label><input type="text" id="fTA" placeholder="30.04.2026"></div>
+      <div class="modal-section-title">⏱ Zeiterfassung</div>
+      <div class="row-header">
+        <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
       </div>
+      <div id="zeitContainer"></div>
+      <button class="add-row-btn" onclick="addZeit()">+ Zeit hinzufügen</button>
+      <div class="zeit-gesamt-form" id="zeitGesamtForm"></div>
     </div>
 
+    <!-- Verknüpfungen -->
     <div class="modal-section">
       <div class="modal-section-title">🔗 Verknüpfungen</div>
       <div class="modal-grid">
@@ -384,9 +448,10 @@ a{color:inherit;text-decoration:none;}
       </div>
     </div>
 
+    <!-- Notizen -->
     <div class="modal-section">
       <div class="modal-section-title">📝 Notizen</div>
-      <div class="modal-field"><textarea id="fNot" placeholder="Interne Notizen…" style="min-height:70px;"></textarea></div>
+      <div class="modal-field"><textarea id="fNot" placeholder="Interne Notizen…"></textarea></div>
     </div>
 
     <div class="modal-actions">
@@ -427,21 +492,67 @@ function genId(){ return 'a_'+Date.now()+'_'+Math.random().toString(36).substr(2
 function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
 function readVal(txt,key){
   const m=txt.match(new RegExp(key+':\\s*(.+)','i'));
-  if(!m) return '';
+  if(!m)return '';
   const v=m[1].trim();
   return(v==='(noch offen)'||v==='noch offen')?'':v;
 }
 function formatTel(t){ return t?t.replace(/[^\d+]/g,''):''; }
 
+function berechneTotalZeit(eintraege){
+  let total=0;
+  for(const e of(eintraege||[])){
+    if(e.von&&e.bis){
+      const[vh,vm]=e.von.split(':').map(Number);
+      const[bh,bm]=e.bis.split(':').map(Number);
+      const d=(bh*60+bm)-(vh*60+vm);
+      if(d>0)total+=d;
+    }
+  }
+  if(total===0)return '0min';
+  const h=Math.floor(total/60),m=total%60;
+  return h>0?(m>0?h+'h '+m+'min':h+'h'):m+'min';
+}
+
+function zeitDauer(von,bis){
+  if(!von||!bis)return '';
+  const[vh,vm]=von.split(':').map(Number);
+  const[bh,bm]=bis.split(':').map(Number);
+  const d=(bh*60+bm)-(vh*60+vm);
+  if(d<=0)return '';
+  const h=Math.floor(d/60),m=d%60;
+  return h>0?(m>0?h+'h '+m+'min':h+'h'):m+'min';
+}
+
+function mapsUrl(strasse,ort){
+  const parts=[strasse,ort].filter(Boolean);
+  if(!parts.length)return null;
+  return 'https://maps.google.com/?q='+encodeURIComponent(parts.join(', '));
+}
+
 // ═══ ZOOM ═══
 function setZoom(v){
-  document.documentElement.style.setProperty('--card-font', v+'px');
-  document.getElementById('zoomVal').textContent = v+'px';
-  localStorage.setItem('bau_zoom', v);
+  document.documentElement.style.setProperty('--zoom',Number(v)/100);
+  document.getElementById('zoomVal').textContent=v+'%';
+  localStorage.setItem('bau_zoom',v);
 }
-(function(){ const z=localStorage.getItem('bau_zoom')||'14'; document.getElementById('zoomSlider').value=z; setZoom(z); })();
+(function(){
+  let z=localStorage.getItem('bau_zoom')||'100';
+  if(Number(z)<30)z='100';
+  document.getElementById('zoomSlider').value=z;
+  setZoom(z);
+})();
 
-// ═══ FILE ═══
+// ═══ DATENMIGRATION ═══
+function migrateAuftrag(a){
+  if(!a.termine){
+    a.termine=[];
+    if(a.terminOrt)a.termine.push({datum:'',von:'',bis:'',beschreibung:a.terminOrt});
+  }
+  if(!a.zeiterfassung)a.zeiterfassung=[];
+  return a;
+}
+
+// ═══ DATEI ═══
 function updateFileStatus(state,name){
   document.getElementById('fileDot').className='file-dot '+state;
   document.getElementById('fileName').textContent=name;
@@ -453,7 +564,7 @@ async function openFile(){
     [fileHandle]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
     const f=await fileHandle.getFile();
     const data=JSON.parse(await f.text())||{};
-    auftraege=Array.isArray(data)?data:(data.auftraege||[]);
+    auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
     if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
     updateFileStatus('ok',fileHandle.name);
     renderListe();
@@ -484,7 +595,7 @@ function fallbackImport(){
   const i=document.createElement('input');i.type='file';i.accept='.json';
   i.onchange=async e=>{
     const data=JSON.parse(await e.target.files[0].text())||{};
-    auftraege=Array.isArray(data)?data:(data.auftraege||[]);
+    auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
     if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
     updateFileStatus('unsaved','Importiert');renderListe();
   };i.click();
@@ -505,10 +616,9 @@ function setFilter(f,btn){
 function getFiltered(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   return auftraege.filter(a=>{
-    const ok=filter==='alle'||a.status===filter;
-    if(!ok)return false;
+    if(filter!=='alle'&&a.status!==filter)return false;
     if(!q)return true;
-    return [a.ks,a.strasse,a.ort,a.hv,a.mieterName,a.eigentuemer,a.schaden,a.rep].join(' ').toLowerCase().includes(q);
+    return[a.ks,a.strasse,a.ort,a.hv,a.mieterName,a.eigentuemer,a.schaden,a.rep].join(' ').toLowerCase().includes(q);
   });
 }
 
@@ -517,11 +627,11 @@ function renderListe(){
   const alle=auftraege;
   ['alle','neu','bearbeitung','abgeschlossen'].forEach(k=>{
     const el=document.getElementById('tc-'+k);
-    if(el) el.textContent=k==='alle'?alle.length:alle.filter(a=>a.status===k).length;
+    if(el)el.textContent=k==='alle'?alle.length:alle.filter(a=>a.status===k).length;
   });
   const filtered=getFiltered();
   const el=document.getElementById('kartenListe');
-  if(filtered.length===0){
+  if(!filtered.length){
     el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div>Keine Aufträge</div></div>';
     return;
   }
@@ -530,24 +640,27 @@ function renderListe(){
 
 function statusDot(s){
   const c={neu:'#4a90d9',bearbeitung:'#f39c12',abgeschlossen:'#2ecc71'}[s]||'#888';
-  return `<span class="status-dot" style="background:${c}"></span>`;
+  return '<span class="status-dot" style="background:'+c+'"></span>';
 }
 
 function renderKarte(a){
-  const drive=a.gdrive?`<span class="badge drive">📁 Drive</span>`:'';
-  const nas=a.nas?`<span class="badge nas">💾 NAS</span>`:'';
-  const termin=a.terminOrt?`<span class="badge">📅 ${esc(a.terminOrt)}</span>`:'';
-  return `<div class="auftrag-karte" onclick="openDetail('${a.id}')">
-    <div class="karte-kopf">
-      <div class="karte-ks">${statusDot(a.status)} ${esc(a.ks||'–')}</div>
-      <div class="karte-datum">${esc(a.datum||'')}</div>
-    </div>
-    <div class="karte-adresse">📍 ${esc(a.strasse||'')}${a.ort?', '+esc(a.ort):''}</div>
-    <div class="karte-hv">🏢 ${esc(a.hv||'–')}</div>
-    ${a.mieterName?`<div class="karte-mieter">🏠 ${esc(a.mieterName)}${a.mieterTel?' · '+esc(a.mieterTel):''}</div>`:''}
-    ${a.schaden?`<div class="karte-schaden">${esc(a.schaden)}</div>`:''}
-    <div class="karte-footer">${drive}${nas}${termin}${a.rep?`<span class="badge">Rep. ${esc(a.rep)}</span>`:''}</div>
-  </div>`;
+  const drive=a.gdrive?'<span class="badge drive">📁 Drive</span>':'';
+  const nas=a.nas?'<span class="badge nas">💾 NAS</span>':'';
+  const t=(a.termine||[]).filter(x=>x.datum||x.von||x.beschreibung);
+  const termine=t.length?'<span class="badge">📅 '+t.length+' Termin'+(t.length>1?'e':'')+'</span>':'';
+  const z=a.zeiterfassung||[];
+  const zeiten=z.length?'<span class="badge">⏱ '+berechneTotalZeit(z)+'</span>':'';
+  const schaden=a.schaden
+    ?'<div class="karte-schaden" ondblclick="event.stopPropagation();this.classList.toggle(\'expanded\')" title="Doppelklick zum Aufklappen">'+esc(a.schaden)+'</div>'
+    :'';
+  return '<div class="auftrag-karte" onclick="openDetail(\''+a.id+'\')">'
+    +'<div class="karte-kopf"><div class="karte-ks">'+statusDot(a.status)+' '+esc(a.ks||'–')+'</div><div class="karte-datum">'+esc(a.datum||'')+'</div></div>'
+    +'<div class="karte-adresse">📍 '+esc(a.strasse||'')+(a.ort?', '+esc(a.ort):'')+'</div>'
+    +'<div class="karte-hv">🏢 '+esc(a.hv||'–')+'</div>'
+    +(a.mieterName?'<div class="karte-mieter">🏠 '+esc(a.mieterName)+(a.mieterTel?' · '+esc(a.mieterTel):'')+'</div>':'')
+    +schaden
+    +'<div class="karte-footer">'+drive+nas+termine+zeiten+(a.rep?'<span class="badge">Rep. '+esc(a.rep)+'</span>':'')+'</div>'
+    +'</div>';
 }
 
 // ═══ DETAIL ANSICHT ═══
@@ -555,13 +668,12 @@ function openDetail(id){
   const a=auftraege.find(x=>x.id===id);
   if(!a)return;
   detailId=id;
-  document.getElementById('detailTitel').textContent=a.ks||'Auftrag';
+  document.getElementById('detailTitel').textContent=(a.ks||'Auftrag')+(a.strasse?' · '+a.strasse:'');
   renderDetail(a);
   document.getElementById('listView').classList.add('hidden');
   document.getElementById('detailView').classList.add('active');
-  window.scrollTo(0,0);
+  document.getElementById('detailBody').scrollTop=0;
 }
-
 function zurueck(){
   document.getElementById('detailView').classList.remove('active');
   document.getElementById('listView').classList.remove('hidden');
@@ -569,17 +681,16 @@ function zurueck(){
 }
 
 function val(v,leer='–'){
-  if(!v||v==='(noch offen)') return `<span class="detail-value offen">${leer}</span>`;
-  return `<span class="detail-value">${esc(v)}</span>`;
+  if(!v||v==='(noch offen)')return '<span class="detail-value offen">'+leer+'</span>';
+  return '<span class="detail-value">'+esc(v)+'</span>';
 }
 function telLink(t){
-  if(!t||t==='(noch offen)') return `<span class="detail-value offen">–</span>`;
-  const nr=formatTel(t);
-  return `<span class="detail-value"><a class="tel" href="tel:${nr}">📞 ${esc(t)}</a></span>`;
+  if(!t||t==='(noch offen)')return '<span class="detail-value offen">–</span>';
+  return '<span class="detail-value"><a class="tel" href="tel:'+formatTel(t)+'">📞 '+esc(t)+'</a></span>';
 }
 function mailLink(m){
-  if(!m||m==='(noch offen)') return `<span class="detail-value offen">–</span>`;
-  return `<span class="detail-value"><a class="mail" href="mailto:${esc(m)}">✉ ${esc(m)}</a></span>`;
+  if(!m||m==='(noch offen)')return '<span class="detail-value offen">–</span>';
+  return '<span class="detail-value"><a class="mail" href="mailto:'+esc(m)+'">✉ '+esc(m)+'</a></span>';
 }
 
 function renderDetail(a){
@@ -587,60 +698,100 @@ function renderDetail(a){
   const nextStatus={neu:'bearbeitung',bearbeitung:'abgeschlossen',abgeschlossen:'neu'};
   const nextLabel={neu:'→ In Bearbeitung',bearbeitung:'→ Abgeschlossen',abgeschlossen:'→ Neu'};
 
-  let html=`
-  <div class="detail-status-bar">
-    <span class="status-badge ${a.status}">${statusLabel}</span>
-    <button class="status-change-btn" onclick="statusWechseln('${nextStatus[a.status]}')">
-      ${nextLabel[a.status]}
-    </button>
-  </div>
+  // Adresse + Google Maps
+  const adresse=[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
+  const mLink=mapsUrl(a.strasse,a.ort);
+  const adresseHtml=mLink
+    ?'<span class="detail-value"><a class="maps" href="'+mLink+'" target="_blank">📍 '+esc(adresse)+'</a></span>'
+    :val(adresse);
 
-  <div class="detail-section">
-    <div class="detail-section-title">📋 Auftragsdaten</div>
-    <div class="detail-grid">
-      <div class="detail-row"><div class="detail-label">Kostenstelle</div>${val(a.ks)}</div>
-      <div class="detail-row"><div class="detail-label">Rep.-Nr.</div>${val(a.rep)}</div>
-      <div class="detail-row"><div class="detail-label">Datum</div>${val(a.datum)}</div>
-      <div class="detail-row"><div class="detail-label">Auftraggeber</div>${val(a.ag)}</div>
-    </div>
-  </div>
+  // Termine
+  const termine=(a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung);
+  let termineHtml=termine.length?termine.map(t=>{
+    let z='';
+    if(t.datum)z+=esc(t.datum);
+    if(t.von)z+=' &nbsp;<b>'+t.von+'</b>';
+    if(t.bis)z+=' – <b>'+t.bis+'</b>';
+    const d=zeitDauer(t.von,t.bis);
+    return '<div class="termin-entry"><div class="termin-zeit">'+z+(d?' <span style="color:var(--green);font-weight:400;font-size:11px;">('+d+')</span>':'')+'</div>'+(t.beschreibung?'<div class="termin-bes">'+esc(t.beschreibung)+'</div>':'')+'</div>';
+  }).join(''):'<span style="font-size:13px;color:var(--text2);font-style:italic;">Keine Termine eingetragen</span>';
 
-  <div class="detail-section">
-    <div class="detail-section-title">📍 Objekt</div>
-    <div class="detail-row"><div class="detail-label">Hausverwaltung</div>${val(a.hv)}</div>
-    <div class="detail-row"><div class="detail-label">Adresse</div>${val((a.strasse||'')+(a.ort?', '+a.ort:''))}</div>
-    ${a.schaden?`<div class="detail-row"><div class="detail-label">Schadensbild</div><span class="detail-value">${esc(a.schaden)}</span></div>`:''}
-  </div>
-
-  <div class="detail-section">
-    <div class="detail-section-title">👤 Eigentümer</div>
-    <div class="detail-row"><div class="detail-label">Name</div>${val(a.eigentuemer)}</div>
-    <div class="detail-row"><div class="detail-label">Telefon</div>${telLink(a.eigTel)}</div>
-    <div class="detail-row"><div class="detail-label">E-Mail</div>${mailLink(a.eigEmail)}</div>
-  </div>
-
-  <div class="detail-section">
-    <div class="detail-section-title">🏠 Mieter</div>
-    <div class="detail-row"><div class="detail-label">Name</div>${val(a.mieterName)}</div>
-    <div class="detail-row"><div class="detail-label">Telefon</div>${telLink(a.mieterTel)}</div>
-    <div class="detail-row"><div class="detail-label">E-Mail</div>${mailLink(a.mieterEmail)}</div>
-  </div>
-
-  <div class="detail-section">
-    <div class="detail-section-title">📅 Termine</div>
-    <div class="detail-grid">
-      <div class="detail-row"><div class="detail-label">Ortstermin</div>${val(a.terminOrt)}</div>
-      <div class="detail-row"><div class="detail-label">Abgabe</div>${val(a.terminAbgabe)}</div>
-    </div>
-  </div>`;
-
-  if(a.gdrive||a.nas||a.notizen){
-    html+=`<div class="detail-section"><div class="detail-section-title">🔗 Verknüpfungen & Notizen</div>`;
-    if(a.gdrive) html+=`<button class="detail-btn drive" onclick="window.open('${esc(a.gdrive)}','_blank')">📁 Fotos in Google Drive öffnen</button>`;
-    if(a.nas) html+=`<button class="detail-btn nas" id="nasCopyBtn" onclick="nasKopieren('${esc(a.nas)}')">💾 NAS-Pfad kopieren</button>`;
-    if(a.notizen) html+=`<div class="detail-row" style="margin-top:8px;"><div class="detail-label">Notizen</div><span class="detail-value">${esc(a.notizen)}</span></div>`;
-    html+=`</div>`;
+  // Zeiterfassung
+  const zeiten=(a.zeiterfassung||[]).filter(z=>z.von||z.beschreibung);
+  const totalZeit=berechneTotalZeit(zeiten);
+  let zeitHtml='';
+  if(zeiten.length){
+    zeitHtml='<div class="zeit-total-badge">⏱ Gesamt: '+totalZeit+'</div>';
+    zeitHtml+=zeiten.map(z=>{
+      const d=zeitDauer(z.von,z.bis);
+      let uhr='';
+      if(z.datum)uhr+=esc(z.datum);
+      if(z.von)uhr+=' &nbsp;'+z.von;
+      if(z.bis)uhr+=' – '+z.bis;
+      if(d)uhr+=' <span style="color:var(--green)">('+d+')</span>';
+      return '<div class="zeit-entry"><div class="zeit-datum-uhr">'+uhr+'</div>'+(z.beschreibung?'<div class="zeit-bes-txt">'+esc(z.beschreibung)+'</div>':'')+'</div>';
+    }).join('');
+  } else {
+    zeitHtml='<span style="font-size:13px;color:var(--text2);font-style:italic;">Keine Einträge</span>';
   }
+
+  let html=
+    '<div class="detail-status-bar">'
+    +'<span class="status-badge '+a.status+'">'+statusLabel+'</span>'
+    +'<button class="status-change-btn" onclick="statusWechseln(\''+nextStatus[a.status]+'\')">'+nextLabel[a.status]+'</button>'
+    +'</div>'
+
+    // Auftragsdaten
+    +'<div class="detail-section"><div class="detail-section-title">📋 Auftragsdaten</div>'
+    +'<div class="detail-grid">'
+    +'<div class="detail-row"><div class="detail-label">Kostenstelle</div>'+val(a.ks)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">Rep.-Nr.</div>'+val(a.rep)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">Datum</div>'+val(a.datum)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">Auftraggeber</div>'+val(a.ag)+'</div>'
+    +'</div></div>'
+
+    // Objekt
+    +'<div class="detail-section"><div class="detail-section-title">📍 Objekt</div>'
+    +'<div class="detail-row"><div class="detail-label">Hausverwaltung</div>'+val(a.hv)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">Adresse</div>'+adresseHtml+'</div>'
+    +(a.schaden?'<div class="detail-row"><div class="detail-label">Schadensbild</div><span class="detail-value" style="white-space:pre-wrap">'+esc(a.schaden)+'</span></div>':'')
+    +'</div>'
+
+    // Ortstermine
+    +'<details class="detail-collapse" open><summary>📅 Ortstermine'+(termine.length?' <span style="color:var(--accent2);margin-left:4px;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">('+termine.length+')</span>':'')+'</summary>'
+    +'<div class="collapse-body">'+termineHtml+'</div></details>'
+
+    // Mieter (zuerst, offen)
+    +'<details class="detail-collapse" open><summary>🏠 Mieter</summary>'
+    +'<div class="collapse-body">'
+    +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.mieterName)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.mieterTel)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.mieterEmail)+'</div>'
+    +'</div></details>'
+
+    // Eigentümer (zugeklappt)
+    +'<details class="detail-collapse"><summary>👤 Eigentümer</summary>'
+    +'<div class="collapse-body">'
+    +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.eigentuemer)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.eigTel)+'</div>'
+    +'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.eigEmail)+'</div>'
+    +'</div></details>'
+
+    // Zeiterfassung (zugeklappt)
+    +'<details class="detail-collapse"><summary>⏱ Zeiterfassung'+(zeiten.length?' <span style="color:var(--green);margin-left:4px;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">'+totalZeit+'</span>':'')+'</summary>'
+    +'<div class="collapse-body">'+zeitHtml+'</div></details>';
+
+  // Verknüpfungen
+  if(a.gdrive||a.nas||a.notizen){
+    html+='<div class="detail-section"><div class="detail-section-title">🔗 Verknüpfungen</div>';
+    if(a.gdrive)html+='<button class="detail-btn drive" onclick="window.open(\''+esc(a.gdrive)+'\',\'_blank\')">📁 Fotos in Google Drive öffnen</button>';
+    if(a.nas)html+='<button class="detail-btn nas" id="nasCopyBtn" onclick="nasKopieren(\''+esc(a.nas)+'\')">💾 NAS-Pfad kopieren</button>';
+    if(a.notizen)html+='<div class="detail-row" style="margin-top:10px;"><div class="detail-label">Notizen</div><span class="detail-value" style="white-space:pre-wrap">'+esc(a.notizen)+'</span></div>';
+    html+='</div>';
+  }
+
+  // README Export Button
+  html+='<button class="detail-btn readme" onclick="exportReadme(\''+a.id+'\')">📄 README.txt für NAS herunterladen</button>';
 
   document.getElementById('detailBody').innerHTML=html;
 }
@@ -662,6 +813,132 @@ function nasKopieren(pfad){
   });
 }
 
+// ═══ README EXPORT ═══
+function exportReadme(id){
+  const a=auftraege.find(x=>x.id===id);if(!a)return;
+  const nl='\r\n';let t='';
+  const L=s=>{t+=s+nl;};
+  L('==============================');L(' AUFTRAGSAKTE');L(' Erstellt am: '+(a.datum||''));L('==============================');L('');
+  L('AUFTRAG');
+  L('Auftrag_Kostenstelle: '+(a.ks||'(noch offen)'));
+  L('Auftrag_Datum: '+(a.datum||'(noch offen)'));
+  L('Rep_Nr: '+(a.rep||'(noch offen)'));
+  L('Auftraggeber: '+(a.ag||'(noch offen)'));
+  L('Kunden_Nr: '+(a.knr||'(noch offen)'));
+  L('');
+  L('OBJEKT');
+  L('Objekt_Strasse: '+[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', '));
+  L('Objekt_Hausverwaltung: '+(a.hv||'(noch offen)'));
+  L('Baustelle_Schadensbild: '+(a.schaden||'(noch offen)'));
+  L('');
+  L('EIGENTUEMER');
+  L('Eigentuemer_Name: '+(a.eigentuemer||'(noch offen)'));
+  L('Eigentuemer_Telefon: '+(a.eigTel||'(noch offen)'));
+  L('Eigentuemer_Email: '+(a.eigEmail||'(noch offen)'));
+  L('');
+  L('MIETER');
+  L('Mieter_Name: '+(a.mieterName||'(noch offen)'));
+  L('Mieter_Telefon: '+(a.mieterTel||'(noch offen)'));
+  L('Mieter_Email: '+(a.mieterEmail||'(noch offen)'));
+  L('');
+  const termine=(a.termine||[]).filter(x=>x.datum||x.von||x.beschreibung);
+  if(termine.length){
+    L('TERMINE');
+    for(const te of termine){
+      let z='';
+      if(te.datum)z+=te.datum;
+      if(te.von)z+='  '+te.von;
+      if(te.bis)z+='-'+te.bis;
+      if(te.beschreibung)z+='  '+te.beschreibung;
+      if(z.trim())L(z.trim());
+    }
+    L('');
+  }
+  const zeiten=(a.zeiterfassung||[]).filter(z=>z.von||z.beschreibung);
+  if(zeiten.length){
+    L('ZEITERFASSUNG');
+    L('Gesamt: '+berechneTotalZeit(zeiten));
+    for(const z of zeiten){
+      let s='';
+      if(z.datum)s+=z.datum;
+      if(z.von)s+='  '+z.von;
+      if(z.bis)s+='-'+z.bis;
+      if(z.beschreibung)s+='  '+z.beschreibung;
+      if(s.trim())L(s.trim());
+    }
+    L('');
+  }
+  L('VERKNUEPFUNGEN');
+  L('Google_Drive_Link: '+(a.gdrive||'(noch offen)'));
+  L('NAS_Auftragsordner: '+(a.nas||'(noch offen)'));
+  if(a.notizen){L('');L('NOTIZEN');L(a.notizen);}
+  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;link.download='README.txt';link.click();
+  URL.revokeObjectURL(url);
+  toast('📄 README.txt heruntergeladen');
+}
+
+// ═══ TERMINE FORMULAR ═══
+function addTermin(datum,von,bis,beschreibung){
+  datum=datum||'';von=von||'';bis=bis||'';beschreibung=beschreibung||'';
+  const c=document.getElementById('termineContainer');
+  const div=document.createElement('div');div.className='termin-row-form';
+  div.innerHTML='<input type="date" class="t-datum" value="'+datum+'">'
+    +'<input type="time" class="t-von" value="'+von+'">'
+    +'<input type="time" class="t-bis" value="'+bis+'">'
+    +'<input type="text" class="t-bes" placeholder="Beschreibung" value="'+beschreibung.replace(/"/g,'&quot;')+'">'
+    +'<button class="rm-btn" onclick="this.closest(\'.termin-row-form\').remove()" title="Entfernen">✕</button>';
+  c.appendChild(div);
+}
+function renderTermineForm(termine){
+  document.getElementById('termineContainer').innerHTML='';
+  if(!termine||!termine.length)addTermin();
+  else for(const t of termine)addTermin(t.datum,t.von,t.bis,t.beschreibung);
+}
+function getTermineFromForm(){
+  return[...document.querySelectorAll('.termin-row-form')].map(r=>({
+    datum:r.querySelector('.t-datum').value,
+    von:r.querySelector('.t-von').value,
+    bis:r.querySelector('.t-bis').value,
+    beschreibung:r.querySelector('.t-bes').value.trim()
+  })).filter(t=>t.datum||t.von||t.beschreibung);
+}
+
+// ═══ ZEITERFASSUNG FORMULAR ═══
+function addZeit(datum,von,bis,beschreibung){
+  datum=datum||'';von=von||'';bis=bis||'';beschreibung=beschreibung||'';
+  const c=document.getElementById('zeitContainer');
+  const div=document.createElement('div');div.className='zeit-row-form';
+  div.innerHTML='<input type="date" class="z-datum" value="'+datum+'" oninput="updateZeitGesamt()">'
+    +'<input type="time" class="z-von" value="'+von+'" oninput="updateZeitGesamt()">'
+    +'<input type="time" class="z-bis" value="'+bis+'" oninput="updateZeitGesamt()">'
+    +'<input type="text" class="z-bes" placeholder="Beschreibung" value="'+beschreibung.replace(/"/g,'&quot;')+'">'
+    +'<button class="rm-btn" onclick="this.closest(\'.zeit-row-form\').remove();updateZeitGesamt()" title="Entfernen">✕</button>';
+  c.appendChild(div);updateZeitGesamt();
+}
+function renderZeitenForm(zeiten){
+  document.getElementById('zeitContainer').innerHTML='';
+  if(!zeiten||!zeiten.length)addZeit();
+  else for(const z of zeiten)addZeit(z.datum,z.von,z.bis,z.beschreibung);
+  updateZeitGesamt();
+}
+function getZeitenFromForm(){
+  return[...document.querySelectorAll('.zeit-row-form')].map(r=>({
+    datum:r.querySelector('.z-datum').value,
+    von:r.querySelector('.z-von').value,
+    bis:r.querySelector('.z-bis').value,
+    beschreibung:r.querySelector('.z-bes').value.trim()
+  })).filter(z=>z.datum||z.von||z.beschreibung);
+}
+function updateZeitGesamt(){
+  const rows=document.querySelectorAll('.zeit-row-form');
+  const e=[...rows].map(r=>({von:r.querySelector('.z-von').value,bis:r.querySelector('.z-bis').value}));
+  const el=document.getElementById('zeitGesamtForm');
+  if(el)el.textContent='Gesamt: '+berechneTotalZeit(e);
+}
+
 // ═══ FORMULAR ═══
 function openNeu(){
   detailId=null;
@@ -672,10 +949,8 @@ function openNeu(){
   updateHVSel();
   document.getElementById('formModal').classList.add('open');
 }
-
 function openBearbeiten(){
-  const a=auftraege.find(x=>x.id===detailId);
-  if(!a)return;
+  const a=auftraege.find(x=>x.id===detailId);if(!a)return;
   document.getElementById('formTitel').textContent='✏ Auftrag bearbeiten';
   document.getElementById('loeschBtn').style.display='';
   document.getElementById('fId').value=a.id;
@@ -689,40 +964,39 @@ function openBearbeiten(){
   document.getElementById('fStr').value=a.strasse||'';
   document.getElementById('fOrt').value=a.ort||'';
   document.getElementById('fSch').value=a.schaden||'';
-  document.getElementById('fEN').value=a.eigentuemer||'';
-  document.getElementById('fET').value=a.eigTel||'';
-  document.getElementById('fEE').value=a.eigEmail||'';
   document.getElementById('fMN').value=a.mieterName||'';
   document.getElementById('fMT').value=a.mieterTel||'';
   document.getElementById('fME').value=a.mieterEmail||'';
-  document.getElementById('fTO').value=a.terminOrt||'';
-  document.getElementById('fTA').value=a.terminAbgabe||'';
+  document.getElementById('fEN').value=a.eigentuemer||'';
+  document.getElementById('fET').value=a.eigTel||'';
+  document.getElementById('fEE').value=a.eigEmail||'';
   document.getElementById('fGD').value=a.gdrive||'';
   document.getElementById('fNAS').value=a.nas||'';
   document.getElementById('fNot').value=a.notizen||'';
+  renderTermineForm(a.termine||[]);
+  renderZeitenForm(a.zeiterfassung||[]);
   updateHVSel();
   document.getElementById('formModal').classList.add('open');
 }
-
 function closeForm(){document.getElementById('formModal').classList.remove('open');}
-
 function clearForm(){
   ['fKS','fRep','fDat','fAG','fKNr','fHV','fStr','fOrt','fSch',
-   'fEN','fET','fEE','fMN','fMT','fME','fTO','fTA','fGD','fNAS','fNot'].forEach(id=>{
+   'fMN','fMT','fME','fEN','fET','fEE','fGD','fNAS','fNot'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('fId').value='';
   document.getElementById('fStat').value='neu';
   document.getElementById('fHVSel').value='';
+  renderTermineForm([]);
+  renderZeitenForm([]);
 }
-
 async function speichern(){
   const ks=document.getElementById('fKS').value.trim();
   if(!ks){toast('⚠ Kostenstelle fehlt');return;}
   const existId=document.getElementById('fId').value;
   const data={
     id:existId||genId(),
-    ks, rep:document.getElementById('fRep').value.trim(),
+    ks,rep:document.getElementById('fRep').value.trim(),
     datum:document.getElementById('fDat').value,
     status:document.getElementById('fStat').value,
     ag:document.getElementById('fAG').value.trim(),
@@ -731,14 +1005,14 @@ async function speichern(){
     strasse:document.getElementById('fStr').value.trim(),
     ort:document.getElementById('fOrt').value.trim(),
     schaden:document.getElementById('fSch').value.trim(),
-    eigentuemer:document.getElementById('fEN').value.trim(),
-    eigTel:document.getElementById('fET').value.trim(),
-    eigEmail:document.getElementById('fEE').value.trim(),
     mieterName:document.getElementById('fMN').value.trim(),
     mieterTel:document.getElementById('fMT').value.trim(),
     mieterEmail:document.getElementById('fME').value.trim(),
-    terminOrt:document.getElementById('fTO').value.trim(),
-    terminAbgabe:document.getElementById('fTA').value.trim(),
+    eigentuemer:document.getElementById('fEN').value.trim(),
+    eigTel:document.getElementById('fET').value.trim(),
+    eigEmail:document.getElementById('fEE').value.trim(),
+    termine:getTermineFromForm(),
+    zeiterfassung:getZeitenFromForm(),
     gdrive:document.getElementById('fGD').value.trim(),
     nas:document.getElementById('fNAS').value.trim(),
     notizen:document.getElementById('fNot').value.trim(),
@@ -746,31 +1020,20 @@ async function speichern(){
   };
   if(existId){
     const idx=auftraege.findIndex(a=>a.id===existId);
-    if(idx>=0)auftraege[idx]=data;
+    if(idx>=0){data.createdAt=auftraege[idx].createdAt;auftraege[idx]=data;}
   }else{
     data.createdAt=new Date().toISOString();
-    auftraege.unshift(data);
-    detailId=data.id;
+    auftraege.unshift(data);detailId=data.id;
   }
-  await saveFile();
-  closeForm();
-  renderListe();
-  if(detailId){
-    const a=auftraege.find(x=>x.id===detailId);
-    if(a){document.getElementById('detailTitel').textContent=a.ks||'Auftrag';renderDetail(a);}
-  }
+  await saveFile();closeForm();renderListe();
+  if(detailId){const a=auftraege.find(x=>x.id===detailId);if(a){document.getElementById('detailTitel').textContent=(a.ks||'Auftrag')+(a.strasse?' · '+a.strasse:'');renderDetail(a);}}
   toast('✅ Gespeichert');
 }
-
 async function loeschen(){
   if(!confirm('Auftrag löschen?'))return;
   const existId=document.getElementById('fId').value;
   auftraege=auftraege.filter(a=>a.id!==existId);
-  await saveFile();
-  closeForm();
-  zurueck();
-  renderListe();
-  toast('🗑 Gelöscht');
+  await saveFile();closeForm();zurueck();renderListe();toast('🗑 Gelöscht');
 }
 
 // ═══ README IMPORT ═══
@@ -781,17 +1044,17 @@ function importReadme(event){
   reader.onload=e=>{
     const txt=e.target.result;
     const v=key=>readVal(txt,key);
-    if(v('Auftrag_Kostenstelle')) document.getElementById('fKS').value=v('Auftrag_Kostenstelle');
-    if(v('Rep_Nr')) document.getElementById('fRep').value=v('Rep_Nr');
+    if(v('Auftrag_Kostenstelle'))document.getElementById('fKS').value=v('Auftrag_Kostenstelle');
+    if(v('Rep_Nr'))document.getElementById('fRep').value=v('Rep_Nr');
     const dat=v('Auftrag_Datum');
     if(dat){const p=dat.split('.');if(p.length===3)document.getElementById('fDat').value=p[2]+'-'+p[1]+'-'+p[0];}
-    if(v('Auftraggeber')) document.getElementById('fAG').value=v('Auftraggeber');
-    if(v('Kunden_Nr')) document.getElementById('fKNr').value=v('Kunden_Nr');
+    if(v('Auftraggeber'))document.getElementById('fAG').value=v('Auftraggeber');
+    if(v('Kunden_Nr'))document.getElementById('fKNr').value=v('Kunden_Nr');
     const hv=v('Objekt_Hausverwaltung');
     if(hv){
       document.getElementById('fHV').value=hv;
-      const gefunden=hvListe.find(h=>hv.toLowerCase().includes(h.name.toLowerCase())||h.name.toLowerCase().includes(hv.toLowerCase()));
-      if(gefunden&&gefunden.driveLink) document.getElementById('fGD').value=gefunden.driveLink;
+      const gef=hvListe.find(h=>hv.toLowerCase().includes(h.name.toLowerCase())||h.name.toLowerCase().includes(hv.toLowerCase()));
+      if(gef&&gef.driveLink)document.getElementById('fGD').value=gef.driveLink;
     }
     const str=v('Objekt_Strasse');
     if(str){
@@ -799,19 +1062,18 @@ function importReadme(event){
       if(m){document.getElementById('fStr').value=m[1].trim();document.getElementById('fOrt').value=m[2].trim();}
       else document.getElementById('fStr').value=str;
     }
-    if(v('Baustelle_Schadensbild')) document.getElementById('fSch').value=v('Baustelle_Schadensbild');
-    if(v('Eigentuemer_Name')) document.getElementById('fEN').value=v('Eigentuemer_Name');
-    if(v('Eigentuemer_Telefon')) document.getElementById('fET').value=v('Eigentuemer_Telefon');
-    if(v('Eigentuemer_Email')) document.getElementById('fEE').value=v('Eigentuemer_Email');
-    if(v('Mieter_Name')) document.getElementById('fMN').value=v('Mieter_Name');
-    if(v('Mieter_Telefon')) document.getElementById('fMT').value=v('Mieter_Telefon');
-    if(v('Mieter_Email')) document.getElementById('fME').value=v('Mieter_Email');
-    if(v('Termin_Ortstermin')) document.getElementById('fTO').value=v('Termin_Ortstermin');
-    if(v('Termin_Abgabe')) document.getElementById('fTA').value=v('Termin_Abgabe');
-    if(v('Google_Drive_Link')) document.getElementById('fGD').value=v('Google_Drive_Link');
-    if(v('NAS_Auftragsordner')) document.getElementById('fNAS').value=v('NAS_Auftragsordner');
-    toast('✅ README importiert');
-    event.target.value='';
+    if(v('Baustelle_Schadensbild'))document.getElementById('fSch').value=v('Baustelle_Schadensbild');
+    if(v('Eigentuemer_Name'))document.getElementById('fEN').value=v('Eigentuemer_Name');
+    if(v('Eigentuemer_Telefon'))document.getElementById('fET').value=v('Eigentuemer_Telefon');
+    if(v('Eigentuemer_Email'))document.getElementById('fEE').value=v('Eigentuemer_Email');
+    if(v('Mieter_Name'))document.getElementById('fMN').value=v('Mieter_Name');
+    if(v('Mieter_Telefon'))document.getElementById('fMT').value=v('Mieter_Telefon');
+    if(v('Mieter_Email'))document.getElementById('fME').value=v('Mieter_Email');
+    if(v('Google_Drive_Link'))document.getElementById('fGD').value=v('Google_Drive_Link');
+    if(v('NAS_Auftragsordner'))document.getElementById('fNAS').value=v('NAS_Auftragsordner');
+    const tOrt=v('Termin_Ortstermin');
+    if(tOrt)renderTermineForm([{datum:'',von:'',bis:'',beschreibung:tOrt}]);
+    toast('✅ README importiert');event.target.value='';
   };
   reader.readAsText(file,'windows-1252');
 }
@@ -821,26 +1083,16 @@ function saveHV(){localStorage.setItem('bau_hv',JSON.stringify(hvListe));saveFil
 function renderHV(){
   const el=document.getElementById('hvListe');
   if(!hvListe.length){el.innerHTML='<p style="font-size:12px;color:var(--text2);text-align:center;padding:12px;">Noch keine HV angelegt.</p>';return;}
-  el.innerHTML=hvListe.map((h,i)=>`
-    <div class="hv-row">
-      <div class="hv-name">🏢 ${esc(h.name)}</div>
-      <div class="hv-drive">${h.driveLink?'📁 '+esc(h.driveLink):'<span style="color:var(--text2)">kein Link</span>'}</div>
-      <div style="display:flex;gap:4px;">
-        <button class="icon-btn" onclick="hvEdit(${i})">✏</button>
-        <button class="icon-btn del" onclick="hvDel(${i})">🗑</button>
-      </div>
-    </div>`).join('');
+  el.innerHTML=hvListe.map((h,i)=>'<div class="hv-row"><div class="hv-name">🏢 '+esc(h.name)+'</div><div class="hv-drive">'+(h.driveLink?'📁 '+esc(h.driveLink):'<span style="color:var(--text2)">kein Link</span>')+'</div><div style="display:flex;gap:4px;"><button class="icon-btn" onclick="hvEdit('+i+')">✏</button><button class="icon-btn del" onclick="hvDel('+i+')">🗑</button></div></div>').join('');
 }
 function updateHVSel(){
-  const s=document.getElementById('fHVSel');
-  const c=s.value;
+  const s=document.getElementById('fHVSel');const c=s.value;
   s.innerHTML='<option value="">– aus Liste –</option>';
   hvListe.forEach(h=>{const o=document.createElement('option');o.value=h.name;o.textContent=h.name;s.appendChild(o);});
   s.value=c;
 }
 function hvGewaehlt(){
-  const name=document.getElementById('fHVSel').value;
-  if(!name)return;
+  const name=document.getElementById('fHVSel').value;if(!name)return;
   document.getElementById('fHV').value=name;
   const h=hvListe.find(x=>x.name===name);
   if(h&&h.driveLink){document.getElementById('fGD').value=h.driveLink;toast('📁 Drive-Link eingetragen');}
@@ -850,8 +1102,7 @@ function hvHinzu(){
   const drive=document.getElementById('hvDrive').value.trim();
   if(!name){toast('⚠ Name fehlt');return;}
   hvListe.push({name,driveLink:drive});
-  document.getElementById('hvName').value='';
-  document.getElementById('hvDrive').value='';
+  document.getElementById('hvName').value='';document.getElementById('hvDrive').value='';
   saveHV();renderHV();updateHVSel();toast('✅ HV gespeichert');
 }
 function hvDel(i){if(!confirm('HV "'+hvListe[i].name+'" löschen?'))return;hvListe.splice(i,1);saveHV();renderHV();updateHVSel();}
@@ -868,8 +1119,7 @@ function closeHv(){document.getElementById('hvModal').classList.remove('open');}
 // ═══ FORM HELPERS ═══
 function driveOeffnen(){const u=document.getElementById('fGD').value.trim();if(!u){toast('Kein Drive-Link');return;}window.open(u,'_blank');}
 function nasKopierenForm(){
-  const v=document.getElementById('fNAS').value.trim();
-  if(!v){toast('Kein NAS-Pfad');return;}
+  const v=document.getElementById('fNAS').value.trim();if(!v){toast('Kein NAS-Pfad');return;}
   navigator.clipboard.writeText(v).then(()=>{
     const b=document.getElementById('nasBtnForm');
     b.textContent='✅';b.classList.add('copied');
