@@ -123,27 +123,6 @@ a{color:inherit;text-decoration:none;}
 .detail-value a.maps{color:var(--blue);display:inline-flex;align-items:center;gap:5px;}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
-/* ── AUSKLAPPBARE SEKTIONEN ── */
-.detail-collapse{background:var(--bg2);border-radius:12px;margin-bottom:12px;border:1px solid var(--border);overflow:hidden;}
-.detail-collapse summary{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;padding:13px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;list-style:none;-webkit-user-select:none;user-select:none;}
-.detail-collapse summary::-webkit-details-marker{display:none;}
-.detail-collapse summary::after{content:'▾';margin-left:auto;font-size:14px;transition:transform .2s;}
-.detail-collapse[open]>summary::after{transform:rotate(180deg);}
-.collapse-body{padding:4px 14px 14px;}
-
-/* ── TERMIN EINTRÄGE (Detail) ── */
-.termin-entry{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--accent);}
-.termin-entry:last-child{margin-bottom:0;}
-.termin-zeit{font-size:12px;color:var(--accent2);font-weight:600;margin-bottom:2px;}
-.termin-bes{font-size:13px;color:var(--text);}
-
-/* ── ZEITERFASSUNG (Detail) ── */
-.zeit-total-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:700;padding:6px 12px;background:rgba(46,204,113,.1);border-radius:8px;border:1px solid rgba(46,204,113,.25);margin-bottom:12px;}
-.zeit-entry{padding:8px 0;border-bottom:1px solid var(--border);}
-.zeit-entry:last-child{border-bottom:none;padding-bottom:0;}
-.zeit-datum-uhr{font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:2px;}
-.zeit-bes-txt{font-size:13px;color:var(--text);}
-
 /* ── AKTIONS-BUTTONS ── */
 .detail-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:8px;transition:all .15s;}
 .detail-btn.drive{background:rgba(26,115,232,.15);color:#4a90ff;border:1px solid rgba(26,115,232,.3);}
@@ -250,13 +229,6 @@ a{color:inherit;text-decoration:none;}
 .form-collapse.open .form-collapse-arrow{transform:rotate(180deg);}
 .form-collapse.open .form-collapse-body{display:block;}
 
-/* ── LEER ── */
-.empty{text-align:center;padding:48px 24px;color:var(--text2);}
-.empty-icon{font-size:44px;margin-bottom:12px;}
-
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px;}
-
 /* ── DETAIL EDIT FORM ── */
 .save-indicator{font-size:11px;color:var(--green);min-width:80px;text-align:right;transition:color .3s;white-space:nowrap;}
 .d-termin-row-form{display:grid;grid-template-columns:1fr 70px 70px 1fr 32px 28px;gap:6px;align-items:center;margin-bottom:6px;}
@@ -264,15 +236,13 @@ a{color:inherit;text-decoration:none;}
 .d-termin-row-form input:focus{border-color:var(--accent);}
 .gcal-btn{width:32px;height:34px;border-radius:6px;background:var(--bg4);color:var(--blue);font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);cursor:pointer;}
 .gcal-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
-@media(max-width:480px){
-  .d-termin-row-form{grid-template-columns:1fr 60px 60px 1fr 32px 28px;}
-}
-@media(max-width:360px){
-  .d-termin-row-form{grid-template-columns:1fr 1fr 32px 28px;grid-template-rows:auto auto;}
-  .d-termin-row-form .dt-bes{grid-column:1/3;}
-  .gcal-btn{grid-row:1;grid-column:3;}
-  .d-termin-row-form .rm-btn{grid-row:1;grid-column:4;}
-}
+
+/* ── LEER ── */
+.empty{text-align:center;padding:48px 24px;color:var(--text2);}
+.empty-icon{font-size:44px;margin-bottom:12px;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px;}
 
 @media(min-width:600px){
   .modal-overlay{align-items:center;}
@@ -285,18 +255,18 @@ a{color:inherit;text-decoration:none;}
   .modal-grid{grid-template-columns:1fr;}
   .modal-field.full{grid-column:1;}
   .hv-add-row{grid-template-columns:1fr;}
-  .row-header,.termin-row-form,.zeit-row-form{
-    grid-template-columns:1fr 60px 60px 1fr 28px;
-  }
+  .row-header,.termin-row-form,.zeit-row-form{grid-template-columns:1fr 60px 60px 1fr 28px;}
+  .d-termin-row-form{grid-template-columns:1fr 60px 60px 1fr 32px 28px;}
 }
 @media(max-width:360px){
   .row-header{display:none;}
-  .termin-row-form,.zeit-row-form{
-    grid-template-columns:1fr 1fr 28px;
-    grid-template-rows:auto auto;
-  }
+  .termin-row-form,.zeit-row-form{grid-template-columns:1fr 1fr 28px;grid-template-rows:auto auto;}
   .termin-row-form .t-bes,.zeit-row-form .z-bes{grid-column:1/3;}
   .rm-btn{grid-row:1;grid-column:3;}
+  .d-termin-row-form{grid-template-columns:1fr 1fr 32px 28px;grid-template-rows:auto auto;}
+  .d-termin-row-form .dt-bes{grid-column:1/3;}
+  .gcal-btn{grid-row:1;grid-column:3;}
+  .d-termin-row-form .rm-btn{grid-row:1;grid-column:4;}
 }
 </style>
 </head>
@@ -306,13 +276,13 @@ a{color:inherit;text-decoration:none;}
 <div class="list-view" id="listView">
 
   <div class="topbar">
-    <div class="logo">🏗 Bau-Doku <small>Aufträge</small></div>
+    <div class="logo">&#127959; Bau-Doku <small>Auftr&#228;ge</small></div>
     <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" type="text" placeholder="Suchen…" oninput="renderListe()">
+      <span class="search-icon">&#128269;</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="Suchen&#8230;" oninput="renderListe()">
     </div>
     <div class="topbar-btns">
-      <button class="btn btn-secondary btn-sm" onclick="openHvModal()">🏢</button>
+      <button class="btn btn-secondary btn-sm" onclick="openHvModal()">&#127970;</button>
       <button class="btn btn-primary btn-sm" onclick="openNeu()">+ Neu</button>
     </div>
   </div>
@@ -323,20 +293,20 @@ a{color:inherit;text-decoration:none;}
       <span class="file-name" id="fileName">Keine Datei</span>
     </div>
     <div class="filebar-right">
-      <button class="file-btn" onclick="openFile()">📂 Öffnen</button>
-      <button class="file-btn" onclick="createNewFile()">✨ Neu</button>
-      <button class="file-btn" onclick="downloadFile()">⬇</button>
+      <button class="file-btn" onclick="openFile()">&#128194; &#214;ffnen</button>
+      <button class="file-btn" onclick="createNewFile()">&#10024; Neu</button>
+      <button class="file-btn" onclick="downloadFile()">&#8659;</button>
     </div>
   </div>
 
   <div class="tabs">
     <button class="tab active" onclick="setFilter('alle',this)">Alle <span class="tab-count" id="tc-alle">0</span></button>
-    <button class="tab" onclick="setFilter('neu',this)">🔵 Neu <span class="tab-count" id="tc-neu">0</span></button>
-    <button class="tab" onclick="setFilter('bearbeitung',this)">🟠 Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
-    <button class="tab" onclick="setFilter('abgeschlossen',this)">🟢 Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
+    <button class="tab" onclick="setFilter('neu',this)">&#128309; Neu <span class="tab-count" id="tc-neu">0</span></button>
+    <button class="tab" onclick="setFilter('bearbeitung',this)">&#128992; Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
+    <button class="tab" onclick="setFilter('abgeschlossen',this)">&#128994; Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
     <div style="flex:1;"></div>
     <div style="display:flex;align-items:center;gap:8px;padding:0 4px;flex-shrink:0;">
-      <span style="font-size:11px;color:var(--text2);white-space:nowrap;">🔤</span>
+      <span style="font-size:11px;color:var(--text2);white-space:nowrap;">&#128288;</span>
       <input type="range" id="zoomSliderList" min="70" max="130" value="100" oninput="setZoom(this.value)" style="width:90px;accent-color:var(--accent);cursor:pointer;">
       <span id="zoomValList" style="font-size:11px;color:var(--accent2);font-weight:700;min-width:34px;">100%</span>
     </div>
@@ -351,11 +321,11 @@ a{color:inherit;text-decoration:none;}
 <!-- ═══ DETAIL-ANSICHT ═══ -->
 <div class="detail-view" id="detailView">
   <div class="detail-topbar">
-    <button class="back-btn" onclick="zurueck()">← Zurück</button>
+    <button class="back-btn" onclick="zurueck()">&#8592; Zur&#252;ck</button>
     <div class="detail-title" id="detailTitel">Auftrag</div>
     <div class="detail-actions" style="display:flex;align-items:center;gap:8px;">
       <span class="save-indicator" id="saveIndicator"></span>
-      <button class="btn btn-danger btn-sm" onclick="loeschenDirekt()" title="Auftrag löschen">🗑</button>
+      <button class="btn btn-danger btn-sm" onclick="loeschenDirekt()" title="Auftrag l&#246;schen">&#128465;</button>
     </div>
   </div>
   <div class="detail-body" id="detailBody"></div>
@@ -368,107 +338,97 @@ a{color:inherit;text-decoration:none;}
 <div class="modal-overlay open" id="startModal">
   <div class="start-card">
     <div class="modal-handle"></div>
-    <h2>🏗 Bau-Doku</h2>
-    <p>Wähle einen Speicherort für deine Daten.<br>Alle Änderungen werden automatisch gespeichert.</p>
+    <h2>&#127959; Bau-Doku</h2>
+    <p>W&#228;hle einen Speicherort f&#252;r deine Daten.<br>Alle &#196;nderungen werden automatisch gespeichert.</p>
     <div class="start-btns">
       <button class="start-btn drive-open" onclick="gdriveOpenExisting()">
-        <span class="start-btn-icon">☁️</span>
-        <span class="start-btn-text"><span class="start-btn-label">Google Drive öffnen</span><span class="start-btn-sub">Vorhandene bau-doku.json aus Drive laden</span></span>
+        <span class="start-btn-icon">&#9729;&#65039;</span>
+        <span class="start-btn-text"><span class="start-btn-label">Google Drive &#246;ffnen</span><span class="start-btn-sub">Vorhandene bau-doku.json aus Drive laden</span></span>
       </button>
       <button class="start-btn drive-new" onclick="gdriveCreateNew()">
-        <span class="start-btn-icon">✨</span>
+        <span class="start-btn-icon">&#10024;</span>
         <span class="start-btn-text"><span class="start-btn-label">Neue Datei in Google Drive</span><span class="start-btn-sub">Neue bau-doku.json in Drive anlegen</span></span>
       </button>
       <button class="start-btn local-open" onclick="openFile()">
-        <span class="start-btn-icon">📂</span>
-        <span class="start-btn-text"><span class="start-btn-label">Lokale Datei öffnen</span><span class="start-btn-sub">bau-doku.json vom Computer laden</span></span>
+        <span class="start-btn-icon">&#128194;</span>
+        <span class="start-btn-text"><span class="start-btn-label">Lokale Datei &#246;ffnen</span><span class="start-btn-sub">bau-doku.json vom Computer laden</span></span>
       </button>
       <button class="start-btn local-new" onclick="createNewFile()">
-        <span class="start-btn-icon">💾</span>
-        <span class="start-btn-text"><span class="start-btn-label">Neue lokale Datei</span><span class="start-btn-sub">Speicherort auf dem Computer wählen</span></span>
+        <span class="start-btn-icon">&#128190;</span>
+        <span class="start-btn-text"><span class="start-btn-label">Neue lokale Datei</span><span class="start-btn-sub">Speicherort auf dem Computer w&#228;hlen</span></span>
       </button>
-      <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten (Daten gehen beim Schließen verloren)</button>
+      <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten (Daten gehen beim Schlie&#223;en verloren)</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ FORMULAR MODAL ═══ -->
+<!-- ═══ FORMULAR MODAL (Legacy – wird nur noch intern genutzt) ═══ -->
 <div class="modal-overlay" id="formModal">
   <div class="modal">
     <div class="modal-handle"></div>
     <h2 id="formTitel">Neuer Auftrag</h2>
     <input type="hidden" id="fId">
-
     <div class="readme-bar">
-      <span>📄 README.txt importieren → Felder automatisch ausfüllen</span>
-      <button class="btn btn-secondary btn-sm" onclick="triggerReadme()">📥 Import</button>
+      <span>&#128196; README.txt importieren &#8594; Felder automatisch ausf&#252;llen</span>
+      <button class="btn btn-secondary btn-sm" onclick="triggerReadme()">&#128229; Import</button>
       <input type="file" id="readmeInput" accept=".txt" style="display:none" onchange="importReadme(event)">
     </div>
-
-    <!-- Auftrag -->
     <div class="modal-section" style="margin-top:0;padding-top:0;border-top:none;">
-      <div class="modal-section-title">📋 Auftrag</div>
+      <div class="modal-section-title">&#128203; Auftrag</div>
       <div class="modal-grid">
         <div class="modal-field"><label>Kostenstelle *</label><input type="text" id="fKS" placeholder="260036"></div>
         <div class="modal-field"><label>Rep.-Nr.</label><input type="text" id="fRep" placeholder="3476"></div>
         <div class="modal-field"><label>Datum</label><input type="date" id="fDat"></div>
         <div class="modal-field"><label>Status</label>
           <select id="fStat">
-            <option value="neu">🔵 Neu</option>
-            <option value="bearbeitung">🟠 In Bearbeitung</option>
-            <option value="abgeschlossen">🟢 Abgeschlossen</option>
+            <option value="neu">&#128309; Neu</option>
+            <option value="bearbeitung">&#128992; In Bearbeitung</option>
+            <option value="abgeschlossen">&#128994; Abgeschlossen</option>
           </select>
         </div>
         <div class="modal-field"><label>Auftraggeber (HV / Firma)</label><input type="text" id="fAG" placeholder="z.B. AHV, Muster Verwaltung"></div>
         <div class="modal-field"><label>Kunden-Nr.</label><input type="text" id="fKNr" placeholder="777"></div>
       </div>
     </div>
-
-    <!-- Objekt -->
     <div class="modal-section">
-      <div class="modal-section-title">📍 Objekt</div>
+      <div class="modal-section-title">&#128205; Objekt</div>
       <div class="modal-grid">
         <div class="modal-field full">
           <label>Hausverwaltung</label>
           <div style="display:flex;gap:6px;">
-            <select id="fHVSel" style="flex:1;" onchange="hvGewaehlt()"><option value="">– aus Liste –</option></select>
+            <select id="fHVSel" style="flex:1;" onchange="hvGewaehlt()"><option value="">&#8211; aus Liste &#8211;</option></select>
             <input type="text" id="fHV" style="flex:2;" placeholder="oder eingeben">
           </div>
         </div>
         <div class="modal-field full">
-          <label>Adresse (Straße + PLZ + Ort)</label>
+          <label>Adresse (Stra&#223;e + PLZ + Ort)</label>
           <div style="display:flex;gap:6px;">
             <input type="text" id="fAdr" placeholder="Teststrasse 44, 99086 Erfurt" style="flex:1;">
-            <button type="button" onclick="formMapsOeffnen()" style="padding:10px 16px;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">🗺 Maps</button>
+            <button type="button" onclick="formMapsOeffnen()" style="padding:10px 16px;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">&#128506; Maps</button>
           </div>
         </div>
-        <div class="modal-field full"><label>Schadensbild</label><textarea id="fSch" placeholder="2. OG links, Feuchtigkeit Küche…"></textarea></div>
+        <div class="modal-field full"><label>Schadensbild</label><textarea id="fSch" placeholder="2. OG links, Feuchtigkeit K&#252;che&#8230;"></textarea></div>
       </div>
     </div>
-
-    <!-- Ansprechpartner (Mieter + Eigentümer zusammen, ausklappbar) -->
     <div class="form-collapse open" id="ansprchsect">
       <div class="form-collapse-header" onclick="toggleFormSection('ansprchsect')">
-        <span class="form-collapse-title">👥 Ansprechpartner</span>
-        <span class="form-collapse-arrow">▾</span>
+        <span class="form-collapse-title">&#128101; Ansprechpartner</span>
+        <span class="form-collapse-arrow">&#9662;</span>
       </div>
       <div class="form-collapse-body">
-        <!-- Kontaktperson beim Auftraggeber -->
-        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;align-items:center;gap:5px;">👔 Kontaktperson AG</div>
+        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">&#128084; Kontaktperson AG</div>
         <div class="modal-grid">
           <div class="modal-field"><label>Name</label><input type="text" id="fAGN" placeholder="Fr. Beck"></div>
           <div class="modal-field"><label>Telefon</label><input type="tel" id="fAGT" placeholder="0361 / 123456"></div>
           <div class="modal-field full"><label>E-Mail</label><input type="email" id="fAGE" placeholder="beck@hausverwaltung.de"></div>
         </div>
-        <!-- Mieter -->
-        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;display:flex;align-items:center;gap:5px;">🏠 Mieter</div>
+        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;">&#127968; Mieter</div>
         <div class="modal-grid">
           <div class="modal-field"><label>Name</label><input type="text" id="fMN" placeholder="Frau Tester"></div>
           <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="03611234"></div>
           <div class="modal-field full"><label>E-Mail</label><input type="email" id="fME"></div>
         </div>
-        <!-- Eigentümer -->
-        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;display:flex;align-items:center;gap:5px;">👤 Eigentümer</div>
+        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;">&#128100; Eigent&#252;mer</div>
         <div class="modal-grid">
           <div class="modal-field"><label>Name</label><input type="text" id="fEN"></div>
           <div class="modal-field"><label>Telefon</label><input type="tel" id="fET" placeholder="0361/123456"></div>
@@ -476,81 +436,66 @@ a{color:inherit;text-decoration:none;}
         </div>
       </div>
     </div>
-
-    <!-- Außerhaus-Termine (ausklappbar) -->
     <div class="form-collapse" id="terminesect">
       <div class="form-collapse-header" onclick="toggleFormSection('terminesect')">
-        <span class="form-collapse-title">📅 Außerhaus-Termine</span>
-        <span class="form-collapse-arrow">▾</span>
+        <span class="form-collapse-title">&#128197; Au&#223;erhaus-Termine</span>
+        <span class="form-collapse-arrow">&#9662;</span>
       </div>
       <div class="form-collapse-body">
-        <div class="row-header">
-          <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
-        </div>
+        <div class="row-header"><span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span></div>
         <div id="termineContainer"></div>
-        <button class="add-row-btn" onclick="addTermin()">+ Termin hinzufügen</button>
+        <button class="add-row-btn" onclick="addTermin()">+ Termin hinzuf&#252;gen</button>
       </div>
     </div>
-
-    <!-- Zeiterfassung (ausklappbar + Live-Timer) -->
     <div class="form-collapse" id="zeitsect">
       <div class="form-collapse-header" onclick="toggleFormSection('zeitsect')">
-        <span class="form-collapse-title">⏱ Zeiterfassung</span>
-        <span class="form-collapse-arrow">▾</span>
+        <span class="form-collapse-title">&#9201; Zeiterfassung</span>
+        <span class="form-collapse-arrow">&#9662;</span>
       </div>
       <div class="form-collapse-body">
         <div id="timerDisplayForm" class="timer-display">00:00:00</div>
-        <button id="timerBtnForm" class="timer-start-btn" onclick="toggleTimer()">▶ Aufzeichnung starten</button>
+        <button id="timerBtnForm" class="timer-start-btn" onclick="toggleTimer()">&#9654; Aufzeichnung starten</button>
         <div class="timer-divider">oder manuell erfassen</div>
-        <div class="row-header">
-          <span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span>
-        </div>
+        <div class="row-header"><span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span></div>
         <div id="zeitContainer"></div>
-        <button class="add-row-btn" onclick="addZeit()">+ Zeit hinzufügen</button>
+        <button class="add-row-btn" onclick="addZeit()">+ Zeit hinzuf&#252;gen</button>
         <div class="zeit-gesamt-form" id="zeitGesamtForm"></div>
       </div>
     </div>
-
-    <!-- Verknüpfungen -->
     <div class="modal-section">
-      <div class="modal-section-title">🔗 Verknüpfungen</div>
+      <div class="modal-section-title">&#128279; Verkn&#252;pfungen</div>
       <div class="modal-grid">
         <div class="modal-field full">
-          <label>Google Drive – Foto-Ordner</label>
+          <label>Google Drive &#8211; Foto-Ordner</label>
           <div class="link-row">
-            <input type="url" id="fGD" placeholder="https://drive.google.com/drive/folders/…">
-            <button class="link-btn" onclick="driveOeffnen()">📁</button>
+            <input type="url" id="fGD" placeholder="https://drive.google.com/drive/folders/&#8230;">
+            <button class="link-btn" onclick="driveOeffnen()">&#128193;</button>
           </div>
         </div>
         <div class="modal-field full">
           <label>NAS-Pfad</label>
           <div class="link-row">
-            <input type="text" id="fNAS" placeholder="\\nas-ddbraun\Datenarchiv\…">
-            <button class="link-btn" id="nasBtnForm" onclick="nasKopierenForm()">📋</button>
+            <input type="text" id="fNAS" placeholder="\\nas-ddbraun\Datenarchiv\&#8230;">
+            <button class="link-btn" id="nasBtnForm" onclick="nasKopierenForm()">&#128203;</button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Notizen -->
     <div class="modal-section">
-      <div class="modal-section-title">📝 Notizen</div>
-      <div class="modal-field"><textarea id="fNot" placeholder="Interne Notizen…"></textarea></div>
+      <div class="modal-section-title">&#128221; Notizen</div>
+      <div class="modal-field"><textarea id="fNot" placeholder="Interne Notizen&#8230;"></textarea></div>
     </div>
-
-    <!-- Kartengröße -->
     <div class="modal-section">
-      <div class="modal-section-title">🔤 Aufgabengröße</div>
+      <div class="modal-section-title">&#128288; Aufgabengr&#246;&#223;e</div>
       <div style="display:flex;align-items:center;gap:12px;">
         <input type="range" id="zoomSlider" min="70" max="130" value="100" oninput="setZoom(this.value)" style="flex:1;accent-color:var(--accent);cursor:pointer;">
         <span id="zoomVal" style="font-size:13px;color:var(--accent2);font-weight:700;min-width:42px;text-align:right;">100%</span>
       </div>
     </div>
-
     <div class="modal-actions">
-      <button class="btn btn-danger btn-sm" id="loeschBtn" onclick="loeschen()" style="display:none;margin-right:auto;">🗑 Löschen</button>
+      <button class="btn btn-danger btn-sm" id="loeschBtn" onclick="loeschen()" style="display:none;margin-right:auto;">&#128465; L&#246;schen</button>
       <button class="btn btn-secondary" onclick="closeForm()">Abbrechen</button>
-      <button class="btn btn-primary" onclick="speichern()">💾 Speichern</button>
+      <button class="btn btn-primary" onclick="speichern()">&#128190; Speichern</button>
     </div>
   </div>
 </div>
@@ -559,15 +504,15 @@ a{color:inherit;text-decoration:none;}
 <div class="modal-overlay" id="hvModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <h2>🏢 Hausverwaltungen</h2>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">Einmal anlegen → Drive-Link wird automatisch eingetragen.</p>
+    <h2>&#127970; Hausverwaltungen</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">Einmal anlegen &#8594; Drive-Link wird automatisch eingetragen.</p>
     <div id="hvListe"></div>
     <div class="hv-add-row">
       <input type="text" id="hvName" placeholder="HV Name">
       <input type="url" id="hvDrive" placeholder="Google Drive Link">
       <button class="btn btn-primary btn-sm" onclick="hvHinzu()">+ Add</button>
     </div>
-    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeHv()">Schließen</button></div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeHv()">Schlie&#223;en</button></div>
   </div>
 </div>
 
@@ -579,6 +524,12 @@ let filter = 'alle';
 let fileHandle = null;
 let detailId = null;
 const hasFileAPI = 'showOpenFilePicker' in window;
+
+// Auto-save / detail state
+let autoSaveTimer = null;
+let isNewUnsaved = false;
+let detailTimerInterval = null;
+let detailTimerStartMs = null;
 
 // ═══ UTILS ═══
 function genId(){ return 'a_'+Date.now()+'_'+Math.random().toString(36).substr(2,5); }
@@ -618,7 +569,6 @@ function berechneTotalZeit(eintraege){
   const h=Math.floor(total/60),m=total%60;
   return h>0?(m>0?h+'h '+m+'min':h+'h'):m+'min';
 }
-
 function zeitDauer(von,bis){
   if(!von||!bis)return '';
   const[vh,vm]=von.split(':').map(Number);
@@ -629,14 +579,10 @@ function zeitDauer(von,bis){
   return h>0?(m>0?h+'h '+m+'min':h+'h'):m+'min';
 }
 
-// mapsUrl(adresse) – Einzel-String Version
-
 // ═══ ZOOM ═══
 function setZoom(v){
   document.documentElement.style.setProperty('--zoom',Number(v)/100);
-  // Formular-Slider
   const zv=document.getElementById('zoomVal');if(zv)zv.textContent=v+'%';
-  // Listen-Slider
   const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=v;
   const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=v+'%';
   localStorage.setItem('bau_zoom',v);
@@ -646,7 +592,6 @@ function initZoomSlider(){
   const z=window._bau_zoom||'100';
   const zs=document.getElementById('zoomSlider');if(zs)zs.value=z;
   const zv=document.getElementById('zoomVal');if(zv)zv.textContent=z+'%';
-  // Auch den Listen-Slider initialisieren
   const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=z;
   const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=z+'%';
 }
@@ -655,7 +600,6 @@ function initZoomSlider(){
   if(Number(z)<30)z='100';
   window._bau_zoom=z;
   document.documentElement.style.setProperty('--zoom',Number(z)/100);
-  // Listen-Slider sofort setzen (ist immer im DOM)
   window.addEventListener('DOMContentLoaded',()=>{
     const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=z;
     const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=z+'%';
@@ -669,7 +613,6 @@ function migrateAuftrag(a){
     if(a.terminOrt)a.termine.push({datum:'',von:'',bis:'',beschreibung:a.terminOrt});
   }
   if(!a.zeiterfassung)a.zeiterfassung=[];
-  // Adresse: kombiniere strasse+ort falls noch kein adresse-Feld
   if(!a.adresse){
     a.adresse=[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   }
@@ -677,42 +620,14 @@ function migrateAuftrag(a){
 }
 
 // ═══ DATEI ═══
-let fileSource='none'; // 'drive'|'local'|'none'
+let fileSource='none';
 function updateFileStatus(state,name){
   document.getElementById('fileDot').className='file-dot '+state;
   const prefix=fileSource==='drive'?'☁️ ':'';
-  const suffix=(fileSource==='drive'&&state==='ok')?' ✓ Von Google Drive geladen':'';
-  document.getElementById('fileName').textContent=prefix+name+suffix;
-}
-async function openFileDrive(){
-  fileSource='drive';
-  closeStart();
-  if(!hasFileAPI){fallbackImport();return;}
-  try{
-    [fileHandle]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
-    const f=await fileHandle.getFile();
-    const data=JSON.parse(await f.text())||{};
-    auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
-    if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
-    updateFileStatus('ok',fileHandle.name);
-    renderListe();
-  }catch(e){fileSource='none';if(e.name!=='AbortError')toast('Fehler beim Öffnen');}
-}
-async function createNewFileDrive(){
-  fileSource='drive';
-  closeStart();
-  if(!hasFileAPI){updateFileStatus('unsaved','Kein Auto-Speichern');renderListe();return;}
-  try{
-    fileHandle=await window.showSaveFilePicker({suggestedName:'bau-doku.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});
-    auftraege=[];
-    await saveFile();
-    updateFileStatus('ok',fileHandle.name);
-    renderListe();
-  }catch(e){fileSource='none';if(e.name!=='AbortError')toast('Datei konnte nicht erstellt werden');}
+  document.getElementById('fileName').textContent=prefix+name;
 }
 async function openFile(){
-  fileSource='local';
-  closeStart();
+  fileSource='local';closeStart();
   if(!hasFileAPI){fallbackImport();return;}
   try{
     [fileHandle]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
@@ -720,20 +635,16 @@ async function openFile(){
     const data=JSON.parse(await f.text())||{};
     auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
     if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
-    updateFileStatus('ok',fileHandle.name);
-    renderListe();
+    updateFileStatus('ok',fileHandle.name);renderListe();
   }catch(e){if(e.name!=='AbortError')toast('Fehler beim Öffnen');}
 }
 async function createNewFile(){
-  fileSource='local';
-  closeStart();
+  fileSource='local';closeStart();
   if(!hasFileAPI){updateFileStatus('unsaved','Kein Auto-Speichern');renderListe();return;}
   try{
     fileHandle=await window.showSaveFilePicker({suggestedName:'bau-doku.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});
     auftraege=[];
-    await saveFile();
-    updateFileStatus('ok',fileHandle.name);
-    renderListe();
+    await saveFile();updateFileStatus('ok',fileHandle.name);renderListe();
   }catch(e){if(e.name!=='AbortError')toast('Datei konnte nicht erstellt werden');}
 }
 function skipFile(){closeStart();updateFileStatus('none','Ohne Datei');renderListe();}
@@ -766,15 +677,14 @@ function downloadFile(){
 function setFilter(f,btn){
   filter=f;
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderListe();
+  btn.classList.add('active');renderListe();
 }
 function getFiltered(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   return auftraege.filter(a=>{
     if(filter!=='alle'&&a.status!==filter)return false;
     if(!q)return true;
-    return[a.ks,a.strasse,a.ort,a.hv,a.mieterName,a.eigentuemer,a.schaden,a.rep].join(' ').toLowerCase().includes(q);
+    return[a.ks,a.strasse,a.ort,a.hv,a.mieterName,a.eigentuemer,a.schaden,a.rep,a.adresse].join(' ').toLowerCase().includes(q);
   });
 }
 
@@ -787,18 +697,13 @@ function renderListe(){
   });
   const filtered=getFiltered();
   const el=document.getElementById('kartenListe');
-  if(!filtered.length){
-    el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div>Keine Aufträge</div></div>';
-    return;
-  }
+  if(!filtered.length){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div>Keine Aufträge</div></div>';return;}
   el.innerHTML=filtered.map(a=>renderKarte(a)).join('');
 }
-
 function statusDot(s){
   const c={neu:'#4a90d9',bearbeitung:'#f39c12',abgeschlossen:'#2ecc71'}[s]||'#888';
   return '<span class="status-dot" style="background:'+c+'"></span>';
 }
-
 function renderKarte(a){
   const drive=a.gdrive?'<span class="badge drive">📁 Drive</span>':'';
   const nas=a.nas?'<span class="badge nas">💾 NAS</span>':'';
@@ -820,20 +725,12 @@ function renderKarte(a){
     +'</div>';
 }
 
-// ═══ AUTO-SAVE STATE ═══
-let autoSaveTimer=null;
-let isNewUnsaved=false;
-let detailTimerInterval=null;
-let detailTimerStartMs=null;
-
 // ═══ DETAIL ANSICHT ═══
 function openDetail(id){
-  const a=auftraege.find(x=>x.id===id);
-  if(!a)return;
+  const a=auftraege.find(x=>x.id===id);if(!a)return;
   if(detailTimerInterval){clearInterval(detailTimerInterval);detailTimerInterval=null;detailTimerStartMs=null;}
   clearTimeout(autoSaveTimer);
-  detailId=id;
-  isNewUnsaved=false;
+  detailId=id;isNewUnsaved=false;
   document.getElementById('detailTitel').textContent=titelFormat(a);
   renderDetailEditable(a);
   document.getElementById('listView').classList.add('hidden');
@@ -843,10 +740,7 @@ function openDetail(id){
 function zurueck(){
   if(detailTimerInterval)stopTimerDetail();
   clearTimeout(autoSaveTimer);
-  if(isNewUnsaved){
-    auftraege=auftraege.filter(a=>a.id!==detailId);
-    renderListe();
-  }
+  if(isNewUnsaved){auftraege=auftraege.filter(a=>a.id!==detailId);renderListe();}
   isNewUnsaved=false;
   document.getElementById('detailView').classList.remove('active');
   document.getElementById('listView').classList.remove('hidden');
@@ -855,144 +749,13 @@ function zurueck(){
   document.getElementById('detailBody').innerHTML='';
 }
 
-function val(v,leer='–'){
-  if(!v||v==='(noch offen)')return '<span class="detail-value offen">'+leer+'</span>';
-  return '<span class="detail-value">'+esc(v)+'</span>';
-}
-function telLink(t){
-  if(!t||t==='(noch offen)')return '<span class="detail-value offen">–</span>';
-  return '<span class="detail-value"><a class="tel" href="tel:'+formatTel(t)+'">📞 '+esc(t)+'</a></span>';
-}
-function mailLink(m){
-  if(!m||m==='(noch offen)')return '<span class="detail-value offen">–</span>';
-  return '<span class="detail-value"><a class="mail" href="mailto:'+esc(m)+'">✉ '+esc(m)+'</a></span>';
-}
-
-function renderDetail(a){
-  const statusLabel={neu:'🔵 Neu',bearbeitung:'🟠 In Bearbeitung',abgeschlossen:'🟢 Abgeschlossen'}[a.status]||a.status;
-  const nextStatus={neu:'bearbeitung',bearbeitung:'abgeschlossen',abgeschlossen:'neu'};
-  const nextLabel={neu:'→ In Bearbeitung',bearbeitung:'→ Abgeschlossen',abgeschlossen:'→ Neu'};
-
-  // Adresse + Google Maps
-  const adresse=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
-  const mLink=mapsUrl(adresse);
-  const adresseHtml=mLink
-    ?'<span class="detail-value"><a class="maps" href="'+mLink+'" target="_blank">📍 '+esc(adresse)+'</a></span>'
-    :val(adresse);
-
-  // Termine
-  const termine=(a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung);
-  let termineHtml=termine.length?termine.map(t=>{
-    let z='';
-    if(t.datum)z+=esc(t.datum);
-    if(t.von)z+=' &nbsp;<b>'+t.von+'</b>';
-    if(t.bis)z+=' – <b>'+t.bis+'</b>';
-    const d=zeitDauer(t.von,t.bis);
-    return '<div class="termin-entry"><div class="termin-zeit">'+z+(d?' <span style="color:var(--green);font-weight:400;font-size:11px;">('+d+')</span>':'')+'</div>'+(t.beschreibung?'<div class="termin-bes">'+esc(t.beschreibung)+'</div>':'')+'</div>';
-  }).join(''):'<span style="font-size:13px;color:var(--text2);font-style:italic;">Keine Termine eingetragen</span>';
-
-  // Zeiterfassung
-  const zeiten=(a.zeiterfassung||[]).filter(z=>z.von||z.beschreibung);
-  const totalZeit=berechneTotalZeit(zeiten);
-  let zeitHtml='';
-  if(zeiten.length){
-    zeitHtml='<div class="zeit-total-badge">⏱ Gesamt: '+totalZeit+'</div>';
-    zeitHtml+=zeiten.map(z=>{
-      const d=zeitDauer(z.von,z.bis);
-      let uhr='';
-      if(z.datum)uhr+=esc(z.datum);
-      if(z.von)uhr+=' &nbsp;'+z.von;
-      if(z.bis)uhr+=' – '+z.bis;
-      if(d)uhr+=' <span style="color:var(--green)">('+d+')</span>';
-      return '<div class="zeit-entry"><div class="zeit-datum-uhr">'+uhr+'</div>'+(z.beschreibung?'<div class="zeit-bes-txt">'+esc(z.beschreibung)+'</div>':'')+'</div>';
-    }).join('');
-  } else {
-    zeitHtml='<span style="font-size:13px;color:var(--text2);font-style:italic;">Keine Einträge</span>';
-  }
-
-  let html=
-    '<div class="detail-status-bar">'
-    +'<span class="status-badge '+a.status+'">'+statusLabel+'</span>'
-    +'<button class="status-change-btn" onclick="statusWechseln(\''+nextStatus[a.status]+'\')">'+nextLabel[a.status]+'</button>'
-    +'</div>'
-
-    // Auftragsdaten
-    +'<div class="detail-section"><div class="detail-section-title">📋 Auftragsdaten</div>'
-    +'<div class="detail-grid">'
-    +'<div class="detail-row"><div class="detail-label">Kostenstelle</div>'+val(a.ks)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">Rep.-Nr.</div>'+val(a.rep)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">Datum</div>'+val(a.datum)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">Auftraggeber</div>'+val(a.ag)+'</div>'
-    +'</div></div>'
-
-    // Objekt
-    +'<div class="detail-section"><div class="detail-section-title">📍 Objekt</div>'
-    +'<div class="detail-row"><div class="detail-label">Hausverwaltung</div>'+val(a.hv)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">Adresse</div>'+adresseHtml+'</div>'
-    +(a.schaden?'<div class="detail-row"><div class="detail-label">Schadensbild</div><span class="detail-value" style="white-space:pre-wrap">'+esc(a.schaden)+'</span></div>':'')
-    +'</div>'
-
-    // Ortstermine
-    +'<details class="detail-collapse" open><summary>📅 Ortstermine'+(termine.length?' <span style="color:var(--accent2);margin-left:4px;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">('+termine.length+')</span>':'')+'</summary>'
-    +'<div class="collapse-body">'+termineHtml+'</div></details>'
-
-    // Ansprechpartner gesamt (offen)
-    +'<details class="detail-collapse" open><summary>👥 Ansprechpartner</summary>'
-    +'<div class="collapse-body">'
-    // Kontaktperson AG
-    +(a.agKontaktName||a.agKontaktTel||a.agKontaktEmail?
-      '<div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">👔 Kontaktperson AG</div>'
-      +'<div class="detail-grid">'
-      +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.agKontaktName)+'</div>'
-      +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.agKontaktTel)+'</div>'
-      +'</div>'
-      +(a.agKontaktEmail?'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.agKontaktEmail)+'</div>':'')
-      +'<div style="height:10px;border-bottom:1px solid var(--border);margin-bottom:10px;"></div>'
-    :'')
-    // Mieter
-    +'<div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">🏠 Mieter</div>'
-    +'<div class="detail-grid">'
-    +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.mieterName)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.mieterTel)+'</div>'
-    +'</div>'
-    +(a.mieterEmail?'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.mieterEmail)+'</div>':'')
-    // Eigentümer
-    +'<div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:10px 0 6px;">👤 Eigentümer</div>'
-    +'<div class="detail-grid">'
-    +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.eigentuemer)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.eigTel)+'</div>'
-    +'</div>'
-    +(a.eigEmail?'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.eigEmail)+'</div>':'')
-    +'</div></details>'
-
-    // Zeiterfassung (zugeklappt)
-    +'<details class="detail-collapse"><summary>⏱ Zeiterfassung'+(zeiten.length?' <span style="color:var(--green);margin-left:4px;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">'+totalZeit+'</span>':'')+'</summary>'
-    +'<div class="collapse-body">'+zeitHtml+'</div></details>';
-
-  // Verknüpfungen
-  if(a.gdrive||a.nas||a.notizen){
-    html+='<div class="detail-section"><div class="detail-section-title">🔗 Verknüpfungen</div>';
-    if(a.gdrive)html+='<button class="detail-btn drive" onclick="window.open(\''+esc(a.gdrive)+'\',\'_blank\')">📁 Fotos in Google Drive öffnen</button>';
-    if(a.nas)html+='<button class="detail-btn nas" id="nasCopyBtn" onclick="nasKopieren(\''+esc(a.nas)+'\')">💾 NAS-Pfad kopieren</button>';
-    if(a.notizen)html+='<div class="detail-row" style="margin-top:10px;"><div class="detail-label">Notizen</div><span class="detail-value" style="white-space:pre-wrap">'+esc(a.notizen)+'</span></div>';
-    html+='</div>';
-  }
-
-  // README Export Button
-  html+='<button class="detail-btn readme" onclick="exportReadme(\''+a.id+'\')">📄 README.txt für NAS herunterladen</button>';
-
-  document.getElementById('detailBody').innerHTML=html;
-}
-
+// ═══ DETAIL STATUS ═══
 async function statusWechseln(neuerStatus){
-  const idx=auftraege.findIndex(a=>a.id===detailId);
-  if(idx<0)return;
+  const idx=auftraege.findIndex(a=>a.id===detailId);if(idx<0)return;
   auftraege[idx].status=neuerStatus;
   const dStat=document.getElementById('dStat');if(dStat)dStat.value=neuerStatus;
   updateDetailStatusBar(neuerStatus);
-  await saveFile();
-  renderListe();
-  toast('✅ Status geändert');
+  await saveFile();renderListe();toast('✅ Status geändert');
 }
 function updateDetailStatusBar(status){
   const statusLabel={neu:'🔵 Neu',bearbeitung:'🟠 In Bearbeitung',abgeschlossen:'🟢 Abgeschlossen'}[status]||status;
@@ -1004,354 +767,6 @@ function updateDetailStatusBar(status){
   if(scb){scb.textContent=nextLabel[status];scb.setAttribute('onclick','statusWechseln(\''+nextStatus[status]+'\')');}
 }
 
-function nasKopieren(pfad){
-  navigator.clipboard.writeText(pfad).then(()=>{
-    const btn=document.getElementById('nasCopyBtn');
-    if(btn){btn.textContent='✅ Pfad kopiert!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='💾 NAS-Pfad kopieren';btn.classList.remove('copied');},2000);}
-  });
-}
-
-// ═══ README EXPORT ═══
-function exportReadme(id){
-  const a=auftraege.find(x=>x.id===id);if(!a)return;
-  const nl='\r\n';let t='';
-  const L=s=>{t+=s+nl;};
-  L('==============================');L(' AUFTRAGSAKTE');L(' Erstellt am: '+(a.datum||''));L('==============================');L('');
-  L('AUFTRAG');
-  L('Auftrag_Kostenstelle: '+(a.ks||'(noch offen)'));
-  L('Auftrag_Datum: '+(a.datum||'(noch offen)'));
-  L('Rep_Nr: '+(a.rep||'(noch offen)'));
-  L('Auftraggeber: '+(a.ag||'(noch offen)'));
-  L('Kunden_Nr: '+(a.knr||'(noch offen)'));
-  L('');
-  L('OBJEKT');
-  L('Objekt_Strasse: '+(a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ')));
-  L('Objekt_Hausverwaltung: '+(a.hv||'(noch offen)'));
-  L('Baustelle_Schadensbild: '+(a.schaden||'(noch offen)'));
-  L('');
-  L('EIGENTUEMER');
-  L('Eigentuemer_Name: '+(a.eigentuemer||'(noch offen)'));
-  L('Eigentuemer_Telefon: '+(a.eigTel||'(noch offen)'));
-  L('Eigentuemer_Email: '+(a.eigEmail||'(noch offen)'));
-  L('');
-  L('MIETER');
-  L('Mieter_Name: '+(a.mieterName||'(noch offen)'));
-  L('Mieter_Telefon: '+(a.mieterTel||'(noch offen)'));
-  L('Mieter_Email: '+(a.mieterEmail||'(noch offen)'));
-  L('');
-  const termine=(a.termine||[]).filter(x=>x.datum||x.von||x.beschreibung);
-  if(termine.length){
-    L('TERMINE');
-    for(const te of termine){
-      let z='';
-      if(te.datum)z+=te.datum;
-      if(te.von)z+='  '+te.von;
-      if(te.bis)z+='-'+te.bis;
-      if(te.beschreibung)z+='  '+te.beschreibung;
-      if(z.trim())L(z.trim());
-    }
-    L('');
-  }
-  const zeiten=(a.zeiterfassung||[]).filter(z=>z.von||z.beschreibung);
-  if(zeiten.length){
-    L('ZEITERFASSUNG');
-    L('Gesamt: '+berechneTotalZeit(zeiten));
-    for(const z of zeiten){
-      let s='';
-      if(z.datum)s+=z.datum;
-      if(z.von)s+='  '+z.von;
-      if(z.bis)s+='-'+z.bis;
-      if(z.beschreibung)s+='  '+z.beschreibung;
-      if(s.trim())L(s.trim());
-    }
-    L('');
-  }
-  L('VERKNUEPFUNGEN');
-  L('Google_Drive_Link: '+(a.gdrive||'(noch offen)'));
-  L('NAS_Auftragsordner: '+(a.nas||'(noch offen)'));
-  if(a.notizen){L('');L('NOTIZEN');L(a.notizen);}
-  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement('a');
-  link.href=url;link.download='README.txt';link.click();
-  URL.revokeObjectURL(url);
-  toast('📄 README.txt heruntergeladen');
-}
-
-// ═══ FORM HELPERS (ADRESSE / TIMER / TOGGLE) ═══
-function formMapsOeffnen(){
-  const adr=document.getElementById('fAdr').value.trim();
-  if(!adr){toast('⚠ Adresse fehlt');return;}
-  window.open('https://maps.google.com/?q='+encodeURIComponent(adr),'_blank');
-}
-function toggleFormSection(id){
-  document.getElementById(id).classList.toggle('open');
-}
-
-// ── Live-Timer ──
-let timerInterval=null;
-let timerStartMs=null;
-
-function toggleTimer(){
-  if(timerInterval)stopFormTimer();
-  else startFormTimer();
-}
-function startFormTimer(){
-  timerStartMs=Date.now();
-  timerInterval=setInterval(renderTimerDisplayLive,1000);
-  const btn=document.getElementById('timerBtnForm');
-  if(btn){btn.className='timer-stop-btn';btn.innerHTML='⏹ Aufzeichnung beenden';}
-  const disp=document.getElementById('timerDisplayForm');
-  if(disp)disp.classList.add('running');
-  // Öffne den Zeiterfassungs-Abschnitt automatisch
-  const sect=document.getElementById('zeitsect');if(sect)sect.classList.add('open');
-}
-function stopFormTimer(){
-  if(!timerInterval||!timerStartMs)return;
-  clearInterval(timerInterval);
-  const endMs=Date.now();
-  const s=new Date(timerStartMs),e=new Date(endMs);
-  const datum=s.toISOString().split('T')[0];
-  const von=String(s.getHours()).padStart(2,'0')+':'+String(s.getMinutes()).padStart(2,'0');
-  const bis=String(e.getHours()).padStart(2,'0')+':'+String(e.getMinutes()).padStart(2,'0');
-  timerInterval=null;timerStartMs=null;
-  addZeit(datum,von,bis,'Stoppuhr');
-  const btn=document.getElementById('timerBtnForm');
-  if(btn){btn.className='timer-start-btn';btn.innerHTML='▶ Aufzeichnung starten';}
-  const disp=document.getElementById('timerDisplayForm');
-  if(disp){disp.classList.remove('running');disp.textContent='00:00:00';}
-  updateZeitGesamt();
-}
-function renderTimerDisplayLive(){
-  if(!timerStartMs)return;
-  const d=Math.floor((Date.now()-timerStartMs)/1000);
-  const h=Math.floor(d/3600),m=Math.floor((d%3600)/60),s=d%60;
-  const el=document.getElementById('timerDisplayForm');
-  if(el)el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-}
-
-// ═══ TERMINE FORMULAR ═══
-function addTermin(datum,von,bis,beschreibung){
-  datum=datum||'';von=von||'';bis=bis||'';beschreibung=beschreibung||'';
-  const c=document.getElementById('termineContainer');
-  const div=document.createElement('div');div.className='termin-row-form';
-  div.innerHTML='<input type="date" class="t-datum" value="'+datum+'">'
-    +'<input type="time" class="t-von" value="'+von+'">'
-    +'<input type="time" class="t-bis" value="'+bis+'">'
-    +'<input type="text" class="t-bes" placeholder="Beschreibung" value="'+beschreibung.replace(/"/g,'&quot;')+'">'
-    +'<button class="rm-btn" onclick="this.closest(\'.termin-row-form\').remove()" title="Entfernen">✕</button>';
-  c.appendChild(div);
-}
-function renderTermineForm(termine){
-  document.getElementById('termineContainer').innerHTML='';
-  if(!termine||!termine.length)addTermin();
-  else for(const t of termine)addTermin(t.datum,t.von,t.bis,t.beschreibung);
-}
-function getTermineFromForm(){
-  return[...document.querySelectorAll('.termin-row-form')].map(r=>({
-    datum:r.querySelector('.t-datum').value,
-    von:r.querySelector('.t-von').value,
-    bis:r.querySelector('.t-bis').value,
-    beschreibung:r.querySelector('.t-bes').value.trim()
-  })).filter(t=>t.datum||t.von||t.beschreibung);
-}
-
-// ═══ ZEITERFASSUNG FORMULAR ═══
-function addZeit(datum,von,bis,beschreibung){
-  datum=datum||'';von=von||'';bis=bis||'';beschreibung=beschreibung||'';
-  const c=document.getElementById('zeitContainer');
-  const div=document.createElement('div');div.className='zeit-row-form';
-  div.innerHTML='<input type="date" class="z-datum" value="'+datum+'" oninput="updateZeitGesamt()">'
-    +'<input type="time" class="z-von" value="'+von+'" oninput="updateZeitGesamt()">'
-    +'<input type="time" class="z-bis" value="'+bis+'" oninput="updateZeitGesamt()">'
-    +'<input type="text" class="z-bes" placeholder="Beschreibung" value="'+beschreibung.replace(/"/g,'&quot;')+'">'
-    +'<button class="rm-btn" onclick="this.closest(\'.zeit-row-form\').remove();updateZeitGesamt()" title="Entfernen">✕</button>';
-  c.appendChild(div);updateZeitGesamt();
-}
-function renderZeitenForm(zeiten){
-  document.getElementById('zeitContainer').innerHTML='';
-  if(!zeiten||!zeiten.length)addZeit();
-  else for(const z of zeiten)addZeit(z.datum,z.von,z.bis,z.beschreibung);
-  updateZeitGesamt();
-}
-function getZeitenFromForm(){
-  const c=document.getElementById('zeitContainer');if(!c)return[];
-  return[...c.querySelectorAll('.zeit-row-form')].map(r=>({
-    datum:r.querySelector('.z-datum').value,
-    von:r.querySelector('.z-von').value,
-    bis:r.querySelector('.z-bis').value,
-    beschreibung:r.querySelector('.z-bes').value.trim()
-  })).filter(z=>z.datum||z.von||z.beschreibung);
-}
-function updateZeitGesamt(){
-  const c=document.getElementById('zeitContainer');if(!c)return;
-  const e=[...c.querySelectorAll('.zeit-row-form')].map(r=>({von:r.querySelector('.z-von').value,bis:r.querySelector('.z-bis').value}));
-  const el=document.getElementById('zeitGesamtForm');
-  if(el)el.textContent='Gesamt: '+berechneTotalZeit(e);
-}
-
-// ═══ FORMULAR ═══
-function openNeu(){
-  if(detailTimerInterval){clearInterval(detailTimerInterval);detailTimerInterval=null;detailTimerStartMs=null;}
-  clearTimeout(autoSaveTimer);
-  const a={
-    id:genId(),ks:'',rep:'',datum:new Date().toISOString().split('T')[0],
-    status:'neu',ag:'',knr:'',hv:'',adresse:'',strasse:'',ort:'',schaden:'',
-    agKontaktName:'',agKontaktTel:'',agKontaktEmail:'',
-    mieterName:'',mieterTel:'',mieterEmail:'',
-    eigentuemer:'',eigTel:'',eigEmail:'',
-    termine:[],zeiterfassung:[],gdrive:'',nas:'',notizen:'',
-    createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()
-  };
-  auftraege.unshift(a);
-  detailId=a.id;
-  isNewUnsaved=true;
-  document.getElementById('detailTitel').textContent='+ Neuer Auftrag';
-  renderDetailEditable(a);
-  document.getElementById('listView').classList.add('hidden');
-  document.getElementById('detailView').classList.add('active');
-  document.getElementById('detailBody').scrollTop=0;
-}
-function openBearbeiten(){
-  const a=auftraege.find(x=>x.id===detailId);if(!a)return;
-  document.getElementById('formTitel').textContent='✏ Auftrag bearbeiten';
-  document.getElementById('loeschBtn').style.display='';
-  document.getElementById('fId').value=a.id;
-  document.getElementById('fKS').value=a.ks||'';
-  document.getElementById('fRep').value=a.rep||'';
-  document.getElementById('fDat').value=a.datum||'';
-  document.getElementById('fStat').value=a.status||'neu';
-  document.getElementById('fAG').value=a.ag||'';
-  document.getElementById('fKNr').value=a.knr||'';
-  document.getElementById('fHV').value=a.hv||'';
-  document.getElementById('fAdr').value=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
-  document.getElementById('fSch').value=a.schaden||'';
-  document.getElementById('fAGN').value=a.agKontaktName||'';
-  document.getElementById('fAGT').value=a.agKontaktTel||'';
-  document.getElementById('fAGE').value=a.agKontaktEmail||'';
-  document.getElementById('fMN').value=a.mieterName||'';
-  document.getElementById('fMT').value=a.mieterTel||'';
-  document.getElementById('fME').value=a.mieterEmail||'';
-  document.getElementById('fEN').value=a.eigentuemer||'';
-  document.getElementById('fET').value=a.eigTel||'';
-  document.getElementById('fEE').value=a.eigEmail||'';
-  document.getElementById('fGD').value=a.gdrive||'';
-  document.getElementById('fNAS').value=a.nas||'';
-  document.getElementById('fNot').value=a.notizen||'';
-  renderTermineForm(a.termine||[]);
-  renderZeitenForm(a.zeiterfassung||[]);
-  updateHVSel();
-  document.getElementById('formModal').classList.add('open');
-  // Abschnitte: Zeiterfassung offen, Ansprechpartner offen
-  document.getElementById('zeitsect').classList.add('open');
-  document.getElementById('ansprchsect').classList.add('open');
-  // Termine nur öffnen wenn Einträge vorhanden
-  if((a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung).length)
-    document.getElementById('terminesect').classList.add('open');
-  else document.getElementById('terminesect').classList.remove('open');
-  initZoomSlider();
-}
-function closeForm(){document.getElementById('formModal').classList.remove('open');}
-function clearForm(){
-  ['fKS','fRep','fDat','fAG','fKNr','fHV','fAdr','fSch',
-   'fAGN','fAGT','fAGE',
-   'fMN','fMT','fME','fEN','fET','fEE','fGD','fNAS','fNot'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-  document.getElementById('fId').value='';
-  document.getElementById('fStat').value='neu';
-  document.getElementById('fHVSel').value='';
-  renderTermineForm([]);
-  renderZeitenForm([]);
-}
-async function speichern(){
-  const ks=document.getElementById('fKS').value.trim();
-  if(!ks){toast('⚠ Kostenstelle fehlt');return;}
-  const existId=document.getElementById('fId').value;
-  const data={
-    id:existId||genId(),
-    ks,rep:document.getElementById('fRep').value.trim(),
-    datum:document.getElementById('fDat').value,
-    status:document.getElementById('fStat').value,
-    ag:document.getElementById('fAG').value.trim(),
-    knr:document.getElementById('fKNr').value.trim(),
-    hv:document.getElementById('fHV').value.trim(),
-    adresse:document.getElementById('fAdr').value.trim(),
-    strasse:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/^(.+?),\s*\d{5}/);return m?m[1].trim():a;})(),
-    ort:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/,\s*(\d{5}.+)$/);return m?m[1].trim():'';})(),
-    schaden:document.getElementById('fSch').value.trim(),
-    agKontaktName:document.getElementById('fAGN').value.trim(),
-    agKontaktTel:document.getElementById('fAGT').value.trim(),
-    agKontaktEmail:document.getElementById('fAGE').value.trim(),
-    mieterName:document.getElementById('fMN').value.trim(),
-    mieterTel:document.getElementById('fMT').value.trim(),
-    mieterEmail:document.getElementById('fME').value.trim(),
-    eigentuemer:document.getElementById('fEN').value.trim(),
-    eigTel:document.getElementById('fET').value.trim(),
-    eigEmail:document.getElementById('fEE').value.trim(),
-    termine:getTermineFromForm(),
-    zeiterfassung:getZeitenFromForm(),
-    gdrive:document.getElementById('fGD').value.trim(),
-    nas:document.getElementById('fNAS').value.trim(),
-    notizen:document.getElementById('fNot').value.trim(),
-    updatedAt:new Date().toISOString()
-  };
-  if(existId){
-    const idx=auftraege.findIndex(a=>a.id===existId);
-    if(idx>=0){data.createdAt=auftraege[idx].createdAt;auftraege[idx]=data;}
-  }else{
-    data.createdAt=new Date().toISOString();
-    auftraege.unshift(data);detailId=data.id;
-  }
-  await saveFile();closeForm();renderListe();
-  if(detailId){const a=auftraege.find(x=>x.id===detailId);if(a){document.getElementById('detailTitel').textContent=titelFormat(a);renderDetail(a);}}
-  toast('✅ Gespeichert');
-}
-async function loeschen(){
-  if(!confirm('Auftrag löschen?'))return;
-  const existId=document.getElementById('fId').value;
-  auftraege=auftraege.filter(a=>a.id!==existId);
-  await saveFile();closeForm();zurueck();renderListe();toast('🗑 Gelöscht');
-}
-
-// ═══ README IMPORT ═══
-function triggerReadme(){document.getElementById('readmeInput').click();}
-function importReadme(event){
-  const file=event.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const txt=e.target.result;
-    const v=key=>readVal(txt,key);
-    if(v('Auftrag_Kostenstelle'))document.getElementById('fKS').value=v('Auftrag_Kostenstelle');
-    if(v('Rep_Nr'))document.getElementById('fRep').value=v('Rep_Nr');
-    const dat=v('Auftrag_Datum');
-    if(dat){const p=dat.split('.');if(p.length===3)document.getElementById('fDat').value=p[2]+'-'+p[1]+'-'+p[0];}
-    if(v('Auftraggeber'))document.getElementById('fAG').value=v('Auftraggeber');
-    if(v('Kunden_Nr'))document.getElementById('fKNr').value=v('Kunden_Nr');
-    const hv=v('Objekt_Hausverwaltung');
-    if(hv){
-      document.getElementById('fHV').value=hv;
-      const gef=hvListe.find(h=>hv.toLowerCase().includes(h.name.toLowerCase())||h.name.toLowerCase().includes(hv.toLowerCase()));
-      if(gef&&gef.driveLink)document.getElementById('fGD').value=gef.driveLink;
-    }
-    const str=v('Objekt_Strasse');
-    if(str)document.getElementById('fAdr').value=str;
-    if(v('Baustelle_Schadensbild'))document.getElementById('fSch').value=v('Baustelle_Schadensbild');
-    if(v('Eigentuemer_Name'))document.getElementById('fEN').value=v('Eigentuemer_Name');
-    if(v('Eigentuemer_Telefon'))document.getElementById('fET').value=v('Eigentuemer_Telefon');
-    if(v('Eigentuemer_Email'))document.getElementById('fEE').value=v('Eigentuemer_Email');
-    if(v('Mieter_Name'))document.getElementById('fMN').value=v('Mieter_Name');
-    if(v('Mieter_Telefon'))document.getElementById('fMT').value=v('Mieter_Telefon');
-    if(v('Mieter_Email'))document.getElementById('fME').value=v('Mieter_Email');
-    if(v('Google_Drive_Link'))document.getElementById('fGD').value=v('Google_Drive_Link');
-    if(v('NAS_Auftragsordner'))document.getElementById('fNAS').value=v('NAS_Auftragsordner');
-    const tOrt=v('Termin_Ortstermin');
-    if(tOrt)renderTermineForm([{datum:'',von:'',bis:'',beschreibung:tOrt}]);
-    toast('✅ README importiert');event.target.value='';
-  };
-  reader.readAsText(file,'windows-1252');
-}
-
 // ═══ AUTO-SAVE ═══
 function scheduleAutoSave(){
   const ind=document.getElementById('saveIndicator');
@@ -1361,10 +776,8 @@ function scheduleAutoSave(){
 }
 async function speichernDetail(){
   if(!detailId)return;
-  const idx=auftraege.findIndex(a=>a.id===detailId);
-  if(idx<0)return;
-  const dKS=document.getElementById('dKS');
-  if(!dKS)return;
+  const idx=auftraege.findIndex(a=>a.id===detailId);if(idx<0)return;
+  const dKS=document.getElementById('dKS');if(!dKS)return;
   const adresseRaw=document.getElementById('dAdr').value.trim();
   const data={
     ...auftraege[idx],
@@ -1395,12 +808,10 @@ async function speichernDetail(){
     notizen:document.getElementById('dNot').value.trim(),
     updatedAt:new Date().toISOString()
   };
-  auftraege[idx]=data;
-  isNewUnsaved=false;
+  auftraege[idx]=data;isNewUnsaved=false;
   document.getElementById('detailTitel').textContent=titelFormat(data);
   updateDetailStatusBar(data.status);
-  await saveFile();
-  renderListe();
+  await saveFile();renderListe();
   const ind=document.getElementById('saveIndicator');
   if(ind){ind.textContent='✓ Gespeichert';ind.style.color='var(--green)';setTimeout(()=>{if(ind)ind.textContent='';},2500);}
 }
@@ -1408,17 +819,13 @@ function loeschenDirekt(){
   if(!confirm('Auftrag löschen?'))return;
   clearTimeout(autoSaveTimer);
   if(detailTimerInterval){clearInterval(detailTimerInterval);detailTimerInterval=null;detailTimerStartMs=null;}
-  auftraege=auftraege.filter(a=>a.id!==detailId);
-  isNewUnsaved=false;
+  auftraege=auftraege.filter(a=>a.id!==detailId);isNewUnsaved=false;
   saveFile();
   document.getElementById('detailView').classList.remove('active');
   document.getElementById('listView').classList.remove('hidden');
-  detailId=null;
-  document.getElementById('detailBody').innerHTML='';
-  renderListe();
-  toast('🗑 Gelöscht');
+  detailId=null;document.getElementById('detailBody').innerHTML='';
+  renderListe();toast('🗑 Gelöscht');
 }
-
 // ═══ DETAIL FORM RENDER ═══
 function renderDetailEditable(a){
   function v(val){return(val||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
@@ -1429,7 +836,6 @@ function renderDetailEditable(a){
   const termine=(a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung);
   let html='';
 
-  // Status-Bar
   html+='<div class="detail-status-bar">'
     +'<span class="status-badge '+a.status+'">'+statusLabel+'</span>'
     +'<button class="status-change-btn" onclick="statusWechseln(\''+nextStatus[a.status]+'\')">'+nextLabel[a.status]+'</button>'
@@ -1534,7 +940,7 @@ function renderDetailEditable(a){
     +'<input type="url" id="dGD" value="'+v(a.gdrive||'')+'" oninput="scheduleAutoSave();updateDriveBtnDetail()" placeholder="https://drive.google.com/…">'
     +'<button class="link-btn" onclick="driveOeffnenDetail()">📁</button>'
     +'</div>'
-    +(a.gdrive?'<button class="detail-btn drive" id="dDriveBtn" style="margin-top:6px;" onclick="driveOeffnenDetail()">📁 Fotos öffnen</button>':'<button class="detail-btn drive" id="dDriveBtn" style="margin-top:6px;display:none;" onclick="driveOeffnenDetail()">📁 Fotos öffnen</button>')
+    +'<button class="detail-btn drive" id="dDriveBtn" style="margin-top:6px;'+(a.gdrive?'':'display:none;')+'" onclick="driveOeffnenDetail()">📁 Fotos öffnen</button>'
     +'</div>'
     +'<div class="modal-field full"><label>NAS-Pfad</label>'
     +'<div class="link-row">'
@@ -1568,7 +974,7 @@ function addTerminDetail(datum,von,bis,beschreibung){
     +'<input type="time" class="dt-von" value="'+von+'" oninput="scheduleAutoSave()">'
     +'<input type="time" class="dt-bis" value="'+bis+'" oninput="scheduleAutoSave()">'
     +'<input type="text" class="dt-bes" placeholder="Beschreibung" value="'+beschreibung.replace(/"/g,'&quot;')+'" oninput="scheduleAutoSave()">'
-    +'<button class="gcal-btn" onclick="gcalOeffnenRow(this)" title="In Google Kalender eintragen">📅</button>'
+    +'<button class="gcal-btn" onclick="gcalOeffnenRow(this)" title="In Google Kalender">📅</button>'
     +'<button class="rm-btn" onclick="this.closest(\'.d-termin-row-form\').remove();scheduleAutoSave()" title="Entfernen">✕</button>';
   c.appendChild(div);
 }
@@ -1680,8 +1086,7 @@ function gcalOeffnenRow(btn){
     row.querySelector('.dt-datum').value,
     row.querySelector('.dt-von').value,
     row.querySelector('.dt-bis').value,
-    row.querySelector('.dt-bes').value,
-    ''
+    row.querySelector('.dt-bes').value,''
   );
 }
 
@@ -1705,12 +1110,11 @@ function driveOeffnenDetail(){
 }
 function updateDriveBtnDetail(){
   const u=document.getElementById('dGD').value.trim();
-  const btn=document.getElementById('dDriveBtn');
-  if(btn)btn.style.display=u?'':'none';
+  const btn=document.getElementById('dDriveBtn');if(btn)btn.style.display=u?'':'none';
 }
 function nasKopierenDetail(){
-  const v=document.getElementById('dNAS').value.trim();if(!v){toast('Kein NAS-Pfad');return;}
-  navigator.clipboard.writeText(v).then(()=>{
+  const pf=document.getElementById('dNAS').value.trim();if(!pf){toast('Kein NAS-Pfad');return;}
+  navigator.clipboard.writeText(pf).then(()=>{
     const b=document.getElementById('dNasBtn');
     if(b){b.textContent='✅';b.classList.add('copied');setTimeout(()=>{b.textContent='📋';b.classList.remove('copied');},2000);}
   });
@@ -1721,34 +1125,352 @@ function importReadmeDetail(event){
   const reader=new FileReader();
   reader.onload=e=>{
     const txt=e.target.result;
-    const v=key=>readVal(txt,key);
-    if(v('Auftrag_Kostenstelle'))document.getElementById('dKS').value=v('Auftrag_Kostenstelle');
-    if(v('Rep_Nr'))document.getElementById('dRep').value=v('Rep_Nr');
-    const dat=v('Auftrag_Datum');
+    const rv=key=>readVal(txt,key);
+    if(rv('Auftrag_Kostenstelle'))document.getElementById('dKS').value=rv('Auftrag_Kostenstelle');
+    if(rv('Rep_Nr'))document.getElementById('dRep').value=rv('Rep_Nr');
+    const dat=rv('Auftrag_Datum');
     if(dat){const p=dat.split('.');if(p.length===3)document.getElementById('dDat').value=p[2]+'-'+p[1]+'-'+p[0];}
-    if(v('Auftraggeber'))document.getElementById('dAG').value=v('Auftraggeber');
-    if(v('Kunden_Nr'))document.getElementById('dKNr').value=v('Kunden_Nr');
-    const hv=v('Objekt_Hausverwaltung');
+    if(rv('Auftraggeber'))document.getElementById('dAG').value=rv('Auftraggeber');
+    if(rv('Kunden_Nr'))document.getElementById('dKNr').value=rv('Kunden_Nr');
+    const hv=rv('Objekt_Hausverwaltung');
     if(hv){
       document.getElementById('dHV').value=hv;
       const gef=hvListe.find(h=>hv.toLowerCase().includes(h.name.toLowerCase())||h.name.toLowerCase().includes(hv.toLowerCase()));
       if(gef&&gef.driveLink)document.getElementById('dGD').value=gef.driveLink;
     }
-    const str=v('Objekt_Strasse');if(str)document.getElementById('dAdr').value=str;
-    if(v('Baustelle_Schadensbild'))document.getElementById('dSch').value=v('Baustelle_Schadensbild');
-    if(v('Eigentuemer_Name'))document.getElementById('dEN').value=v('Eigentuemer_Name');
-    if(v('Eigentuemer_Telefon'))document.getElementById('dET').value=v('Eigentuemer_Telefon');
-    if(v('Eigentuemer_Email'))document.getElementById('dEE').value=v('Eigentuemer_Email');
-    if(v('Mieter_Name'))document.getElementById('dMN').value=v('Mieter_Name');
-    if(v('Mieter_Telefon'))document.getElementById('dMT').value=v('Mieter_Telefon');
-    if(v('Mieter_Email'))document.getElementById('dME').value=v('Mieter_Email');
-    if(v('Google_Drive_Link'))document.getElementById('dGD').value=v('Google_Drive_Link');
-    if(v('NAS_Auftragsordner'))document.getElementById('dNAS').value=v('NAS_Auftragsordner');
-    const tOrt=v('Termin_Ortstermin');
+    const str=rv('Objekt_Strasse');if(str)document.getElementById('dAdr').value=str;
+    if(rv('Baustelle_Schadensbild'))document.getElementById('dSch').value=rv('Baustelle_Schadensbild');
+    if(rv('Eigentuemer_Name'))document.getElementById('dEN').value=rv('Eigentuemer_Name');
+    if(rv('Eigentuemer_Telefon'))document.getElementById('dET').value=rv('Eigentuemer_Telefon');
+    if(rv('Eigentuemer_Email'))document.getElementById('dEE').value=rv('Eigentuemer_Email');
+    if(rv('Mieter_Name'))document.getElementById('dMN').value=rv('Mieter_Name');
+    if(rv('Mieter_Telefon'))document.getElementById('dMT').value=rv('Mieter_Telefon');
+    if(rv('Mieter_Email'))document.getElementById('dME').value=rv('Mieter_Email');
+    if(rv('Google_Drive_Link'))document.getElementById('dGD').value=rv('Google_Drive_Link');
+    if(rv('NAS_Auftragsordner'))document.getElementById('dNAS').value=rv('NAS_Auftragsordner');
+    const tOrt=rv('Termin_Ortstermin');
     if(tOrt)renderTermineDetail([{datum:'',von:'',bis:'',beschreibung:tOrt}]);
     scheduleAutoSave();toast('✅ README importiert');event.target.value='';
   };
   reader.readAsText(file,'windows-1252');
+}
+// ═══ FORM HELPERS (ADRESSE / TIMER / TOGGLE) ═══
+function formMapsOeffnen(){
+  const adr=document.getElementById('fAdr').value.trim();
+  if(!adr){toast('⚠ Adresse fehlt');return;}
+  window.open('https://maps.google.com/?q='+encodeURIComponent(adr),'_blank');
+}
+function toggleFormSection(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── Legacy-Timer (formModal) ──
+let timerInterval=null;
+let timerStartMs=null;
+function toggleTimer(){if(timerInterval)stopFormTimer();else startFormTimer();}
+function startFormTimer(){
+  timerStartMs=Date.now();
+  timerInterval=setInterval(renderTimerDisplayLive,1000);
+  const btn=document.getElementById('timerBtnForm');
+  if(btn){btn.className='timer-stop-btn';btn.innerHTML='⏹ Aufzeichnung beenden';}
+  const disp=document.getElementById('timerDisplayForm');if(disp)disp.classList.add('running');
+  const sect=document.getElementById('zeitsect');if(sect)sect.classList.add('open');
+}
+function stopFormTimer(){
+  if(!timerInterval||!timerStartMs)return;
+  clearInterval(timerInterval);
+  const endMs=Date.now();
+  const s=new Date(timerStartMs),e=new Date(endMs);
+  const datum=s.toISOString().split('T')[0];
+  const von=String(s.getHours()).padStart(2,'0')+':'+String(s.getMinutes()).padStart(2,'0');
+  const bis=String(e.getHours()).padStart(2,'0')+':'+String(e.getMinutes()).padStart(2,'0');
+  timerInterval=null;timerStartMs=null;
+  addZeit(datum,von,bis,'Stoppuhr');
+  const btn=document.getElementById('timerBtnForm');
+  if(btn){btn.className='timer-start-btn';btn.innerHTML='▶ Aufzeichnung starten';}
+  const disp=document.getElementById('timerDisplayForm');
+  if(disp){disp.classList.remove('running');disp.textContent='00:00:00';}
+  updateZeitGesamt();
+}
+function renderTimerDisplayLive(){
+  if(!timerStartMs)return;
+  const d=Math.floor((Date.now()-timerStartMs)/1000);
+  const h=Math.floor(d/3600),m=Math.floor((d%3600)/60),s=d%60;
+  const el=document.getElementById('timerDisplayForm');
+  if(el)el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+// ═══ TERMINE FORMULAR (formModal) ═══
+function addTermin(datum,von,bis,beschreibung){
+  datum=datum||'';von=von||'';bis=bis||'';beschreibung=beschreibung||'';
+  const c=document.getElementById('termineContainer');
+  const div=document.createElement('div');div.className='termin-row-form';
+  div.innerHTML='<input type="date" class="t-datum" value="'+datum+'">'
+    +'<input type="time" class="t-von" value="'+von+'">'
+    +'<input type="time" class="t-bis" value="'+bis+'">'
+    +'<input type="text" class="t-bes" placeholder="Beschreibung" value="'+beschreibung.replace(/"/g,'&quot;')+'">'
+    +'<button class="rm-btn" onclick="this.closest(\'.termin-row-form\').remove()" title="Entfernen">✕</button>';
+  c.appendChild(div);
+}
+function renderTermineForm(termine){
+  document.getElementById('termineContainer').innerHTML='';
+  if(!termine||!termine.length)addTermin();
+  else for(const t of termine)addTermin(t.datum,t.von,t.bis,t.beschreibung);
+}
+function getTermineFromForm(){
+  const c=document.getElementById('termineContainer');if(!c)return[];
+  return[...c.querySelectorAll('.termin-row-form')].map(r=>({
+    datum:r.querySelector('.t-datum').value,
+    von:r.querySelector('.t-von').value,
+    bis:r.querySelector('.t-bis').value,
+    beschreibung:r.querySelector('.t-bes').value.trim()
+  })).filter(t=>t.datum||t.von||t.beschreibung);
+}
+
+// ═══ ZEITERFASSUNG FORMULAR (formModal) ═══
+function addZeit(datum,von,bis,beschreibung){
+  datum=datum||'';von=von||'';bis=bis||'';beschreibung=beschreibung||'';
+  const c=document.getElementById('zeitContainer');
+  const div=document.createElement('div');div.className='zeit-row-form';
+  div.innerHTML='<input type="date" class="z-datum" value="'+datum+'" oninput="updateZeitGesamt()">'
+    +'<input type="time" class="z-von" value="'+von+'" oninput="updateZeitGesamt()">'
+    +'<input type="time" class="z-bis" value="'+bis+'" oninput="updateZeitGesamt()">'
+    +'<input type="text" class="z-bes" placeholder="Beschreibung" value="'+beschreibung.replace(/"/g,'&quot;')+'">'
+    +'<button class="rm-btn" onclick="this.closest(\'.zeit-row-form\').remove();updateZeitGesamt()" title="Entfernen">✕</button>';
+  c.appendChild(div);updateZeitGesamt();
+}
+function renderZeitenForm(zeiten){
+  document.getElementById('zeitContainer').innerHTML='';
+  if(!zeiten||!zeiten.length)addZeit();
+  else for(const z of zeiten)addZeit(z.datum,z.von,z.bis,z.beschreibung);
+  updateZeitGesamt();
+}
+function getZeitenFromForm(){
+  const c=document.getElementById('zeitContainer');if(!c)return[];
+  return[...c.querySelectorAll('.zeit-row-form')].map(r=>({
+    datum:r.querySelector('.z-datum').value,
+    von:r.querySelector('.z-von').value,
+    bis:r.querySelector('.z-bis').value,
+    beschreibung:r.querySelector('.z-bes').value.trim()
+  })).filter(z=>z.datum||z.von||z.beschreibung);
+}
+function updateZeitGesamt(){
+  const c=document.getElementById('zeitContainer');if(!c)return;
+  const e=[...c.querySelectorAll('.zeit-row-form')].map(r=>({von:r.querySelector('.z-von').value,bis:r.querySelector('.z-bis').value}));
+  const el=document.getElementById('zeitGesamtForm');if(el)el.textContent='Gesamt: '+berechneTotalZeit(e);
+}
+
+// ═══ + NEU (öffnet Detail direkt) ═══
+function openNeu(){
+  if(detailTimerInterval){clearInterval(detailTimerInterval);detailTimerInterval=null;detailTimerStartMs=null;}
+  clearTimeout(autoSaveTimer);
+  const a={
+    id:genId(),ks:'',rep:'',datum:new Date().toISOString().split('T')[0],
+    status:'neu',ag:'',knr:'',hv:'',adresse:'',strasse:'',ort:'',schaden:'',
+    agKontaktName:'',agKontaktTel:'',agKontaktEmail:'',
+    mieterName:'',mieterTel:'',mieterEmail:'',
+    eigentuemer:'',eigTel:'',eigEmail:'',
+    termine:[],zeiterfassung:[],gdrive:'',nas:'',notizen:'',
+    createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()
+  };
+  auftraege.unshift(a);
+  detailId=a.id;isNewUnsaved=true;
+  document.getElementById('detailTitel').textContent='+ Neuer Auftrag';
+  renderDetailEditable(a);
+  document.getElementById('listView').classList.add('hidden');
+  document.getElementById('detailView').classList.add('active');
+  document.getElementById('detailBody').scrollTop=0;
+}
+
+// ═══ LEGACY FORMULAR (openBearbeiten bleibt für Ctrl+S-Fallback) ═══
+function openBearbeiten(){
+  const a=auftraege.find(x=>x.id===detailId);if(!a)return;
+  document.getElementById('formTitel').textContent='✏ Auftrag bearbeiten';
+  document.getElementById('loeschBtn').style.display='';
+  document.getElementById('fId').value=a.id;
+  document.getElementById('fKS').value=a.ks||'';
+  document.getElementById('fRep').value=a.rep||'';
+  document.getElementById('fDat').value=a.datum||'';
+  document.getElementById('fStat').value=a.status||'neu';
+  document.getElementById('fAG').value=a.ag||'';
+  document.getElementById('fKNr').value=a.knr||'';
+  document.getElementById('fHV').value=a.hv||'';
+  document.getElementById('fAdr').value=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
+  document.getElementById('fSch').value=a.schaden||'';
+  document.getElementById('fAGN').value=a.agKontaktName||'';
+  document.getElementById('fAGT').value=a.agKontaktTel||'';
+  document.getElementById('fAGE').value=a.agKontaktEmail||'';
+  document.getElementById('fMN').value=a.mieterName||'';
+  document.getElementById('fMT').value=a.mieterTel||'';
+  document.getElementById('fME').value=a.mieterEmail||'';
+  document.getElementById('fEN').value=a.eigentuemer||'';
+  document.getElementById('fET').value=a.eigTel||'';
+  document.getElementById('fEE').value=a.eigEmail||'';
+  document.getElementById('fGD').value=a.gdrive||'';
+  document.getElementById('fNAS').value=a.nas||'';
+  document.getElementById('fNot').value=a.notizen||'';
+  renderTermineForm(a.termine||[]);
+  renderZeitenForm(a.zeiterfassung||[]);
+  updateHVSel();
+  document.getElementById('formModal').classList.add('open');
+  document.getElementById('zeitsect').classList.add('open');
+  document.getElementById('ansprchsect').classList.add('open');
+  if((a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung).length)
+    document.getElementById('terminesect').classList.add('open');
+  else document.getElementById('terminesect').classList.remove('open');
+  initZoomSlider();
+}
+function closeForm(){document.getElementById('formModal').classList.remove('open');}
+function clearForm(){
+  ['fKS','fRep','fDat','fAG','fKNr','fHV','fAdr','fSch',
+   'fAGN','fAGT','fAGE','fMN','fMT','fME','fEN','fET','fEE','fGD','fNAS','fNot'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('fId').value='';
+  document.getElementById('fStat').value='neu';
+  document.getElementById('fHVSel').value='';
+  renderTermineForm([]);renderZeitenForm([]);
+}
+async function speichern(){
+  const ks=document.getElementById('fKS').value.trim();
+  if(!ks){toast('⚠ Kostenstelle fehlt');return;}
+  const existId=document.getElementById('fId').value;
+  const data={
+    id:existId||genId(),
+    ks,rep:document.getElementById('fRep').value.trim(),
+    datum:document.getElementById('fDat').value,
+    status:document.getElementById('fStat').value,
+    ag:document.getElementById('fAG').value.trim(),
+    knr:document.getElementById('fKNr').value.trim(),
+    hv:document.getElementById('fHV').value.trim(),
+    adresse:document.getElementById('fAdr').value.trim(),
+    strasse:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/^(.+?),\s*\d{5}/);return m?m[1].trim():a;})(),
+    ort:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/,\s*(\d{5}.+)$/);return m?m[1].trim():'';})(),
+    schaden:document.getElementById('fSch').value.trim(),
+    agKontaktName:document.getElementById('fAGN').value.trim(),
+    agKontaktTel:document.getElementById('fAGT').value.trim(),
+    agKontaktEmail:document.getElementById('fAGE').value.trim(),
+    mieterName:document.getElementById('fMN').value.trim(),
+    mieterTel:document.getElementById('fMT').value.trim(),
+    mieterEmail:document.getElementById('fME').value.trim(),
+    eigentuemer:document.getElementById('fEN').value.trim(),
+    eigTel:document.getElementById('fET').value.trim(),
+    eigEmail:document.getElementById('fEE').value.trim(),
+    termine:getTermineFromForm(),
+    zeiterfassung:getZeitenFromForm(),
+    gdrive:document.getElementById('fGD').value.trim(),
+    nas:document.getElementById('fNAS').value.trim(),
+    notizen:document.getElementById('fNot').value.trim(),
+    updatedAt:new Date().toISOString()
+  };
+  if(existId){
+    const idx=auftraege.findIndex(a=>a.id===existId);
+    if(idx>=0){data.createdAt=auftraege[idx].createdAt;auftraege[idx]=data;}
+  }else{
+    data.createdAt=new Date().toISOString();auftraege.unshift(data);detailId=data.id;
+  }
+  await saveFile();closeForm();renderListe();
+  if(detailId){const a=auftraege.find(x=>x.id===detailId);if(a){document.getElementById('detailTitel').textContent=titelFormat(a);}}
+  toast('✅ Gespeichert');
+}
+async function loeschen(){
+  if(!confirm('Auftrag löschen?'))return;
+  const existId=document.getElementById('fId').value;
+  auftraege=auftraege.filter(a=>a.id!==existId);
+  await saveFile();closeForm();
+  document.getElementById('detailView').classList.remove('active');
+  document.getElementById('listView').classList.remove('hidden');
+  detailId=null;document.getElementById('detailBody').innerHTML='';
+  renderListe();toast('🗑 Gelöscht');
+}
+
+// ═══ README IMPORT (formModal) ═══
+function triggerReadme(){document.getElementById('readmeInput').click();}
+function importReadme(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const txt=e.target.result;
+    const v=key=>readVal(txt,key);
+    if(v('Auftrag_Kostenstelle'))document.getElementById('fKS').value=v('Auftrag_Kostenstelle');
+    if(v('Rep_Nr'))document.getElementById('fRep').value=v('Rep_Nr');
+    const dat=v('Auftrag_Datum');
+    if(dat){const p=dat.split('.');if(p.length===3)document.getElementById('fDat').value=p[2]+'-'+p[1]+'-'+p[0];}
+    if(v('Auftraggeber'))document.getElementById('fAG').value=v('Auftraggeber');
+    if(v('Kunden_Nr'))document.getElementById('fKNr').value=v('Kunden_Nr');
+    const hv=v('Objekt_Hausverwaltung');
+    if(hv){
+      document.getElementById('fHV').value=hv;
+      const gef=hvListe.find(h=>hv.toLowerCase().includes(h.name.toLowerCase())||h.name.toLowerCase().includes(hv.toLowerCase()));
+      if(gef&&gef.driveLink)document.getElementById('fGD').value=gef.driveLink;
+    }
+    const str=v('Objekt_Strasse');if(str)document.getElementById('fAdr').value=str;
+    if(v('Baustelle_Schadensbild'))document.getElementById('fSch').value=v('Baustelle_Schadensbild');
+    if(v('Eigentuemer_Name'))document.getElementById('fEN').value=v('Eigentuemer_Name');
+    if(v('Eigentuemer_Telefon'))document.getElementById('fET').value=v('Eigentuemer_Telefon');
+    if(v('Eigentuemer_Email'))document.getElementById('fEE').value=v('Eigentuemer_Email');
+    if(v('Mieter_Name'))document.getElementById('fMN').value=v('Mieter_Name');
+    if(v('Mieter_Telefon'))document.getElementById('fMT').value=v('Mieter_Telefon');
+    if(v('Mieter_Email'))document.getElementById('fME').value=v('Mieter_Email');
+    if(v('Google_Drive_Link'))document.getElementById('fGD').value=v('Google_Drive_Link');
+    if(v('NAS_Auftragsordner'))document.getElementById('fNAS').value=v('NAS_Auftragsordner');
+    const tOrt=v('Termin_Ortstermin');
+    if(tOrt)renderTermineForm([{datum:'',von:'',bis:'',beschreibung:tOrt}]);
+    toast('✅ README importiert');event.target.value='';
+  };
+  reader.readAsText(file,'windows-1252');
+}
+
+// ═══ README EXPORT ═══
+function exportReadme(id){
+  const a=auftraege.find(x=>x.id===id);if(!a)return;
+  const nl='\r\n';let t='';
+  const L=s=>{t+=s+nl;};
+  L('==============================');L(' AUFTRAGSAKTE');L(' Erstellt am: '+(a.datum||''));L('==============================');L('');
+  L('AUFTRAG');
+  L('Auftrag_Kostenstelle: '+(a.ks||'(noch offen)'));
+  L('Auftrag_Datum: '+(a.datum||'(noch offen)'));
+  L('Rep_Nr: '+(a.rep||'(noch offen)'));
+  L('Auftraggeber: '+(a.ag||'(noch offen)'));
+  L('Kunden_Nr: '+(a.knr||'(noch offen)'));L('');
+  L('OBJEKT');
+  L('Objekt_Strasse: '+(a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ')));
+  L('Objekt_Hausverwaltung: '+(a.hv||'(noch offen)'));
+  L('Baustelle_Schadensbild: '+(a.schaden||'(noch offen)'));L('');
+  L('EIGENTUEMER');
+  L('Eigentuemer_Name: '+(a.eigentuemer||'(noch offen)'));
+  L('Eigentuemer_Telefon: '+(a.eigTel||'(noch offen)'));
+  L('Eigentuemer_Email: '+(a.eigEmail||'(noch offen)'));L('');
+  L('MIETER');
+  L('Mieter_Name: '+(a.mieterName||'(noch offen)'));
+  L('Mieter_Telefon: '+(a.mieterTel||'(noch offen)'));
+  L('Mieter_Email: '+(a.mieterEmail||'(noch offen)'));L('');
+  const termine=(a.termine||[]).filter(x=>x.datum||x.von||x.beschreibung);
+  if(termine.length){
+    L('TERMINE');
+    for(const te of termine){
+      let z='';
+      if(te.datum)z+=te.datum;if(te.von)z+='  '+te.von;if(te.bis)z+='-'+te.bis;if(te.beschreibung)z+='  '+te.beschreibung;
+      if(z.trim())L(z.trim());
+    }L('');
+  }
+  const zeiten=(a.zeiterfassung||[]).filter(z=>z.von||z.beschreibung);
+  if(zeiten.length){
+    L('ZEITERFASSUNG');L('Gesamt: '+berechneTotalZeit(zeiten));
+    for(const z of zeiten){
+      let s='';
+      if(z.datum)s+=z.datum;if(z.von)s+='  '+z.von;if(z.bis)s+='-'+z.bis;if(z.beschreibung)s+='  '+z.beschreibung;
+      if(s.trim())L(s.trim());
+    }L('');
+  }
+  L('VERKNUEPFUNGEN');
+  L('Google_Drive_Link: '+(a.gdrive||'(noch offen)'));
+  L('NAS_Auftragsordner: '+(a.nas||'(noch offen)'));
+  if(a.notizen){L('');L('NOTIZEN');L(a.notizen);}
+  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');link.href=url;link.download='README.txt';link.click();
+  URL.revokeObjectURL(url);toast('📄 README.txt heruntergeladen');
 }
 
 // ═══ HV LISTE ═══
@@ -1789,7 +1511,7 @@ function hvEdit(i){
 function openHvModal(){renderHV();document.getElementById('hvModal').classList.add('open');}
 function closeHv(){document.getElementById('hvModal').classList.remove('open');}
 
-// ═══ FORM HELPERS ═══
+// ═══ FORM HELPERS (formModal) ═══
 function driveOeffnen(){const u=document.getElementById('fGD').value.trim();if(!u){toast('Kein Drive-Link');return;}window.open(u,'_blank');}
 function nasKopierenForm(){
   const v=document.getElementById('fNAS').value.trim();if(!v){toast('Kein NAS-Pfad');return;}
@@ -1801,12 +1523,8 @@ function nasKopierenForm(){
 }
 
 // ═══ GOOGLE DRIVE OAUTH ═══
-// Client ID aus dem PTP Workboard – ggf. eigene in Google Cloud Console erstellen
-// Autorisierte Herkunft muss für die eigene Domain eingetragen sein:
-// https://console.cloud.google.com/apis/credentials
 const GDRIVE_CLIENT_ID='56419258975-2ri3eujer9p6saph1mesa5hihlcae1pl.apps.googleusercontent.com';
 const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.file';
-
 let gdriveToken=null;
 let gdriveFileId=null;
 let gdriveFileName='bau-doku.json';
@@ -1817,9 +1535,7 @@ let gdriveSaving=false;
 function gdriveInit(){
   if(!window.google||!window.google.accounts)return;
   gdriveTokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:GDRIVE_CLIENT_ID,
-    scope:GDRIVE_SCOPE,
-    callback:gdriveTokenCallback,
+    client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPE,callback:gdriveTokenCallback,
   });
 }
 function gdriveTokenCallback(resp){
@@ -1875,8 +1591,7 @@ async function gdriveLoadFile(fileId,fileName){
   auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
   if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
   gdriveFileId=fileId;gdriveFileName=fileName;
-  updateFileStatus('ok',fileName);
-  renderListe();toast('✅ Von Google Drive geladen');
+  updateFileStatus('ok',fileName);renderListe();toast('✅ Von Google Drive geladen');
 }
 async function gdriveCreateFile(){
   const content=JSON.stringify({auftraege:[],hvListe},null,2);
@@ -1892,9 +1607,7 @@ async function gdriveCreateFile(){
     });
     const file=await r.json();
     gdriveFileId=file.id;gdriveFileName=file.name||'bau-doku.json';
-    auftraege=[];
-    updateFileStatus('ok',gdriveFileName);
-    renderListe();toast('✅ Neue Datei in Google Drive erstellt');
+    auftraege=[];updateFileStatus('ok',gdriveFileName);renderListe();toast('✅ Neue Datei in Google Drive erstellt');
   }catch(e){toast('⚠ Drive-Fehler: '+e.message);}
 }
 async function gdriveSaveData(){
