@@ -7,11 +7,11 @@
 <script src="https://accounts.google.com/gsi/client" async defer onload="gdriveInit()"></script>
 <style>
 :root {
-  --bg:#dde8ff; --bg2:#ffffff; --bg3:#f0f5ff; --bg4:#e0eaff;
-  --text:#1a2d6e; --text2:#5570a8;
+  --bg:#ffffff; --bg2:#ffffff; --bg3:#f5f5f5; --bg4:#eeeeee;
+  --text:#111111; --text2:#555555;
   --accent:#2f5fd4; --accent2:#1d48b8;
   --green:#16a34a; --orange:#d97706; --red:#dc2626; --blue:#2563eb;
-  --border:#c0d0f0; --shadow:rgba(30,45,110,0.12);
+  --border:#dddddd; --shadow:rgba(0,0,0,0.10);
   --zoom:1;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -247,6 +247,22 @@ a{color:inherit;text-decoration:none;}
 .empty{text-align:center;padding:48px 24px;color:var(--text2);}
 .empty-icon{font-size:44px;margin-bottom:12px;}
 
+/* ── TIMER TOP-BTN ── */
+.timer-top-active{background:rgba(220,38,38,.12)!important;color:var(--red)!important;border:1px solid var(--red)!important;animation:timerPulse 1.2s ease-in-out infinite;}
+
+/* ── TEL CALL BTN ── */
+.tel-call-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:36px;border-radius:7px;background:rgba(22,163,74,.1);color:var(--green);font-size:16px;text-decoration:none;flex-shrink:0;border:1px solid rgba(22,163,74,.3);}
+.tel-call-btn:hover{background:rgba(22,163,74,.2);}
+.tel-call-btn.disabled{opacity:.35;pointer-events:none;}
+
+/* ── DATEIANHÄNGE ── */
+.anhang-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:10px;}
+.anhang-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);aspect-ratio:1;background:var(--bg3);cursor:pointer;}
+.anhang-img{width:100%;height:100%;object-fit:cover;display:block;}
+.anhang-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(220,38,38,.85);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;line-height:1;}
+.anhang-drop{border:2px dashed var(--border);border-radius:8px;padding:14px;text-align:center;transition:border-color .15s;}
+.anhang-drop.over{border-color:var(--accent);}
+
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px;}
 
@@ -331,6 +347,7 @@ a{color:inherit;text-decoration:none;}
     <div class="detail-title" id="detailTitel">Auftrag</div>
     <div class="detail-actions" style="display:flex;align-items:center;gap:8px;">
       <span class="save-indicator" id="saveIndicator"></span>
+      <button class="btn btn-secondary btn-sm" id="dTimerTopBtn" onclick="toggleGlobalTimer()" title="Aufzeichnung starten" style="white-space:nowrap;">&#9210; Aufzeichnung</button>
       <button class="btn btn-secondary btn-sm" onclick="triggerReadmeDetail()" title="README.txt importieren">&#128196; Auftrag</button>
       <button class="btn btn-danger btn-sm" onclick="loeschenDirekt()" title="Auftrag l&#246;schen">&#128465;</button>
     </div>
@@ -538,6 +555,15 @@ let isNewUnsaved = false;
 let detailTimerInterval = null;
 let detailTimerStartMs = null;
 
+// Globaler persistenter Timer (läuft auch nach Schließen weiter)
+let globalTimerStartMs = null;
+let globalTimerAuftragId = null;
+let globalTimerIntervalId = null;
+(function(){
+  const t=JSON.parse(localStorage.getItem('bau_timer')||'null');
+  if(t&&t.startMs&&t.auftragId){globalTimerStartMs=t.startMs;globalTimerAuftragId=t.auftragId;}
+})();
+
 // ═══ UTILS ═══
 function genId(){ return 'a_'+Date.now()+'_'+Math.random().toString(36).substr(2,5); }
 function titelFormat(a){
@@ -561,6 +587,13 @@ function readVal(txt,key){
   return(v==='(noch offen)'||v==='noch offen')?'':v;
 }
 function formatTel(t){ return t?t.replace(/[^\d+]/g,''):''; }
+
+function updateTelAnchor(input){
+  const a=input.nextElementSibling;if(!a||a.tagName!=='A')return;
+  const num=formatTel(input.value);
+  a.href=num?'tel:'+num:'#';
+  a.className='tel-call-btn'+(num?'':' disabled');
+}
 
 function berechneTotalZeit(eintraege){
   let total=0;
@@ -620,6 +653,7 @@ function migrateAuftrag(a){
     if(a.terminOrt)a.termine.push({datum:'',von:'',bis:'',beschreibung:a.terminOrt});
   }
   if(!a.zeiterfassung)a.zeiterfassung=[];
+  if(!a.anhaenge)a.anhaenge=[];
   if(!a.adresse){
     a.adresse=[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   }
@@ -750,9 +784,15 @@ function openDetail(id){
   document.getElementById('listView').classList.add('hidden');
   document.getElementById('detailView').classList.add('active');
   document.getElementById('detailBody').scrollTop=0;
+  // Globalen Timer wiederherstellen falls er läuft
+  if(globalTimerStartMs&&!globalTimerIntervalId){
+    globalTimerIntervalId=setInterval(updateTimerTopBtn,1000);
+  }
+  updateTimerTopBtn();
 }
 function zurueck(){
   if(detailTimerInterval)stopTimerDetail();
+  if(globalTimerIntervalId){clearInterval(globalTimerIntervalId);globalTimerIntervalId=null;}
   clearTimeout(autoSaveTimer);
   if(isNewUnsaved){auftraege=auftraege.filter(a=>a.id!==detailId);renderListe();}
   isNewUnsaved=false;
@@ -834,6 +874,8 @@ function loeschenDirekt(){
   if(!confirm('Auftrag löschen?'))return;
   clearTimeout(autoSaveTimer);
   if(detailTimerInterval){clearInterval(detailTimerInterval);detailTimerInterval=null;detailTimerStartMs=null;}
+  if(globalTimerIntervalId){clearInterval(globalTimerIntervalId);globalTimerIntervalId=null;}
+  if(globalTimerAuftragId===detailId){globalTimerStartMs=null;globalTimerAuftragId=null;localStorage.removeItem('bau_timer');}
   auftraege=auftraege.filter(a=>a.id!==detailId);isNewUnsaved=false;
   saveFile();
   document.getElementById('detailView').classList.remove('active');
@@ -881,7 +923,10 @@ function renderDetailEditable(a){
     +'<div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 8px;">👔 Kontaktperson Auftraggeber</div>'
     +'<div class="modal-grid">'
     +'<div class="modal-field"><label>Name</label><input type="text" id="dAGN" value="'+v(a.agKontaktName||'')+'" oninput="scheduleAutoSave()" placeholder="Fr. Beck"></div>'
-    +'<div class="modal-field"><label>Telefon</label><input type="tel" id="dAGT" value="'+v(a.agKontaktTel||'')+'" oninput="scheduleAutoSave()"></div>'
+    +'<div class="modal-field"><label>Telefon</label><div style="display:flex;gap:4px;">'
+    +'<input type="tel" id="dAGT" value="'+v(a.agKontaktTel||'')+'" oninput="scheduleAutoSave();updateTelAnchor(this)" style="flex:1;">'
+    +'<a class="tel-call-btn'+(a.agKontaktTel?'':' disabled')+'" href="'+(a.agKontaktTel?'tel:'+formatTel(a.agKontaktTel):'#')+'">📞</a>'
+    +'</div></div>'
     +'<div class="modal-field full"><label>E-Mail</label><input type="email" id="dAGE" value="'+v(a.agKontaktEmail||'')+'" oninput="scheduleAutoSave()"></div>'
     +'</div>'
     +'<div class="modal-grid" style="margin-top:8px;">'
@@ -920,17 +965,16 @@ function renderDetailEditable(a){
     +'<button class="add-row-btn" onclick="addTerminDetail()">+ Termin hinzufügen</button>'
     +'</div></div>';
 
-  // Zeiterfassung
-  html+='<div class="form-collapse open" id="dZeitSect">'
+  // Zeiterfassung (Timer läuft über Topbar-Button)
+  const zeitenCount=(a.zeiterfassung||[]).filter(z=>z.datum||z.von||z.beschreibung).length;
+  html+='<div class="form-collapse'+(zeitenCount?' open':'')+'" id="dZeitSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dZeitSect\')">'
-    +'<span class="form-collapse-title">⏱ Zeiterfassung</span><span class="form-collapse-arrow">▾</span>'
+    +'<span class="form-collapse-title">⏱ Zeiterfassung'+(zeitenCount?' <span style="color:var(--accent2);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">('+zeitenCount+')</span>':'')+'</span>'
+    +'<span class="form-collapse-arrow">▾</span>'
     +'</div><div class="form-collapse-body">'
-    +'<div id="dTimerDisplay" class="timer-display">00:00:00</div>'
-    +'<button id="dTimerBtn" class="timer-start-btn" onclick="toggleTimerDetail()">▶ Aufzeichnung starten</button>'
-    +'<div class="timer-divider">oder manuell erfassen</div>'
     +'<div class="row-header"><span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span></div>'
     +'<div id="dZeitContainer"></div>'
-    +'<button class="add-row-btn" onclick="addZeitDetail()">+ Zeit hinzufügen</button>'
+    +'<button class="add-row-btn" onclick="addZeitDetail()">+ Zeit manuell hinzufügen</button>'
     +'<div class="zeit-gesamt-form" id="dZeitGesamt"></div>'
     +'</div></div>';
 
@@ -953,6 +997,21 @@ function renderDetailEditable(a){
     +'</div></div>'
     +'</div></div></div>';
 
+  // Dateianhänge
+  const anhaengeArr=a.anhaenge||[];
+  html+='<div class="form-collapse open" id="dAnhaengeSect">'
+    +'<div class="form-collapse-header" onclick="toggleFormSection(\'dAnhaengeSect\')">'
+    +'<span class="form-collapse-title">📎 Dateianhänge'+(anhaengeArr.length?' <span style="color:var(--accent2);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">('+anhaengeArr.length+')</span>':'')+'</span>'
+    +'<span class="form-collapse-arrow">▾</span>'
+    +'</div><div class="form-collapse-body">'
+    +'<div id="dAnhaengeContainer"></div>'
+    +'<div class="anhang-drop" id="dAnhaengeDrop">'
+    +'<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Bild hier hineinziehen oder:</div>'
+    +'<button class="add-row-btn" onclick="document.getElementById(\'dAnhangInput\').click()">📷 Bild auswählen</button>'
+    +'<input type="file" id="dAnhangInput" accept="image/*" multiple capture="environment" style="display:none" onchange="anhangHinzufuegen(event)">'
+    +'</div>'
+    +'</div></div>';
+
   // Notizen
   html+='<div class="form-collapse open" id="dNotizenSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dNotizenSect\')">'
@@ -968,6 +1027,8 @@ function renderDetailEditable(a){
   renderKontakteDetail(kontakteArr);
   renderTermineDetail(a.termine||[]);
   renderZeitenDetail(a.zeiterfassung||[]);
+  renderAnhaengeDetail(a.anhaenge||[]);
+  initAnhaengeDrop();
 }
 
 // ═══ DETAIL TERMIN ═══
@@ -1041,7 +1102,10 @@ function addKontaktDetail(rolle,name,tel,email){
     +'</div>'
     +'<div class="modal-grid">'
     +'<div class="modal-field"><label>Name</label><input type="text" class="k-name" value="'+name.replace(/"/g,'&quot;')+'" oninput="scheduleAutoSave()" placeholder="Max Mustermann"></div>'
-    +'<div class="modal-field"><label>Telefon</label><input type="tel" class="k-tel" value="'+tel.replace(/"/g,'&quot;')+'" oninput="scheduleAutoSave()"></div>'
+    +'<div class="modal-field"><label>Telefon</label><div style="display:flex;gap:4px;">'
+    +'<input type="tel" class="k-tel" value="'+tel.replace(/"/g,'&quot;')+'" oninput="scheduleAutoSave();updateTelAnchor(this)" style="flex:1;">'
+    +'<a class="tel-call-btn'+(tel?'':' disabled')+'" href="'+(tel?'tel:'+formatTel(tel):'#')+'">📞</a>'
+    +'</div></div>'
     +'<div class="modal-field full"><label>E-Mail</label><input type="email" class="k-email" value="'+email.replace(/"/g,'&quot;')+'" oninput="scheduleAutoSave()"></div>'
     +'</div>';
   c.appendChild(div);
@@ -1100,6 +1164,67 @@ function renderTimerDisplayDetail(){
   const h=Math.floor(d/3600),m=Math.floor((d%3600)/60),s=d%60;
   const el=document.getElementById('dTimerDisplay');
   if(el)el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+// ═══ GLOBALER TIMER (Topbar) ═══
+function toggleGlobalTimer(){
+  if(globalTimerStartMs){
+    if(globalTimerAuftragId!==detailId){
+      if(!confirm('Aufzeichnung läuft für einen anderen Auftrag. Jetzt beenden?'))return;
+    }
+    stopGlobalTimer();
+  }else{
+    startGlobalTimer();
+  }
+}
+function startGlobalTimer(){
+  globalTimerStartMs=Date.now();globalTimerAuftragId=detailId;
+  localStorage.setItem('bau_timer',JSON.stringify({startMs:globalTimerStartMs,auftragId:detailId}));
+  if(globalTimerIntervalId)clearInterval(globalTimerIntervalId);
+  globalTimerIntervalId=setInterval(updateTimerTopBtn,1000);
+  updateTimerTopBtn();
+  const sect=document.getElementById('dZeitSect');if(sect&&!sect.classList.contains('open'))sect.classList.add('open');
+  toast('⏺ Aufzeichnung gestartet');
+}
+function stopGlobalTimer(){
+  if(!globalTimerStartMs)return;
+  if(globalTimerIntervalId){clearInterval(globalTimerIntervalId);globalTimerIntervalId=null;}
+  const endMs=Date.now();
+  const s=new Date(globalTimerStartMs),e=new Date(endMs);
+  const datum=s.toISOString().split('T')[0];
+  const von=String(s.getHours()).padStart(2,'0')+':'+String(s.getMinutes()).padStart(2,'0');
+  const bis=String(e.getHours()).padStart(2,'0')+':'+String(e.getMinutes()).padStart(2,'0');
+  const aid=globalTimerAuftragId;
+  globalTimerStartMs=null;globalTimerAuftragId=null;
+  localStorage.removeItem('bau_timer');
+  const idx=auftraege.findIndex(a=>a.id===aid);
+  if(idx>=0){
+    if(!auftraege[idx].zeiterfassung)auftraege[idx].zeiterfassung=[];
+    auftraege[idx].zeiterfassung.push({datum,von,bis,beschreibung:'Aufzeichnung'});
+    saveFile();
+    if(detailId===aid){
+      addZeitDetail(datum,von,bis,'Aufzeichnung');
+      updateZeitGesamtDetail();
+      const sect=document.getElementById('dZeitSect');if(sect)sect.classList.add('open');
+    }
+  }
+  updateTimerTopBtn();
+  toast('⏹ Aufzeichnung gespeichert');
+}
+function updateTimerTopBtn(){
+  const btn=document.getElementById('dTimerTopBtn');if(!btn)return;
+  if(globalTimerStartMs){
+    const d=Math.floor((Date.now()-globalTimerStartMs)/1000);
+    const h=Math.floor(d/3600),m=Math.floor((d%3600)/60),s=d%60;
+    const ts=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    btn.innerHTML='⏹ '+ts;
+    btn.className='btn btn-sm timer-top-active';
+    btn.title=globalTimerAuftragId!==detailId?'Aufzeichnung beenden (anderer Auftrag!)':'Aufzeichnung beenden';
+  }else{
+    btn.innerHTML='⏺ Aufzeichnung';
+    btn.className='btn btn-secondary btn-sm';
+    btn.title='Aufzeichnung starten';
+  }
 }
 
 // ═══ GOOGLE CALENDAR ═══
@@ -1295,6 +1420,73 @@ function updateZeitGesamt(){
   const c=document.getElementById('zeitContainer');if(!c)return;
   const e=[...c.querySelectorAll('.zeit-row-form')].map(r=>({von:r.querySelector('.z-von').value,bis:r.querySelector('.z-bis').value}));
   const el=document.getElementById('zeitGesamtForm');if(el)el.textContent='Gesamt: '+berechneTotalZeit(e);
+}
+
+// ═══ DATEIANHÄNGE ═══
+function anhangHinzufuegen(event){
+  const files=[...event.target.files];
+  for(const file of files){
+    if(!file.type.startsWith('image/'))continue;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const maxW=1200,maxH=1200;
+        let w=img.width,h=img.height;
+        if(w>maxW||h>maxH){const r=Math.min(maxW/w,maxH/h);w=Math.round(w*r);h=Math.round(h*r);}
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        const data=canvas.toDataURL('image/jpeg',0.82);
+        const idx=auftraege.findIndex(a=>a.id===detailId);if(idx<0)return;
+        if(!auftraege[idx].anhaenge)auftraege[idx].anhaenge=[];
+        auftraege[idx].anhaenge.push({name:file.name,type:'image/jpeg',data});
+        renderAnhaengeDetail(auftraege[idx].anhaenge);
+        scheduleAutoSave();
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  event.target.value='';
+}
+function anhangLoeschen(idx){
+  if(!confirm('Bild entfernen?'))return;
+  const aIdx=auftraege.findIndex(a=>a.id===detailId);if(aIdx<0)return;
+  auftraege[aIdx].anhaenge.splice(idx,1);
+  renderAnhaengeDetail(auftraege[aIdx].anhaenge);
+  scheduleAutoSave();
+}
+function renderAnhaengeDetail(anhaenge){
+  const c=document.getElementById('dAnhaengeContainer');if(!c)return;
+  if(!anhaenge||!anhaenge.length){c.innerHTML='';return;}
+  c.innerHTML='<div class="anhang-grid">'
+    +anhaenge.map((a,i)=>'<div class="anhang-item" onclick="anhangOeffnen('+i+')">'
+      +'<img class="anhang-img" src="'+a.data+'" alt="'+esc(a.name)+'">'
+      +'<button class="anhang-del" onclick="event.stopPropagation();anhangLoeschen('+i+')" title="Entfernen">✕</button>'
+      +'</div>'
+    ).join('')+'</div>';
+}
+function anhangOeffnen(idx){
+  const aIdx=auftraege.findIndex(a=>a.id===detailId);if(aIdx<0)return;
+  const a=auftraege[aIdx].anhaenge[idx];if(!a)return;
+  const w=window.open('','_blank');
+  if(w)w.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;">'
+    +'<img src="'+a.data+'" style="max-width:100%;max-height:100vh;" alt="'+esc(a.name)+'">'
+    +'</body></html>');
+}
+function initAnhaengeDrop(){
+  const drop=document.getElementById('dAnhaengeDrop');if(!drop)return;
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+  drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+  drop.addEventListener('drop',e=>{
+    e.preventDefault();drop.classList.remove('over');
+    const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
+    if(!files.length)return;
+    const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));
+    const inp=document.getElementById('dAnhangInput');
+    if(inp){try{inp.files=dt.files;}catch(_){}
+    anhangHinzufuegen({target:{files:dt.files,value:''}});}
+  });
 }
 
 // ═══ + NEU (öffnet Detail direkt) ═══
