@@ -401,7 +401,7 @@ a{color:inherit;text-decoration:none;}
             <option value="abgeschlossen">🟢 Abgeschlossen</option>
           </select>
         </div>
-        <div class="modal-field"><label>Auftraggeber</label><input type="text" id="fAG" placeholder="Fr. Beck"></div>
+        <div class="modal-field"><label>Auftraggeber (HV / Firma)</label><input type="text" id="fAG" placeholder="z.B. AHV, Muster Verwaltung"></div>
         <div class="modal-field"><label>Kunden-Nr.</label><input type="text" id="fKNr" placeholder="777"></div>
       </div>
     </div>
@@ -435,8 +435,15 @@ a{color:inherit;text-decoration:none;}
         <span class="form-collapse-arrow">▾</span>
       </div>
       <div class="form-collapse-body">
+        <!-- Kontaktperson beim Auftraggeber -->
+        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;align-items:center;gap:5px;">👔 Kontaktperson AG</div>
+        <div class="modal-grid">
+          <div class="modal-field"><label>Name</label><input type="text" id="fAGN" placeholder="Fr. Beck"></div>
+          <div class="modal-field"><label>Telefon</label><input type="tel" id="fAGT" placeholder="0361 / 123456"></div>
+          <div class="modal-field full"><label>E-Mail</label><input type="email" id="fAGE" placeholder="beck@hausverwaltung.de"></div>
+        </div>
         <!-- Mieter -->
-        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;align-items:center;gap:5px;">🏠 Mieter</div>
+        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;display:flex;align-items:center;gap:5px;">🏠 Mieter</div>
         <div class="modal-grid">
           <div class="modal-field"><label>Name</label><input type="text" id="fMN" placeholder="Frau Tester"></div>
           <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="03611234"></div>
@@ -515,7 +522,7 @@ a{color:inherit;text-decoration:none;}
 
     <!-- Kartengröße -->
     <div class="modal-section">
-      <div class="modal-section-title">🔤 Kartengröße</div>
+      <div class="modal-section-title">🔤 Aufgabengröße</div>
       <div style="display:flex;align-items:center;gap:12px;">
         <input type="range" id="zoomSlider" min="70" max="130" value="100" oninput="setZoom(this.value)" style="flex:1;accent-color:var(--accent);cursor:pointer;">
         <span id="zoomVal" style="font-size:13px;color:var(--accent2);font-weight:700;min-width:42px;text-align:right;">100%</span>
@@ -893,20 +900,33 @@ function renderDetail(a){
     +'<details class="detail-collapse" open><summary>📅 Ortstermine'+(termine.length?' <span style="color:var(--accent2);margin-left:4px;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">('+termine.length+')</span>':'')+'</summary>'
     +'<div class="collapse-body">'+termineHtml+'</div></details>'
 
-    // Mieter (zuerst, offen)
-    +'<details class="detail-collapse" open><summary>🏠 Mieter</summary>'
+    // Ansprechpartner gesamt (offen)
+    +'<details class="detail-collapse" open><summary>👥 Ansprechpartner</summary>'
     +'<div class="collapse-body">'
+    // Kontaktperson AG
+    +(a.agKontaktName||a.agKontaktTel||a.agKontaktEmail?
+      '<div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">👔 Kontaktperson AG</div>'
+      +'<div class="detail-grid">'
+      +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.agKontaktName)+'</div>'
+      +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.agKontaktTel)+'</div>'
+      +'</div>'
+      +(a.agKontaktEmail?'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.agKontaktEmail)+'</div>':'')
+      +'<div style="height:10px;border-bottom:1px solid var(--border);margin-bottom:10px;"></div>'
+    :'')
+    // Mieter
+    +'<div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">🏠 Mieter</div>'
+    +'<div class="detail-grid">'
     +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.mieterName)+'</div>'
     +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.mieterTel)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.mieterEmail)+'</div>'
-    +'</div></details>'
-
-    // Eigentümer (zugeklappt)
-    +'<details class="detail-collapse"><summary>👤 Eigentümer</summary>'
-    +'<div class="collapse-body">'
+    +'</div>'
+    +(a.mieterEmail?'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.mieterEmail)+'</div>':'')
+    // Eigentümer
+    +'<div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:10px 0 6px;">👤 Eigentümer</div>'
+    +'<div class="detail-grid">'
     +'<div class="detail-row"><div class="detail-label">Name</div>'+val(a.eigentuemer)+'</div>'
     +'<div class="detail-row"><div class="detail-label">Telefon</div>'+telLink(a.eigTel)+'</div>'
-    +'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.eigEmail)+'</div>'
+    +'</div>'
+    +(a.eigEmail?'<div class="detail-row"><div class="detail-label">E-Mail</div>'+mailLink(a.eigEmail)+'</div>':'')
     +'</div></details>'
 
     // Zeiterfassung (zugeklappt)
@@ -1152,6 +1172,9 @@ function openBearbeiten(){
   document.getElementById('fHV').value=a.hv||'';
   document.getElementById('fAdr').value=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   document.getElementById('fSch').value=a.schaden||'';
+  document.getElementById('fAGN').value=a.agKontaktName||'';
+  document.getElementById('fAGT').value=a.agKontaktTel||'';
+  document.getElementById('fAGE').value=a.agKontaktEmail||'';
   document.getElementById('fMN').value=a.mieterName||'';
   document.getElementById('fMT').value=a.mieterTel||'';
   document.getElementById('fME').value=a.mieterEmail||'';
@@ -1177,6 +1200,7 @@ function openBearbeiten(){
 function closeForm(){document.getElementById('formModal').classList.remove('open');}
 function clearForm(){
   ['fKS','fRep','fDat','fAG','fKNr','fHV','fAdr','fSch',
+   'fAGN','fAGT','fAGE',
    'fMN','fMT','fME','fEN','fET','fEE','fGD','fNAS','fNot'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
@@ -1202,6 +1226,9 @@ async function speichern(){
     strasse:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/^(.+?),\s*\d{5}/);return m?m[1].trim():a;})(),
     ort:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/,\s*(\d{5}.+)$/);return m?m[1].trim():'';})(),
     schaden:document.getElementById('fSch').value.trim(),
+    agKontaktName:document.getElementById('fAGN').value.trim(),
+    agKontaktTel:document.getElementById('fAGT').value.trim(),
+    agKontaktEmail:document.getElementById('fAGE').value.trim(),
     mieterName:document.getElementById('fMN').value.trim(),
     mieterTel:document.getElementById('fMT').value.trim(),
     mieterEmail:document.getElementById('fME').value.trim(),
