@@ -317,6 +317,12 @@ a{color:inherit;text-decoration:none;}
     <button class="tab" onclick="setFilter('neu',this)">🔵 Neu <span class="tab-count" id="tc-neu">0</span></button>
     <button class="tab" onclick="setFilter('bearbeitung',this)">🟠 Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
     <button class="tab" onclick="setFilter('abgeschlossen',this)">🟢 Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
+    <div style="flex:1;"></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:0 4px;flex-shrink:0;">
+      <span style="font-size:11px;color:var(--text2);white-space:nowrap;">🔤</span>
+      <input type="range" id="zoomSliderList" min="70" max="130" value="100" oninput="setZoom(this.value)" style="width:90px;accent-color:var(--accent);cursor:pointer;">
+      <span id="zoomValList" style="font-size:11px;color:var(--accent2);font-weight:700;min-width:34px;">100%</span>
+    </div>
   </div>
 
   <div class="main">
@@ -422,28 +428,22 @@ a{color:inherit;text-decoration:none;}
       </div>
     </div>
 
-    <!-- Mieter (ausklappbar, offen) -->
-    <div class="form-collapse open" id="mietersect">
-      <div class="form-collapse-header" onclick="toggleFormSection('mietersect')">
-        <span class="form-collapse-title">🏠 Mieter</span>
+    <!-- Ansprechpartner (Mieter + Eigentümer zusammen, ausklappbar) -->
+    <div class="form-collapse open" id="ansprchsect">
+      <div class="form-collapse-header" onclick="toggleFormSection('ansprchsect')">
+        <span class="form-collapse-title">👥 Ansprechpartner</span>
         <span class="form-collapse-arrow">▾</span>
       </div>
       <div class="form-collapse-body">
+        <!-- Mieter -->
+        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;align-items:center;gap:5px;">🏠 Mieter</div>
         <div class="modal-grid">
           <div class="modal-field"><label>Name</label><input type="text" id="fMN" placeholder="Frau Tester"></div>
           <div class="modal-field"><label>Telefon</label><input type="tel" id="fMT" placeholder="03611234"></div>
           <div class="modal-field full"><label>E-Mail</label><input type="email" id="fME"></div>
         </div>
-      </div>
-    </div>
-
-    <!-- Eigentümer (ausklappbar, zugeklappt) -->
-    <div class="form-collapse" id="eigsect">
-      <div class="form-collapse-header" onclick="toggleFormSection('eigsect')">
-        <span class="form-collapse-title">👤 Eigentümer</span>
-        <span class="form-collapse-arrow">▾</span>
-      </div>
-      <div class="form-collapse-body">
+        <!-- Eigentümer -->
+        <div style="font-size:10px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;display:flex;align-items:center;gap:5px;">👤 Eigentümer</div>
         <div class="modal-grid">
           <div class="modal-field"><label>Name</label><input type="text" id="fEN"></div>
           <div class="modal-field"><label>Telefon</label><input type="tel" id="fET" placeholder="0361/123456"></div>
@@ -609,7 +609,11 @@ function zeitDauer(von,bis){
 // ═══ ZOOM ═══
 function setZoom(v){
   document.documentElement.style.setProperty('--zoom',Number(v)/100);
+  // Formular-Slider
   const zv=document.getElementById('zoomVal');if(zv)zv.textContent=v+'%';
+  // Listen-Slider
+  const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=v;
+  const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=v+'%';
   localStorage.setItem('bau_zoom',v);
   window._bau_zoom=String(v);
 }
@@ -617,12 +621,20 @@ function initZoomSlider(){
   const z=window._bau_zoom||'100';
   const zs=document.getElementById('zoomSlider');if(zs)zs.value=z;
   const zv=document.getElementById('zoomVal');if(zv)zv.textContent=z+'%';
+  // Auch den Listen-Slider initialisieren
+  const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=z;
+  const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=z+'%';
 }
 (function(){
   let z=localStorage.getItem('bau_zoom')||'100';
   if(Number(z)<30)z='100';
   window._bau_zoom=z;
   document.documentElement.style.setProperty('--zoom',Number(z)/100);
+  // Listen-Slider sofort setzen (ist immer im DOM)
+  window.addEventListener('DOMContentLoaded',()=>{
+    const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=z;
+    const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=z+'%';
+  });
 })();
 
 // ═══ DATENMIGRATION ═══
@@ -1120,6 +1132,10 @@ function openNeu(){
   document.getElementById('fDat').value=new Date().toISOString().split('T')[0];
   updateHVSel();
   document.getElementById('formModal').classList.add('open');
+  // Abschnitte zurücksetzen: Zeiterfassung offen, Termine offen, Ansprechpartner offen
+  document.getElementById('zeitsect').classList.add('open');
+  document.getElementById('terminesect').classList.remove('open');
+  document.getElementById('ansprchsect').classList.add('open');
   initZoomSlider();
 }
 function openBearbeiten(){
@@ -1149,6 +1165,13 @@ function openBearbeiten(){
   renderZeitenForm(a.zeiterfassung||[]);
   updateHVSel();
   document.getElementById('formModal').classList.add('open');
+  // Abschnitte: Zeiterfassung offen, Ansprechpartner offen
+  document.getElementById('zeitsect').classList.add('open');
+  document.getElementById('ansprchsect').classList.add('open');
+  // Termine nur öffnen wenn Einträge vorhanden
+  if((a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung).length)
+    document.getElementById('terminesect').classList.add('open');
+  else document.getElementById('terminesect').classList.remove('open');
   initZoomSlider();
 }
 function closeForm(){document.getElementById('formModal').classList.remove('open');}
