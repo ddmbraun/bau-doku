@@ -78,9 +78,8 @@ a{color:inherit;text-decoration:none;}
 .karte-hv{font-size:calc(12px * var(--zoom));color:var(--text2);margin-bottom:3px;}
 .karte-mieter{font-size:calc(12px * var(--zoom));color:var(--text2);margin-bottom:6px;}
 .karte-schaden{font-size:calc(12px * var(--zoom));color:var(--text2);font-style:italic;margin-bottom:8px;
-  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
   cursor:pointer;user-select:none;-webkit-user-select:none;}
-.karte-schaden.expanded{-webkit-line-clamp:unset;display:block;}
 .karte-footer{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
 .badge{font-size:calc(10px * var(--zoom));padding:2px 7px;border-radius:4px;background:var(--bg4);color:var(--text2);display:inline-flex;align-items:center;gap:3px;}
 .badge.drive{color:var(--green);}
@@ -150,9 +149,9 @@ a{color:inherit;text-decoration:none;}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
 
 /* ── TERMIN / ZEIT FORMULAR ZEILEN ── */
-.row-header{display:grid;grid-template-columns:1fr 70px 70px 1fr 28px;gap:6px;padding:0 2px;margin-bottom:4px;}
+.row-header{display:grid;grid-template-columns:1fr 90px 90px 1fr 28px;gap:6px;padding:0 2px;margin-bottom:4px;}
 .row-header span{font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
-.termin-row-form,.zeit-row-form{display:grid;grid-template-columns:1fr 70px 70px 1fr 28px;gap:6px;align-items:center;margin-bottom:6px;}
+.termin-row-form,.zeit-row-form{display:grid;grid-template-columns:1fr 90px 90px 1fr 28px;gap:6px;align-items:center;margin-bottom:6px;}
 .termin-row-form input,.zeit-row-form input{padding:8px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;width:100%;}
 .termin-row-form input:focus,.zeit-row-form input:focus{border-color:var(--accent);}
 .rm-btn{width:28px;height:34px;border-radius:6px;background:var(--bg4);color:var(--red);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);}
@@ -231,7 +230,7 @@ a{color:inherit;text-decoration:none;}
 
 /* ── DETAIL EDIT FORM ── */
 .save-indicator{font-size:11px;color:var(--green);min-width:80px;text-align:right;transition:color .3s;white-space:nowrap;}
-.d-termin-row-form{display:grid;grid-template-columns:1fr 70px 70px 1fr 32px 28px;gap:6px;align-items:center;margin-bottom:6px;}
+.d-termin-row-form{display:grid;grid-template-columns:1fr 90px 90px 1fr 32px 28px;gap:6px;align-items:center;margin-bottom:6px;}
 .d-termin-row-form input{padding:8px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;outline:none;width:100%;}
 .d-termin-row-form input:focus{border-color:var(--accent);}
 .gcal-btn{width:32px;height:34px;border-radius:6px;background:var(--bg4);color:var(--blue);font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);cursor:pointer;}
@@ -277,8 +276,8 @@ a{color:inherit;text-decoration:none;}
   .modal-grid{grid-template-columns:1fr;}
   .modal-field.full{grid-column:1;}
   .hv-add-row{grid-template-columns:1fr;}
-  .row-header,.termin-row-form,.zeit-row-form{grid-template-columns:1fr 60px 60px 1fr 28px;}
-  .d-termin-row-form{grid-template-columns:1fr 60px 60px 1fr 32px 28px;}
+  .row-header,.termin-row-form,.zeit-row-form{grid-template-columns:1fr 80px 80px 1fr 28px;}
+  .d-termin-row-form{grid-template-columns:1fr 80px 80px 1fr 32px 28px;}
 }
 @media(max-width:360px){
   .row-header{display:none;}
@@ -357,6 +356,24 @@ a{color:inherit;text-decoration:none;}
 
 <!-- ═══ TOAST ═══ -->
 <div class="toast" id="toast"></div>
+
+<!-- ═══ SCHADENSBILD OVERLAY ═══ -->
+<div id="schadensOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2500;align-items:center;justify-content:center;padding:20px;" onclick="closeSchadensOverlay()">
+  <div style="background:var(--bg2);border-radius:14px;padding:20px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.4);" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;">&#128295; Schadensbild</span>
+      <button onclick="closeSchadensOverlay()" style="background:var(--bg4);border:none;border-radius:6px;width:28px;height:28px;font-size:16px;cursor:pointer;color:var(--text2);">&#215;</button>
+    </div>
+    <div id="schadensOverlayText" style="font-size:15px;color:var(--text);line-height:1.65;white-space:pre-wrap;"></div>
+  </div>
+</div>
+
+<!-- ═══ ANHANG VORSCHAU OVERLAY ═══ -->
+<div id="anhangPreviewOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2500;align-items:center;justify-content:center;" onclick="closeAnhangPreview()">
+  <div id="anhangPreviewContent" style="max-width:95vw;max-height:95vh;display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation()">
+  </div>
+  <button onclick="closeAnhangPreview()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;font-size:20px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">&#215;</button>
+</div>
 
 <!-- ═══ START MODAL ═══ -->
 <div class="modal-overlay open" id="startModal">
@@ -759,8 +776,9 @@ function renderKarte(a){
   const termine=t.length?'<span class="badge">📅 '+t.length+' Termin'+(t.length>1?'e':'')+'</span>':'';
   const z=a.zeiterfassung||[];
   const zeiten=z.length?'<span class="badge">⏱ '+berechneTotalZeit(z)+'</span>':'';
+  const schadEsc=a.schaden?(a.schaden.replace(/\\/g,'\\\\').replace(/'/g,"\\'")):'';
   const schaden=a.schaden
-    ?'<div class="karte-schaden" ondblclick="event.stopPropagation();this.classList.toggle(\'expanded\')" title="Doppelklick zum Aufklappen">'+esc(a.schaden)+'</div>'
+    ?'<div class="karte-schaden" ondblclick="event.stopPropagation();openSchadensOverlay(\''+schadEsc+'\')" title="Doppelklick für Vollansicht">'+esc(a.schaden)+'</div>'
     :'';
   return '<div class="auftrag-karte" onclick="openDetail(\''+a.id+'\')">'
     +'<div class="karte-kopf">'
@@ -908,8 +926,8 @@ function renderDetailEditable(a){
     +'<input type="hidden" id="dKNr" value="'+v(a.knr)+'">'
     +'<input type="file" id="dReadmeInput" accept=".txt" style="display:none" onchange="importReadmeDetail(event)">';
 
-  // Objekt (aufgeklappt): HV → Kontaktperson AG → Baustellen-Adresse → Schadensbild
-  html+='<div class="form-collapse open" id="dObjektSect">'
+  // Objekt (zugeklappt beim Öffnen)
+  html+='<div class="form-collapse" id="dObjektSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dObjektSect\')">' 
     +'<span class="form-collapse-title">📍 Objekt</span><span class="form-collapse-arrow">▾</span>'
     +'</div><div class="form-collapse-body">'
@@ -945,7 +963,7 @@ function renderDetailEditable(a){
     if(a.eigentuemer||a.eigTel||a.eigEmail)k.push({rolle:'eigentuemer',name:a.eigentuemer||'',tel:a.eigTel||'',email:a.eigEmail||''});
     return k;
   })();
-  html+='<div class="form-collapse open" id="dAnsprchSect">'
+  html+='<div class="form-collapse" id="dAnsprchSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dAnsprchSect\')">' 
     +'<span class="form-collapse-title">👥 Ansprechpartner'+(kontakteArr.length?' <span style="color:var(--accent2);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">('+kontakteArr.length+')</span>':'')+'</span>'
     +'<span class="form-collapse-arrow">▾</span>'
@@ -967,11 +985,18 @@ function renderDetailEditable(a){
 
   // Zeiterfassung (Timer läuft über Topbar-Button)
   const zeitenCount=(a.zeiterfassung||[]).filter(z=>z.datum||z.von||z.beschreibung).length;
-  html+='<div class="form-collapse'+(zeitenCount?' open':'')+'" id="dZeitSect">'
+  const timerLaeuft=globalTimerStartMs&&globalTimerAuftragId===a.id;
+  html+='<div class="form-collapse'+(zeitenCount||timerLaeuft?' open':'')+'" id="dZeitSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dZeitSect\')">'
     +'<span class="form-collapse-title">⏱ Zeiterfassung'+(zeitenCount?' <span style="color:var(--accent2);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">('+zeitenCount+')</span>':'')+'</span>'
     +'<span class="form-collapse-arrow">▾</span>'
     +'</div><div class="form-collapse-body">'
+    +'<div id="dZeitLiveRow" style="'+(timerLaeuft?'':'display:none;')+
+      'background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.3);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:'+(timerLaeuft?'flex':'none')+';align-items:center;gap:10px;">'
+    +'<span style="font-size:18px;">⏺</span>'
+    +'<span style="font-size:13px;color:var(--green);font-weight:600;">Aufzeichnung läuft:</span>'
+    +'<span id="dZeitLiveDisplay" style="font-size:16px;font-weight:700;color:var(--green);font-family:monospace;letter-spacing:2px;">00:00:00</span>'
+    +'</div>'
     +'<div class="row-header"><span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span></span></div>'
     +'<div id="dZeitContainer"></div>'
     +'<button class="add-row-btn" onclick="addZeitDetail()">+ Zeit manuell hinzufügen</button>'
@@ -979,7 +1004,7 @@ function renderDetailEditable(a){
     +'</div></div>';
 
   // Verknüpfungen
-  html+='<div class="form-collapse open" id="dLinksSect">'
+  html+='<div class="form-collapse" id="dLinksSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dLinksSect\')">'
     +'<span class="form-collapse-title">🔗 Verknüpfungen</span><span class="form-collapse-arrow">▾</span>'
     +'</div><div class="form-collapse-body"><div class="modal-grid">'
@@ -992,14 +1017,16 @@ function renderDetailEditable(a){
     +'</div>'
     +'<div class="modal-field full"><label>NAS-Pfad</label>'
     +'<div class="link-row">'
-    +'<input type="text" id="dNAS" value="'+v(a.nas||'')+'" oninput="scheduleAutoSave()" placeholder="\\\\nas-ddbraun\\…">'
+    +'<input type="text" id="dNAS" value="'+v(a.nas||'')+'" oninput="scheduleAutoSave();updateNasOeffnenBtn()" placeholder="\\\\nas-ddbraun\\…">'
     +'<button class="link-btn" id="dNasBtn" onclick="nasKopierenDetail()">📋</button>'
+    +'</div>'
+    +'<button class="detail-btn nas" id="dNasOeffnenBtn" style="margin-top:6px;'+(a.nas?'':'display:none;')+'" onclick="nasOeffnenDetail()">💾 Pfad öffnen</button>'
     +'</div></div>'
     +'</div></div></div>';
 
   // Dateianhänge
   const anhaengeArr=a.anhaenge||[];
-  html+='<div class="form-collapse open" id="dAnhaengeSect">'
+  html+='<div class="form-collapse" id="dAnhaengeSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dAnhaengeSect\')">'
     +'<span class="form-collapse-title">📎 Dateianhänge'+(anhaengeArr.length?' <span style="color:var(--accent2);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">('+anhaengeArr.length+')</span>':'')+'</span>'
     +'<span class="form-collapse-arrow">▾</span>'
@@ -1008,12 +1035,12 @@ function renderDetailEditable(a){
     +'<div class="anhang-drop" id="dAnhaengeDrop">'
     +'<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Bild hier hineinziehen oder:</div>'
     +'<button class="add-row-btn" onclick="document.getElementById(\'dAnhangInput\').click()">📷 Bild auswählen</button>'
-    +'<input type="file" id="dAnhangInput" accept="image/*" multiple capture="environment" style="display:none" onchange="anhangHinzufuegen(event)">'
+    +'<input type="file" id="dAnhangInput" accept="image/*,.pdf,application/pdf" multiple style="display:none" onchange="anhangHinzufuegen(event)">'
     +'</div>'
     +'</div></div>';
 
   // Notizen
-  html+='<div class="form-collapse open" id="dNotizenSect">'
+  html+='<div class="form-collapse" id="dNotizenSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dNotizenSect\')">'
     +'<span class="form-collapse-title">📝 Notizen</span><span class="form-collapse-arrow">▾</span>'
     +'</div><div class="form-collapse-body">'
@@ -1184,6 +1211,7 @@ function startGlobalTimer(){
   globalTimerIntervalId=setInterval(updateTimerTopBtn,1000);
   updateTimerTopBtn();
   const sect=document.getElementById('dZeitSect');if(sect&&!sect.classList.contains('open'))sect.classList.add('open');
+  const liveRow=document.getElementById('dZeitLiveRow');if(liveRow)liveRow.style.display='flex';
   toast('⏺ Aufzeichnung gestartet');
 }
 function stopGlobalTimer(){
@@ -1220,10 +1248,20 @@ function updateTimerTopBtn(){
     btn.innerHTML='⏹ '+ts;
     btn.className='btn btn-sm timer-top-active';
     btn.title=globalTimerAuftragId!==detailId?'Aufzeichnung beenden (anderer Auftrag!)':'Aufzeichnung beenden';
+    // Live-Zeile in Zeiterfassung aktualisieren (nur wenn selber Auftrag)
+    if(globalTimerAuftragId===detailId){
+      const liveRow=document.getElementById('dZeitLiveRow');
+      const liveDisp=document.getElementById('dZeitLiveDisplay');
+      if(liveRow){liveRow.style.display='flex';}
+      if(liveDisp){liveDisp.textContent=ts;}
+    }
   }else{
     btn.innerHTML='⏺ Aufzeichnung';
     btn.className='btn btn-secondary btn-sm';
     btn.title='Aufzeichnung starten';
+    // Live-Zeile ausblenden
+    const liveRow=document.getElementById('dZeitLiveRow');
+    if(liveRow)liveRow.style.display='none';
   }
 }
 
@@ -1275,6 +1313,16 @@ function driveOeffnenDetail(){
 function updateDriveBtnDetail(){
   const u=document.getElementById('dGD').value.trim();
   const btn=document.getElementById('dDriveBtn');if(btn)btn.style.display=u?'':'none';
+}
+function nasOeffnenDetail(){
+  const pf=document.getElementById('dNAS').value.trim();if(!pf){toast('Kein NAS-Pfad');return;}
+  // UNC-Pfad → file:// URL
+  const url='file:///'+pf.replace(/\\/g,'/').replace(/^\/+/,'');
+  window.open(url,'_blank');
+}
+function updateNasOeffnenBtn(){
+  const pf=document.getElementById('dNAS').value.trim();
+  const btn=document.getElementById('dNasOeffnenBtn');if(btn)btn.style.display=pf?'':'none';
 }
 function nasKopierenDetail(){
   const pf=document.getElementById('dNAS').value.trim();if(!pf){toast('Kein NAS-Pfad');return;}
@@ -1426,26 +1474,42 @@ function updateZeitGesamt(){
 function anhangHinzufuegen(event){
   const files=[...event.target.files];
   for(const file of files){
-    if(!file.type.startsWith('image/'))continue;
-    const reader=new FileReader();
-    reader.onload=e=>{
-      const img=new Image();
-      img.onload=()=>{
-        const maxW=1200,maxH=1200;
-        let w=img.width,h=img.height;
-        if(w>maxW||h>maxH){const r=Math.min(maxW/w,maxH/h);w=Math.round(w*r);h=Math.round(h*r);}
-        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-        canvas.getContext('2d').drawImage(img,0,0,w,h);
-        const data=canvas.toDataURL('image/jpeg',0.82);
+    const isPdf=file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf');
+    const isImage=file.type.startsWith('image/');
+    if(!isImage&&!isPdf)continue;
+    if(isPdf){
+      // PDF: direkt als base64 speichern
+      const reader=new FileReader();
+      reader.onload=e=>{
         const idx=auftraege.findIndex(a=>a.id===detailId);if(idx<0)return;
         if(!auftraege[idx].anhaenge)auftraege[idx].anhaenge=[];
-        auftraege[idx].anhaenge.push({name:file.name,type:'image/jpeg',data});
+        auftraege[idx].anhaenge.push({name:file.name,type:'application/pdf',data:e.target.result});
         renderAnhaengeDetail(auftraege[idx].anhaenge);
         scheduleAutoSave();
       };
-      img.src=e.target.result;
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    }else{
+      // Bild: komprimiert speichern
+      const reader=new FileReader();
+      reader.onload=e=>{
+        const img=new Image();
+        img.onload=()=>{
+          const maxW=1200,maxH=1200;
+          let w=img.width,h=img.height;
+          if(w>maxW||h>maxH){const r=Math.min(maxW/w,maxH/h);w=Math.round(w*r);h=Math.round(h*r);}
+          const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+          canvas.getContext('2d').drawImage(img,0,0,w,h);
+          const data=canvas.toDataURL('image/jpeg',0.82);
+          const idx=auftraege.findIndex(a=>a.id===detailId);if(idx<0)return;
+          if(!auftraege[idx].anhaenge)auftraege[idx].anhaenge=[];
+          auftraege[idx].anhaenge.push({name:file.name,type:'image/jpeg',data});
+          renderAnhaengeDetail(auftraege[idx].anhaenge);
+          scheduleAutoSave();
+        };
+        img.src=e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   }
   event.target.value='';
 }
@@ -1460,19 +1524,19 @@ function renderAnhaengeDetail(anhaenge){
   const c=document.getElementById('dAnhaengeContainer');if(!c)return;
   if(!anhaenge||!anhaenge.length){c.innerHTML='';return;}
   c.innerHTML='<div class="anhang-grid">'
-    +anhaenge.map((a,i)=>'<div class="anhang-item" onclick="anhangOeffnen('+i+')">'
-      +'<img class="anhang-img" src="'+a.data+'" alt="'+esc(a.name)+'">'
-      +'<button class="anhang-del" onclick="event.stopPropagation();anhangLoeschen('+i+')" title="Entfernen">✕</button>'
-      +'</div>'
-    ).join('')+'</div>';
-}
-function anhangOeffnen(idx){
-  const aIdx=auftraege.findIndex(a=>a.id===detailId);if(aIdx<0)return;
-  const a=auftraege[aIdx].anhaenge[idx];if(!a)return;
-  const w=window.open('','_blank');
-  if(w)w.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;">'
-    +'<img src="'+a.data+'" style="max-width:100%;max-height:100vh;" alt="'+esc(a.name)+'">'
-    +'</body></html>');
+    +anhaenge.map((a,i)=>{
+      const isPdf=a.type==='application/pdf'||a.name.toLowerCase().endsWith('.pdf');
+      const thumb=isPdf
+        ?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;padding:6px;">'
+          +'<span style="font-size:28px;">📄</span>'
+          +'<span style="font-size:9px;color:var(--text2);text-align:center;word-break:break-all;line-height:1.2;">'+esc(a.name)+'</span>'
+          +'</div>'
+        :'<img class="anhang-img" src="'+a.data+'" alt="'+esc(a.name)+'">';
+      return '<div class="anhang-item" onclick="anhangOeffnen('+i+')">'
+        +thumb
+        +'<button class="anhang-del" onclick="event.stopPropagation();anhangLoeschen('+i+')" title="Entfernen">✕</button>'
+        +'</div>';
+    }).join('')+'</div>';
 }
 function initAnhaengeDrop(){
   const drop=document.getElementById('dAnhaengeDrop');if(!drop)return;
@@ -1480,7 +1544,7 @@ function initAnhaengeDrop(){
   drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
   drop.addEventListener('drop',e=>{
     e.preventDefault();drop.classList.remove('over');
-    const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
+    const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')||f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'));
     if(!files.length)return;
     const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));
     const inp=document.getElementById('dAnhangInput');
@@ -1859,13 +1923,51 @@ async function gdriveSaveData(){
   finally{gdriveSaving=false;}
 }
 
+// ═══ SCHADENSBILD OVERLAY ═══
+function openSchadensOverlay(text){
+  document.getElementById('schadensOverlayText').textContent=text;
+  document.getElementById('schadensOverlay').style.display='flex';
+}
+function closeSchadensOverlay(){
+  document.getElementById('schadensOverlay').style.display='none';
+}
+
+// ═══ ANHANG VORSCHAU OVERLAY ═══
+let _previewOpenIdx=null;
+function anhangOeffnen(idx){
+  const aIdx=auftraege.findIndex(a=>a.id===detailId);if(aIdx<0)return;
+  const a=auftraege[aIdx].anhaenge[idx];if(!a)return;
+  // Toggle: nochmal anklicken schließt
+  if(_previewOpenIdx===idx){closeAnhangPreview();return;}
+  _previewOpenIdx=idx;
+  const overlay=document.getElementById('anhangPreviewOverlay');
+  const content=document.getElementById('anhangPreviewContent');
+  const isPdf=a.type==='application/pdf'||a.name.toLowerCase().endsWith('.pdf');
+  if(isPdf){
+    content.innerHTML='<iframe src="'+a.data+'" style="width:90vw;height:90vh;border:none;border-radius:8px;background:#fff;"></iframe>';
+  }else{
+    content.innerHTML='<img src="'+a.data+'" style="max-width:90vw;max-height:90vh;border-radius:8px;display:block;">';
+  }
+  overlay.style.display='flex';
+}
+function closeAnhangPreview(){
+  _previewOpenIdx=null;
+  document.getElementById('anhangPreviewOverlay').style.display='none';
+  document.getElementById('anhangPreviewContent').innerHTML='';
+}
+
 // ═══ START / TOAST ═══
 function closeStart(){document.getElementById('startModal').classList.remove('open');}
 function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 
 // ═══ KEYBOARD ═══
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){document.getElementById('formModal').classList.remove('open');document.getElementById('hvModal').classList.remove('open');}
+  if(e.key==='Escape'){
+    document.getElementById('formModal').classList.remove('open');
+    document.getElementById('hvModal').classList.remove('open');
+    closeSchadensOverlay();
+    closeAnhangPreview();
+  }
   if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();if(document.getElementById('formModal').classList.contains('open'))speichern();else if(detailId)speichernDetail();}
 });
 document.getElementById('formModal').addEventListener('click',function(e){if(e.target===this)closeForm();});
