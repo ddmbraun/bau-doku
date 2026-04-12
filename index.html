@@ -325,6 +325,7 @@ a{color:inherit;text-decoration:none;}
     <div class="detail-title" id="detailTitel">Auftrag</div>
     <div class="detail-actions" style="display:flex;align-items:center;gap:8px;">
       <span class="save-indicator" id="saveIndicator"></span>
+      <button class="btn btn-secondary btn-sm" onclick="triggerReadmeDetail()" title="README.txt importieren">&#128196; Auftrag</button>
       <button class="btn btn-danger btn-sm" onclick="loeschenDirekt()" title="Auftrag l&#246;schen">&#128465;</button>
     </div>
   </div>
@@ -841,26 +842,15 @@ function renderDetailEditable(a){
     +'<button class="status-change-btn" onclick="statusWechseln(\''+nextStatus[a.status]+'\')">'+nextLabel[a.status]+'</button>'
     +'</div>';
 
-  // Auftragsdaten (zugeklappt)
-  html+='<div class="form-collapse" id="dAuftragSect" style="border-top:none;margin-top:0;">'
-    +'<div class="form-collapse-header" onclick="toggleFormSection(\'dAuftragSect\')">'
-    +'<span class="form-collapse-title">📋 Auftragsdaten</span><span class="form-collapse-arrow">▾</span>'
-    +'</div><div class="form-collapse-body">'
-    +'<div class="readme-bar"><span>📄 README.txt importieren → Felder automatisch ausfüllen</span>'
-    +'<button class="btn btn-secondary btn-sm" onclick="triggerReadmeDetail()">📥 Import</button>'
-    +'<input type="file" id="dReadmeInput" accept=".txt" style="display:none" onchange="importReadmeDetail(event)"></div>'
-    +'<div class="modal-grid">'
-    +'<div class="modal-field"><label>Kostenstelle *</label><input type="text" id="dKS" value="'+v(a.ks)+'" oninput="scheduleAutoSave()" placeholder="260036"></div>'
-    +'<div class="modal-field"><label>Rep.-Nr.</label><input type="text" id="dRep" value="'+v(a.rep)+'" oninput="scheduleAutoSave()" placeholder="3476"></div>'
-    +'<div class="modal-field"><label>Datum</label><input type="date" id="dDat" value="'+v(a.datum)+'" oninput="scheduleAutoSave()"></div>'
-    +'<div class="modal-field"><label>Status</label><select id="dStat" onchange="scheduleAutoSave()">'
-    +'<option value="neu"'+(a.status==='neu'?' selected':'')+'>🔵 Neu</option>'
-    +'<option value="bearbeitung"'+(a.status==='bearbeitung'?' selected':'')+'>🟠 In Bearbeitung</option>'
-    +'<option value="abgeschlossen"'+(a.status==='abgeschlossen'?' selected':'')+'>🟢 Abgeschlossen</option>'
-    +'</select></div>'
-    +'<div class="modal-field"><label>Auftraggeber (HV / Firma)</label><input type="text" id="dAG" value="'+v(a.ag)+'" oninput="scheduleAutoSave()" placeholder="z.B. AHV"></div>'
-    +'<div class="modal-field"><label>Kunden-Nr.</label><input type="text" id="dKNr" value="'+v(a.knr)+'" oninput="scheduleAutoSave()" placeholder="777"></div>'
-    +'</div></div></div>';
+  // Auftragsdaten als versteckte Felder (kein sichtbarer Abschnitt mehr)
+  // Werden per "📄 Auftrag"-Button (README-Import) befüllt
+  html+='<input type="hidden" id="dKS" value="'+v(a.ks)+'">'
+    +'<input type="hidden" id="dRep" value="'+v(a.rep)+'">'
+    +'<input type="hidden" id="dDat" value="'+v(a.datum)+'">'
+    +'<input type="hidden" id="dStat" value="'+v(a.status||'neu')+'">'
+    +'<input type="hidden" id="dAG" value="'+v(a.ag)+'">'
+    +'<input type="hidden" id="dKNr" value="'+v(a.knr)+'">'
+    +'<input type="file" id="dReadmeInput" accept=".txt" style="display:none" onchange="importReadmeDetail(event)">';
 
   // Objekt (aufgeklappt)
   html+='<div class="form-collapse open" id="dObjektSect">'
