@@ -776,19 +776,20 @@ function renderKarte(a){
   const termine=t.length?'<span class="badge">📅 '+t.length+' Termin'+(t.length>1?'e':'')+'</span>':'';
   const z=a.zeiterfassung||[];
   const zeiten=z.length?'<span class="badge">⏱ '+berechneTotalZeit(z)+'</span>':'';
-  const schadEsc=a.schaden?(a.schaden.replace(/\\/g,'\\\\').replace(/'/g,"\\'")):'';
-  const schaden=a.schaden
-    ?'<div class="karte-schaden" ondblclick="event.stopPropagation();openSchadensOverlay(\''+schadEsc+'\')" title="Doppelklick für Vollansicht">'+esc(a.schaden)+'</div>'
-    :'';
-  return '<div class="auftrag-karte" onclick="openDetail(\''+a.id+'\')">'
+  const aufnahme=(globalTimerStartMs&&globalTimerAuftragId===a.id)
+    ?'<span class="badge" style="color:#dc2626;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);">⏺ läuft</span>':'';
+  return '<div class="auftrag-karte" onclick="openDetail(\''+a.id+'\')" ondblclick="event.stopPropagation();karteSchadenDblClick(\''+a.id+'\')">'
     +'<div class="karte-kopf">'
     +'<div class="karte-ks" style="flex:1;white-space:normal;line-height:1.35;font-size:calc(13px * var(--zoom))">'+statusDot(a.status)+' '+esc(titelFormat(a))+'</div>'
     +'<div class="karte-datum" style="white-space:nowrap;margin-left:8px;">'+esc(a.datum||'')+'</div>'
     +'</div>'
     +(a.hv?'<div class="karte-hv">🏢 '+esc(a.hv)+'</div>':'')
-    +schaden
-    +'<div class="karte-footer">'+drive+nas+termine+zeiten+(a.rep?'<span class="badge">Rep. '+esc(a.rep)+'</span>':'')+'</div>'
+    +'<div class="karte-footer">'+drive+nas+termine+zeiten+aufnahme+(a.rep?'<span class="badge">Rep. '+esc(a.rep)+'</span>':'')+'</div>'
     +'</div>';
+}
+function karteSchadenDblClick(id){
+  const a=auftraege.find(x=>x.id===id);
+  if(a&&a.schaden)openSchadensOverlay(a.schaden);
 }
 
 // ═══ DETAIL ANSICHT ═══
@@ -972,8 +973,8 @@ function renderDetailEditable(a){
     +'<button class="add-row-btn" onclick="addKontaktDetail(\'sonstiges\',\'\',\'\',\'\')">+ Kontakt hinzufügen</button>'
     +'</div></div>';
 
-  // Termine
-  html+='<div class="form-collapse'+(termine.length?' open':'')+'" id="dTermineSect">'
+  // Termine (immer zugeklappt beim Öffnen)
+  html+='<div class="form-collapse" id="dTermineSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dTermineSect\')">'
     +'<span class="form-collapse-title">📅 Außerhaus-Termine'+(termine.length?' <span style="color:var(--accent2);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">('+termine.length+')</span>':'')+'</span>'
     +'<span class="form-collapse-arrow">▾</span>'
@@ -986,7 +987,7 @@ function renderDetailEditable(a){
   // Zeiterfassung (Timer läuft über Topbar-Button)
   const zeitenCount=(a.zeiterfassung||[]).filter(z=>z.datum||z.von||z.beschreibung).length;
   const timerLaeuft=globalTimerStartMs&&globalTimerAuftragId===a.id;
-  html+='<div class="form-collapse'+(zeitenCount||timerLaeuft?' open':'')+'" id="dZeitSect">'
+  html+='<div class="form-collapse" id="dZeitSect">'
     +'<div class="form-collapse-header" onclick="toggleFormSection(\'dZeitSect\')">'
     +'<span class="form-collapse-title">⏱ Zeiterfassung'+(zeitenCount?' <span style="color:var(--accent2);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">('+zeitenCount+')</span>':'')+'</span>'
     +'<span class="form-collapse-arrow">▾</span>'
@@ -1017,10 +1018,10 @@ function renderDetailEditable(a){
     +'</div>'
     +'<div class="modal-field full"><label>NAS-Pfad</label>'
     +'<div class="link-row">'
-    +'<input type="text" id="dNAS" value="'+v(a.nas||'')+'" oninput="scheduleAutoSave();updateNasOeffnenBtn()" placeholder="\\\\nas-ddbraun\\…">'
-    +'<button class="link-btn" id="dNasBtn" onclick="nasKopierenDetail()">📋</button>'
+    +'<input type="text" id="dNAS" value="'+v(a.nas||'')+'" oninput="scheduleAutoSave()" placeholder="\\\\nas-ddbraun\\…">'
+    +'<button class="link-btn" id="dNasBtn" onclick="nasKopierenDetail()" title="Pfad kopieren – dann in Explorer einfügen (Win+E)">📋 Kopieren</button>'
     +'</div>'
-    +'<button class="detail-btn nas" id="dNasOeffnenBtn" style="margin-top:6px;'+(a.nas?'':'display:none;')+'" onclick="nasOeffnenDetail()">💾 Pfad öffnen</button>'
+    +'<div style="font-size:10px;color:var(--text2);margin-top:4px;">💡 Pfad kopieren → Windows Explorer öffnen (Win+E) → in Adressleiste einfügen</div>'
     +'</div></div>'
     +'</div></div></div>';
 
@@ -1212,6 +1213,7 @@ function startGlobalTimer(){
   updateTimerTopBtn();
   const sect=document.getElementById('dZeitSect');if(sect&&!sect.classList.contains('open'))sect.classList.add('open');
   const liveRow=document.getElementById('dZeitLiveRow');if(liveRow)liveRow.style.display='flex';
+  renderListe();
   toast('⏺ Aufzeichnung gestartet');
 }
 function stopGlobalTimer(){
@@ -1237,6 +1239,7 @@ function stopGlobalTimer(){
     }
   }
   updateTimerTopBtn();
+  renderListe();
   toast('⏹ Aufzeichnung gespeichert');
 }
 function updateTimerTopBtn(){
@@ -1314,21 +1317,12 @@ function updateDriveBtnDetail(){
   const u=document.getElementById('dGD').value.trim();
   const btn=document.getElementById('dDriveBtn');if(btn)btn.style.display=u?'':'none';
 }
-function nasOeffnenDetail(){
-  const pf=document.getElementById('dNAS').value.trim();if(!pf){toast('Kein NAS-Pfad');return;}
-  // UNC-Pfad → file:// URL
-  const url='file:///'+pf.replace(/\\/g,'/').replace(/^\/+/,'');
-  window.open(url,'_blank');
-}
-function updateNasOeffnenBtn(){
-  const pf=document.getElementById('dNAS').value.trim();
-  const btn=document.getElementById('dNasOeffnenBtn');if(btn)btn.style.display=pf?'':'none';
-}
 function nasKopierenDetail(){
   const pf=document.getElementById('dNAS').value.trim();if(!pf){toast('Kein NAS-Pfad');return;}
   navigator.clipboard.writeText(pf).then(()=>{
     const b=document.getElementById('dNasBtn');
-    if(b){b.textContent='✅';b.classList.add('copied');setTimeout(()=>{b.textContent='📋';b.classList.remove('copied');},2000);}
+    if(b){b.textContent='✅ Kopiert';b.classList.add('copied');setTimeout(()=>{b.textContent='📋 Kopieren';b.classList.remove('copied');},2500);}
+    toast('📋 Pfad kopiert – in Explorer einfügen (Win+E)',3500);
   });
 }
 function triggerReadmeDetail(){document.getElementById('dReadmeInput').click();}
