@@ -1346,6 +1346,9 @@ function importReadmeDetail(event){
     }
     const str=rv('Objekt_Strasse');if(str)document.getElementById('dAdr').value=str;
     if(rv('Baustelle_Schadensbild'))document.getElementById('dSch').value=rv('Baustelle_Schadensbild');
+    if(rv('AG_Kontakt_Name'))document.getElementById('dAGN').value=rv('AG_Kontakt_Name');
+    if(rv('AG_Kontakt_Tel')){document.getElementById('dAGT').value=rv('AG_Kontakt_Tel');updateTelAnchor(document.getElementById('dAGT'));}
+    if(rv('AG_Kontakt_Email'))document.getElementById('dAGE').value=rv('AG_Kontakt_Email');
     if(rv('Eigentuemer_Name')||rv('Eigentuemer_Telefon')||rv('Eigentuemer_Email'))
       addKontaktDetail('eigentuemer',rv('Eigentuemer_Name'),rv('Eigentuemer_Telefon'),rv('Eigentuemer_Email'));
     if(rv('Mieter_Name')||rv('Mieter_Telefon')||rv('Mieter_Email'))
@@ -1354,7 +1357,7 @@ function importReadmeDetail(event){
     if(rv('NAS_Auftragsordner'))document.getElementById('dNAS').value=rv('NAS_Auftragsordner');
     const tOrt=rv('Termin_Ortstermin');
     if(tOrt)renderTermineDetail([{datum:'',von:'',bis:'',beschreibung:tOrt}]);
-    scheduleAutoSave();toast('✅ README importiert');event.target.value='';
+    scheduleAutoSave();toast('✅ Auftragsakte importiert');event.target.value='';
   };
   reader.readAsText(file,'windows-1252');
 }
