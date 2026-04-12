@@ -603,6 +603,22 @@ function readVal(txt,key){
   const v=m[1].trim();
   return(v==='(noch offen)'||v==='noch offen')?'':v;
 }
+function readValMulti(txt,key){
+  // Liest mehrzeiligen Wert: alles nach "key:" bis zur nächsten Leerzeile oder ____
+  const idx=txt.search(new RegExp(key+':\\s*','i'));
+  if(idx<0)return '';
+  const start=idx+txt.slice(idx).search(/:\s*/)+1;
+  const rest=txt.slice(start);
+  const lines=rest.split(/\r?\n/);
+  let result='';let started=false;
+  for(const l of lines){
+    const t=l.trim();
+    if(t.startsWith('____'))break;
+    if(t===''&&started)break;
+    if(t!==''){started=true;result+=(result?'\n':'')+t;}
+  }
+  return(result==='(noch offen)'||result==='noch offen')?'':result;
+}
 function formatTel(t){ return t?t.replace(/[^\d+]/g,''):''; }
 
 function updateTelAnchor(input){
@@ -1345,7 +1361,7 @@ function importReadmeDetail(event){
       if(gef&&gef.driveLink)document.getElementById('dGD').value=gef.driveLink;
     }
     const str=rv('Objekt_Strasse');if(str)document.getElementById('dAdr').value=str;
-    if(rv('Baustelle_Schadensbild'))document.getElementById('dSch').value=rv('Baustelle_Schadensbild');
+    const sch=readValMulti(txt,'Baustelle_Schadensbild');if(sch)document.getElementById('dSch').value=sch;
     if(rv('AG_Kontakt_Name'))document.getElementById('dAGN').value=rv('AG_Kontakt_Name');
     if(rv('AG_Kontakt_Tel')){document.getElementById('dAGT').value=rv('AG_Kontakt_Tel');updateTelAnchor(document.getElementById('dAGT'));}
     if(rv('AG_Kontakt_Email'))document.getElementById('dAGE').value=rv('AG_Kontakt_Email');
