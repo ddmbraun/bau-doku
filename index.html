@@ -216,6 +216,14 @@ a{color:inherit;text-decoration:none;}
 .start-btn.primary{background:var(--accent);color:#fff;}
 .start-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
 .start-btn.ghost{background:transparent;color:var(--text2);font-size:12px;justify-content:center;padding:8px;}
+.start-btn.drive-open{background:var(--accent);color:#fff;}
+.start-btn.drive-open:hover{background:var(--accent2);}
+.start-btn.drive-new{background:rgba(108,99,255,.18);color:var(--accent2);border:1px solid rgba(108,99,255,.4);}
+.start-btn.drive-new:hover{background:rgba(108,99,255,.3);}
+.start-btn.local-open{background:rgba(243,156,18,.15);color:#f39c12;border:1px solid rgba(243,156,18,.4);}
+.start-btn.local-open:hover{background:rgba(243,156,18,.25);}
+.start-btn.local-new{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
+.start-btn.local-new:hover{background:var(--bg4);}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;z-index:3000;box-shadow:0 4px 16px var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
@@ -290,12 +298,6 @@ a{color:inherit;text-decoration:none;}
     <button class="tab" onclick="setFilter('abgeschlossen',this)">🟢 Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
   </div>
 
-  <div class="zoombar">
-    <span class="zoom-label">🔤 Kartengröße:</span>
-    <input type="range" class="zoom-slider" id="zoomSlider" min="70" max="130" value="100" oninput="setZoom(this.value)">
-    <span class="zoom-count" id="zoomVal">100%</span>
-  </div>
-
   <div class="main">
     <div class="karten-liste" id="kartenListe"></div>
   </div>
@@ -322,17 +324,25 @@ a{color:inherit;text-decoration:none;}
   <div class="start-card">
     <div class="modal-handle"></div>
     <h2>🏗 Bau-Doku</h2>
-    <p>Wähle deine JSON-Datei.<br>Direkt auf Google Drive speichern möglich!</p>
+    <p>Wähle einen Speicherort für deine Daten.<br>Alle Änderungen werden automatisch gespeichert.</p>
     <div class="start-btns">
-      <button class="start-btn primary" onclick="openFile()">
-        <span class="start-btn-icon">📂</span>
-        <span class="start-btn-text"><span class="start-btn-label">Datei öffnen</span><span class="start-btn-sub">bau-doku.json vom letzten Mal</span></span>
+      <button class="start-btn drive-open" onclick="openFileDrive()">
+        <span class="start-btn-icon">☁️</span>
+        <span class="start-btn-text"><span class="start-btn-label">Google Drive öffnen</span><span class="start-btn-sub">Vorhandene bau-doku.json aus Drive laden</span></span>
       </button>
-      <button class="start-btn secondary" onclick="createNewFile()">
+      <button class="start-btn drive-new" onclick="createNewFileDrive()">
         <span class="start-btn-icon">✨</span>
-        <span class="start-btn-text"><span class="start-btn-label">Neue Datei anlegen</span><span class="start-btn-sub">Frisch starten, auf Google Drive speichern</span></span>
+        <span class="start-btn-text"><span class="start-btn-label">Neue Datei in Google Drive</span><span class="start-btn-sub">Neue bau-doku.json in Drive anlegen</span></span>
       </button>
-      <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten</button>
+      <button class="start-btn local-open" onclick="openFile()">
+        <span class="start-btn-icon">📂</span>
+        <span class="start-btn-text"><span class="start-btn-label">Lokale Datei öffnen</span><span class="start-btn-sub">bau-doku.json vom Computer laden</span></span>
+      </button>
+      <button class="start-btn local-new" onclick="createNewFile()">
+        <span class="start-btn-icon">💾</span>
+        <span class="start-btn-text"><span class="start-btn-label">Neue lokale Datei</span><span class="start-btn-sub">Speicherort auf dem Computer wählen</span></span>
+      </button>
+      <button class="start-btn ghost" onclick="skipFile()">Ohne Datei starten (Daten gehen beim Schließen verloren)</button>
     </div>
   </div>
 </div>
@@ -454,6 +464,15 @@ a{color:inherit;text-decoration:none;}
       <div class="modal-field"><textarea id="fNot" placeholder="Interne Notizen…"></textarea></div>
     </div>
 
+    <!-- Kartengröße -->
+    <div class="modal-section">
+      <div class="modal-section-title">🔤 Kartengröße</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <input type="range" id="zoomSlider" min="70" max="130" value="100" oninput="setZoom(this.value)" style="flex:1;accent-color:var(--accent);cursor:pointer;">
+        <span id="zoomVal" style="font-size:13px;color:var(--accent2);font-weight:700;min-width:42px;text-align:right;">100%</span>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-danger btn-sm" id="loeschBtn" onclick="loeschen()" style="display:none;margin-right:auto;">🗑 Löschen</button>
       <button class="btn btn-secondary" onclick="closeForm()">Abbrechen</button>
@@ -489,6 +508,15 @@ const hasFileAPI = 'showOpenFilePicker' in window;
 
 // ═══ UTILS ═══
 function genId(){ return 'a_'+Date.now()+'_'+Math.random().toString(36).substr(2,5); }
+function titelFormat(a){
+  const teile=[];
+  if(a.ks)teile.push(a.ks);
+  const adr=[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
+  if(adr)teile.push(adr);
+  const person=a.mieterName||a.eigentuemer||'';
+  if(person)teile.push(person);
+  return teile.join(' | ')||'Auftrag';
+}
 function esc(s){ const d=document.createElement('div');d.textContent=s||'';return d.innerHTML; }
 function readVal(txt,key){
   const m=txt.match(new RegExp(key+':\\s*(.+)','i'));
@@ -532,14 +560,20 @@ function mapsUrl(strasse,ort){
 // ═══ ZOOM ═══
 function setZoom(v){
   document.documentElement.style.setProperty('--zoom',Number(v)/100);
-  document.getElementById('zoomVal').textContent=v+'%';
+  const zv=document.getElementById('zoomVal');if(zv)zv.textContent=v+'%';
   localStorage.setItem('bau_zoom',v);
+  window._bau_zoom=String(v);
+}
+function initZoomSlider(){
+  const z=window._bau_zoom||'100';
+  const zs=document.getElementById('zoomSlider');if(zs)zs.value=z;
+  const zv=document.getElementById('zoomVal');if(zv)zv.textContent=z+'%';
 }
 (function(){
   let z=localStorage.getItem('bau_zoom')||'100';
   if(Number(z)<30)z='100';
-  document.getElementById('zoomSlider').value=z;
-  setZoom(z);
+  window._bau_zoom=z;
+  document.documentElement.style.setProperty('--zoom',Number(z)/100);
 })();
 
 // ═══ DATENMIGRATION ═══
@@ -553,11 +587,41 @@ function migrateAuftrag(a){
 }
 
 // ═══ DATEI ═══
+let fileSource='none'; // 'drive'|'local'|'none'
 function updateFileStatus(state,name){
   document.getElementById('fileDot').className='file-dot '+state;
-  document.getElementById('fileName').textContent=name;
+  const prefix=fileSource==='drive'?'☁️ ':'';
+  const suffix=(fileSource==='drive'&&state==='ok')?' ✓ Von Google Drive geladen':'';
+  document.getElementById('fileName').textContent=prefix+name+suffix;
+}
+async function openFileDrive(){
+  fileSource='drive';
+  closeStart();
+  if(!hasFileAPI){fallbackImport();return;}
+  try{
+    [fileHandle]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+    const f=await fileHandle.getFile();
+    const data=JSON.parse(await f.text())||{};
+    auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
+    if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
+    updateFileStatus('ok',fileHandle.name);
+    renderListe();
+  }catch(e){fileSource='none';if(e.name!=='AbortError')toast('Fehler beim Öffnen');}
+}
+async function createNewFileDrive(){
+  fileSource='drive';
+  closeStart();
+  if(!hasFileAPI){updateFileStatus('unsaved','Kein Auto-Speichern');renderListe();return;}
+  try{
+    fileHandle=await window.showSaveFilePicker({suggestedName:'bau-doku.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+    auftraege=[];
+    await saveFile();
+    updateFileStatus('ok',fileHandle.name);
+    renderListe();
+  }catch(e){fileSource='none';if(e.name!=='AbortError')toast('Datei konnte nicht erstellt werden');}
 }
 async function openFile(){
+  fileSource='local';
   closeStart();
   if(!hasFileAPI){fallbackImport();return;}
   try{
@@ -571,6 +635,7 @@ async function openFile(){
   }catch(e){if(e.name!=='AbortError')toast('Fehler beim Öffnen');}
 }
 async function createNewFile(){
+  fileSource='local';
   closeStart();
   if(!hasFileAPI){updateFileStatus('unsaved','Kein Auto-Speichern');renderListe();return;}
   try{
@@ -654,10 +719,11 @@ function renderKarte(a){
     ?'<div class="karte-schaden" ondblclick="event.stopPropagation();this.classList.toggle(\'expanded\')" title="Doppelklick zum Aufklappen">'+esc(a.schaden)+'</div>'
     :'';
   return '<div class="auftrag-karte" onclick="openDetail(\''+a.id+'\')">'
-    +'<div class="karte-kopf"><div class="karte-ks">'+statusDot(a.status)+' '+esc(a.ks||'–')+'</div><div class="karte-datum">'+esc(a.datum||'')+'</div></div>'
-    +'<div class="karte-adresse">📍 '+esc(a.strasse||'')+(a.ort?', '+esc(a.ort):'')+'</div>'
-    +'<div class="karte-hv">🏢 '+esc(a.hv||'–')+'</div>'
-    +(a.mieterName?'<div class="karte-mieter">🏠 '+esc(a.mieterName)+(a.mieterTel?' · '+esc(a.mieterTel):'')+'</div>':'')
+    +'<div class="karte-kopf">'
+    +'<div class="karte-ks" style="flex:1;white-space:normal;line-height:1.35;font-size:calc(13px * var(--zoom))">'+statusDot(a.status)+' '+esc(titelFormat(a))+'</div>'
+    +'<div class="karte-datum" style="white-space:nowrap;margin-left:8px;">'+esc(a.datum||'')+'</div>'
+    +'</div>'
+    +(a.hv?'<div class="karte-hv">🏢 '+esc(a.hv)+'</div>':'')
     +schaden
     +'<div class="karte-footer">'+drive+nas+termine+zeiten+(a.rep?'<span class="badge">Rep. '+esc(a.rep)+'</span>':'')+'</div>'
     +'</div>';
@@ -668,7 +734,7 @@ function openDetail(id){
   const a=auftraege.find(x=>x.id===id);
   if(!a)return;
   detailId=id;
-  document.getElementById('detailTitel').textContent=(a.ks||'Auftrag')+(a.strasse?' · '+a.strasse:'');
+  document.getElementById('detailTitel').textContent=titelFormat(a);
   renderDetail(a);
   document.getElementById('listView').classList.add('hidden');
   document.getElementById('detailView').classList.add('active');
@@ -948,6 +1014,7 @@ function openNeu(){
   document.getElementById('fDat').value=new Date().toISOString().split('T')[0];
   updateHVSel();
   document.getElementById('formModal').classList.add('open');
+  initZoomSlider();
 }
 function openBearbeiten(){
   const a=auftraege.find(x=>x.id===detailId);if(!a)return;
@@ -977,6 +1044,7 @@ function openBearbeiten(){
   renderZeitenForm(a.zeiterfassung||[]);
   updateHVSel();
   document.getElementById('formModal').classList.add('open');
+  initZoomSlider();
 }
 function closeForm(){document.getElementById('formModal').classList.remove('open');}
 function clearForm(){
@@ -1026,7 +1094,7 @@ async function speichern(){
     auftraege.unshift(data);detailId=data.id;
   }
   await saveFile();closeForm();renderListe();
-  if(detailId){const a=auftraege.find(x=>x.id===detailId);if(a){document.getElementById('detailTitel').textContent=(a.ks||'Auftrag')+(a.strasse?' · '+a.strasse:'');renderDetail(a);}}
+  if(detailId){const a=auftraege.find(x=>x.id===detailId);if(a){document.getElementById('detailTitel').textContent=titelFormat(a);renderDetail(a);}}
   toast('✅ Gespeichert');
 }
 async function loeschen(){
