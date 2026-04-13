@@ -2004,7 +2004,7 @@ let syncPollingId=null;
 let syncNewCount=0;
 
 async function syncInit(){
-  if(\!gdriveToken)return;
+  if(!gdriveToken)return;
   try{
     const r=await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'ptp_bau_sync.json'%20and%20trashed%3Dfalse&fields=files(id,modifiedTime)&orderBy=modifiedTime%20desc",
       {headers:{Authorization:'Bearer '+gdriveToken}});
@@ -2025,16 +2025,16 @@ async function syncCreate(){
   syncFileId=f.id;syncData=empty;lastSyncTimestamp=empty.lastUpdated;
 }
 async function syncRead(initial=false){
-  if(\!syncFileId||\!gdriveToken)return;
+  if(!syncFileId||!gdriveToken)return;
   try{
     const r=await fetch('https://www.googleapis.com/drive/v3/files/'+syncFileId+'?alt=media',
       {headers:{Authorization:'Bearer '+gdriveToken}});
-    if(\!r.ok)return;
+    if(!r.ok)return;
     const d=await r.json();
-    if(d.lastUpdated&&d.lastUpdated\!==lastSyncTimestamp){
-      const isFromOther=d.updatedBy&&d.updatedBy\!==SYNC_SOURCE;
+    if(d.lastUpdated&&d.lastUpdated!==lastSyncTimestamp){
+      const isFromOther=d.updatedBy&&d.updatedBy!==SYNC_SOURCE;
       syncData=d;lastSyncTimestamp=d.lastUpdated;
-      if(isFromOther&&\!initial){
+      if(isFromOther&&!initial){
         const ptpTermine=(d.termine||[]).filter(t=>t.source==='ptp');
         const ptpZeiten=(d.zeiterfassung||[]).filter(z=>z.source==='ptp');
         syncNewCount=ptpTermine.length+ptpZeiten.length;
@@ -2045,7 +2045,7 @@ async function syncRead(initial=false){
   }catch(e){console.warn('syncRead:',e);}
 }
 async function syncWrite(){
-  if(\!syncFileId||\!gdriveToken)return;
+  if(!syncFileId||!gdriveToken)return;
   try{
     await fetch('https://www.googleapis.com/upload/drive/v3/files/'+syncFileId+'?uploadType=media',
       {method:'PATCH',headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
@@ -2057,35 +2057,35 @@ function startSyncPolling(){
   syncPollingId=setInterval(()=>syncRead(),30000);
 }
 function pushToSync(){
-  if(\!syncFileId||\!gdriveToken)return;
+  if(!syncFileId||!gdriveToken)return;
   const termine=[];const zeiten=[];
   (auftraege||[]).forEach(a=>{
     const title=titelFormat(a)||a.id;
     (a.termine||[]).forEach((t,i)=>{
-      if(\!t.datum&&\!t.von)return;
+      if(!t.datum&&!t.von)return;
       termine.push({syncId:'bau_'+a.id+'_t'+i,source:'bau',auftragTitle:title,
         datum:t.datum||'',von:t.von||'',bis:t.bis||'',beschreibung:t.beschreibung||''});
     });
     (a.zeiterfassung||[]).forEach((z,i)=>{
-      if(\!z.datum&&\!z.von)return;
+      if(!z.datum&&!z.von)return;
       const min=calcMin(z.von,z.bis);
       zeiten.push({syncId:'bau_'+a.id+'_z'+i,source:'bau',auftragTitle:title,
         datum:z.datum||'',von:z.von||'',bis:z.bis||'',beschreibung:z.beschreibung||'',minuten:min});
     });
   });
-  syncData.termine=[...(syncData.termine||[]).filter(t=>t.source\!=='bau'),...termine];
-  syncData.zeiterfassung=[...(syncData.zeiterfassung||[]).filter(z=>z.source\!=='bau'),...zeiten];
+  syncData.termine=[...(syncData.termine||[]).filter(t=>t.source!=='bau'),...termine];
+  syncData.zeiterfassung=[...(syncData.zeiterfassung||[]).filter(z=>z.source!=='bau'),...zeiten];
   syncData.lastUpdated=new Date().toISOString();
   syncData.updatedBy='bau';
   lastSyncTimestamp=syncData.lastUpdated;
   syncWrite();
 }
 function calcMin(von,bis){
-  try{if(\!von||\!bis)return 0;const[vh,vm]=von.split(':').map(Number);const[bh,bm]=bis.split(':').map(Number);const d=(bh*60+bm)-(vh*60+vm);return d>0?d:0;}catch(e){return 0;}
+  try{if(!von||!bis)return 0;const[vh,vm]=von.split(':').map(Number);const[bh,bm]=bis.split(':').map(Number);const d=(bh*60+bm)-(vh*60+vm);return d>0?d:0;}catch(e){return 0;}
 }
 function updateSyncUI(){
   const btn=document.getElementById('syncBtn');
-  if(\!btn)return;
+  if(!btn)return;
   const ptpTermine=(syncData.termine||[]).filter(t=>t.source==='ptp');
   const ptpZeiten=(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp');
   const total=ptpTermine.length+ptpZeiten.length;
@@ -2112,7 +2112,7 @@ function openSyncPanel(){
     ptpZeiten.forEach(z=>{html+='<tr style="border-bottom:1px solid #e0e0e0"><td style="padding:4px 8px">'+(z.datum||'–')+'</td><td>'+(z.von||'–')+'</td><td>'+(z.bis||'–')+'</td><td>'+(z.minuten||0)+'</td><td>'+(z.beschreibung||'')+'</td><td style="color:#5a5a7a;font-size:11px">'+(z.auftragTitle||'')+'</td></tr>';});
     html+='</table>';
   }
-  if(\!ptpTermine.length&&\!ptpZeiten.length){html+='<p style="color:#5a5a7a;font-size:13px">Noch keine synchronisierten Einträge vom PTP Workboard.</p>';}
+  if(!ptpTermine.length&&!ptpZeiten.length){html+='<p style="color:#5a5a7a;font-size:13px">Noch keine synchronisierten Einträge vom PTP Workboard.</p>';}
   html+='<div style="margin-top:16px;text-align:right"><button onclick="this.closest(\'div[style*=position]\').remove()" style="padding:7px 16px;border-radius:6px;background:#6c63ff;color:#fff;border:none;cursor:pointer;font-size:13px">Schließen</button></div>';
   html+='</div></div>';
   document.body.insertAdjacentHTML('beforeend',html);
