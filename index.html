@@ -1719,6 +1719,9 @@ function importReadme(event){
     if(dat){const p=dat.split('.');if(p.length===3)document.getElementById('fDat').value=p[2]+'-'+p[1]+'-'+p[0];}
     if(v('Auftraggeber'))document.getElementById('fAG').value=v('Auftraggeber');
     if(v('Kunden_Nr'))document.getElementById('fKNr').value=v('Kunden_Nr');
+    if(v('AG_Kontakt_Name'))document.getElementById('fAGN').value=v('AG_Kontakt_Name');
+    if(v('AG_Kontakt_Tel'))document.getElementById('fAGT').value=v('AG_Kontakt_Tel');
+    if(v('AG_Kontakt_Email'))document.getElementById('fAGE').value=v('AG_Kontakt_Email');
     const hv=v('Objekt_Hausverwaltung');
     if(hv){
       document.getElementById('fHV').value=hv;
@@ -1753,7 +1756,13 @@ function exportReadme(id){
   L('Auftrag_Datum: '+(a.datum||'(noch offen)'));
   L('Rep_Nr: '+(a.rep||'(noch offen)'));
   L('Auftraggeber: '+(a.ag||'(noch offen)'));
-  L('Kunden_Nr: '+(a.knr||'(noch offen)'));L('');
+  L('Kunden_Nr: '+(a.knr||'(noch offen)'));
+  if(a.agKontaktName||a.agKontaktTel||a.agKontaktEmail){
+    L('AG_Kontakt_Name: '+(a.agKontaktName||'(noch offen)'));
+    L('AG_Kontakt_Tel: '+(a.agKontaktTel||'(noch offen)'));
+    L('AG_Kontakt_Email: '+(a.agKontaktEmail||'(noch offen)'));
+  }
+  L('');
   L('OBJEKT');
   L('Objekt_Strasse: '+(a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ')));
   L('Objekt_Hausverwaltung: '+(a.hv||'(noch offen)'));
