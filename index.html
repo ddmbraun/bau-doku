@@ -159,6 +159,10 @@ a{color:inherit;text-decoration:none;}
 .add-row-btn{width:100%;padding:8px;border-radius:7px;font-size:12px;color:var(--accent2);background:rgba(108,99,255,.1);border:1px dashed rgba(108,99,255,.4);margin-top:4px;transition:all .15s;}
 .add-row-btn:hover{background:rgba(108,99,255,.2);}
 .zeit-gesamt-form{font-size:12px;color:var(--green);font-weight:600;margin-top:8px;text-align:right;}
+.ptp-sync-divider{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;}
+.ptp-sync-divider::before,.ptp-sync-divider::after{content:'';flex:1;height:1px;background:rgba(108,99,255,.3);}
+.d-readonly-row{background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:6px;padding:5px 8px;margin-bottom:4px;display:grid;gap:5px;align-items:center;font-size:12px;color:var(--text2);}
+.zeit-gesamt-ptp{color:var(--accent2);}
 
 /* ── README BAR ── */
 .readme-bar{display:flex;align-items:center;gap:8px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;padding:10px 12px;margin-bottom:14px;}
@@ -1006,6 +1010,7 @@ function renderDetailEditable(a){
     +'<div class="row-header" style="grid-template-columns:1fr 70px 70px 1fr 32px 28px"><span>Datum</span><span>Von</span><span>Bis</span><span>Beschreibung</span><span>📅</span><span></span></div>'
     +'<div id="dTermineContainer"></div>'
     +'<button class="add-row-btn" onclick="addTerminDetail()">+ Termin hinzufügen</button>'
+    +'<div id="dPTPTermineSection"></div>'
     +'</div></div>';
 
   // Zeiterfassung (Timer läuft über Topbar-Button)
@@ -1026,6 +1031,7 @@ function renderDetailEditable(a){
     +'<div id="dZeitContainer"></div>'
     +'<button class="add-row-btn" onclick="addZeitDetail()">+ Zeit manuell hinzufügen</button>'
     +'<div class="zeit-gesamt-form" id="dZeitGesamt"></div>'
+    +'<div id="dPTPZeitSection"></div>'
     +'</div></div>';
 
   // Verknüpfungen
@@ -1101,6 +1107,7 @@ function renderTermineDetail(termine){
   c.innerHTML='';
   if(!termine||!termine.length)addTerminDetail();
   else for(const t of termine)addTerminDetail(t.datum,t.von,t.bis,t.beschreibung);
+  renderPTPTermineSection();
 }
 function getTermineDetail(){
   const c=document.getElementById('dTermineContainer');if(!c)return[];
@@ -1129,6 +1136,38 @@ function renderZeitenDetail(zeiten){
   c.innerHTML='';
   if(!zeiten||!zeiten.length)addZeitDetail();
   else for(const z of zeiten)addZeitDetail(z.datum,z.von,z.bis,z.beschreibung);
+  renderPTPZeitenSection();
+  updateZeitGesamtDetail();
+}
+function renderPTPTermineSection(){
+  const ks=(document.getElementById('dKS')?.value||'').trim();
+  const ptpT=ks?(syncData.termine||[]).filter(t=>t.source==='ptp'&&t.kostenstelle===ks):[];
+  const el=document.getElementById('dPTPTermineSection');if(!el)return;
+  if(!ptpT.length){el.innerHTML='';return;}
+  let html='<div class="ptp-sync-divider">&#128225; Von PTP Workboard ('+ptpT.length+')</div>';
+  html+=ptpT.map(t=>'<div class="d-readonly-row" style="grid-template-columns:1fr 70px 70px 1fr 32px 28px">'
+    +'<span>'+(t.datum||'&ndash;')+'</span>'
+    +'<span>'+(t.von||'&ndash;')+'</span>'
+    +'<span>'+(t.bis||'&ndash;')+'</span>'
+    +'<span>'+(t.beschreibung||'')+'</span>'
+    +'<span></span><span></span>'
+    +'</div>').join('');
+  el.innerHTML=html;
+}
+function renderPTPZeitenSection(){
+  const ks=(document.getElementById('dKS')?.value||'').trim();
+  const ptpZ=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&z.kostenstelle===ks):[];
+  const el=document.getElementById('dPTPZeitSection');if(!el)return;
+  if(!ptpZ.length){el.innerHTML='';return;}
+  let html='<div class="ptp-sync-divider">&#128225; Von PTP Workboard ('+ptpZ.length+')</div>';
+  html+=ptpZ.map(z=>'<div class="d-readonly-row" style="grid-template-columns:1fr 70px 70px 1fr 28px">'
+    +'<span>'+(z.datum||'&ndash;')+'</span>'
+    +'<span>'+(z.von||'&ndash;')+'</span>'
+    +'<span>'+(z.bis||'&ndash;')+'</span>'
+    +'<span>'+(z.beschreibung||'')+'</span>'
+    +'<span></span>'
+    +'</div>').join('');
+  el.innerHTML=html;
   updateZeitGesamtDetail();
 }
 function getZeitenDetail(){
@@ -1181,7 +1220,17 @@ function updateZeitGesamtDetail(){
   const c=document.getElementById('dZeitContainer');if(!c)return;
   const e=[...c.querySelectorAll('.d-zeit-row-form')].map(r=>({von:r.querySelector('.z-von').value,bis:r.querySelector('.z-bis').value}));
   const el=document.getElementById('dZeitGesamt');
-  if(el)el.textContent='Gesamt: '+berechneTotalZeit(e);
+  if(!el)return;
+  const ks=(document.getElementById('dKS')?.value||'').trim();
+  const ptpZ=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&z.kostenstelle===ks):[];
+  if(ptpZ.length){
+    const bauStr=berechneTotalZeit(e);
+    const ptpStr=berechneTotalZeit(ptpZ.map(z=>({von:z.von,bis:z.bis})));
+    const allStr=berechneTotalZeit([...e,...ptpZ.map(z=>({von:z.von,bis:z.bis}))]);
+    el.innerHTML='Bau: '+bauStr+'&nbsp;&nbsp;|&nbsp;&nbsp;<span class="zeit-gesamt-ptp">PTP: '+ptpStr+'</span>&nbsp;&nbsp;|&nbsp;&nbsp;<strong>Gesamt: '+allStr+'</strong>';
+  }else{
+    el.textContent='Gesamt: '+berechneTotalZeit(e);
+  }
 }
 
 // ═══ DETAIL TIMER ═══
