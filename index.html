@@ -1932,7 +1932,7 @@ async function gdriveSaveData(){
       headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
       body:JSON.stringify({auftraege,hvListe},null,2)
     });
-    if(r.ok)pushToSync();updateFileStatus('ok',gdriveFileName);
+    if(r.ok){pushToSync();updateFileStatus('ok',gdriveFileName);}
     else updateFileStatus('unsaved',gdriveFileName);
   }catch(e){updateFileStatus('unsaved',gdriveFileName);}
   finally{gdriveSaving=false;}
