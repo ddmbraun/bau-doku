@@ -327,6 +327,7 @@ a{color:inherit;text-decoration:none;}
     <button class="tab" onclick="setFilter('bearbeitung',this)">&#128992; Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
     <button class="tab" onclick="setFilter('abgeschlossen',this)">&#128994; Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
     <div style="flex:1;"></div>
+    <button id="listTimerBtn" onclick="listTimerClick()" class="btn btn-secondary btn-sm" style="white-space:nowrap;font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;">&#9210; Aufzeichnung</button>
     <div style="display:flex;align-items:center;gap:8px;padding:0 4px;flex-shrink:0;">
       <span style="font-size:11px;color:var(--text2);white-space:nowrap;">&#128288;</span>
       <input type="range" id="zoomSliderList" min="70" max="130" value="100" oninput="setZoom(this.value)" style="width:90px;accent-color:var(--accent);cursor:pointer;">
@@ -795,13 +796,15 @@ function renderKarte(a){
   const zeiten=z.length?'<span class="badge">⏱ '+berechneTotalZeit(z)+'</span>':'';
   const aufnahme=(globalTimerStartMs&&globalTimerAuftragId===a.id)
     ?'<span class="badge" style="color:#dc2626;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);">⏺ läuft</span>':'';
+  const ptpMatch=a.ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&z.kostenstelle===a.ks):[];
+  const ptpBadge=ptpMatch.length?'<span class="badge" style="color:#6c63ff;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);">🔄 '+ptpMatch.length+' PTP</span>':'';
   return '<div class="auftrag-karte" onclick="openDetail(\''+a.id+'\')" ondblclick="event.stopPropagation();karteSchadenDblClick(\''+a.id+'\')">'
     +'<div class="karte-kopf">'
     +'<div class="karte-ks" style="flex:1;white-space:normal;line-height:1.35;font-size:calc(13px * var(--zoom))">'+statusDot(a.status)+' '+esc(titelFormat(a))+'</div>'
     +'<div class="karte-datum" style="white-space:nowrap;margin-left:8px;">'+esc(a.datum||'')+'</div>'
     +'</div>'
     +(a.hv?'<div class="karte-hv">🏢 '+esc(a.hv)+'</div>':'')
-    +'<div class="karte-footer">'+drive+nas+termine+zeiten+aufnahme+(a.rep?'<span class="badge">Rep. '+esc(a.rep)+'</span>':'')+'</div>'
+    +'<div class="karte-footer">'+drive+nas+termine+zeiten+aufnahme+ptpBadge+(a.rep?'<span class="badge">Rep. '+esc(a.rep)+'</span>':'')+'</div>'
     +'</div>';
 }
 function karteSchadenDblClick(id){
@@ -829,6 +832,10 @@ function openDetail(id){
 function zurueck(){
   if(detailTimerInterval)stopTimerDetail();
   if(globalTimerIntervalId){clearInterval(globalTimerIntervalId);globalTimerIntervalId=null;}
+  if(globalTimerStartMs){
+    globalTimerIntervalId=setInterval(updateTimerTopBtn,1000);
+    updateTimerTopBtn();
+  }
   clearTimeout(autoSaveTimer);
   if(isNewUnsaved){auftraege=auftraege.filter(a=>a.id!==detailId);renderListe();}
   isNewUnsaved=false;
@@ -1260,29 +1267,35 @@ function stopGlobalTimer(){
   toast('⏹ Aufzeichnung gespeichert');
 }
 function updateTimerTopBtn(){
-  const btn=document.getElementById('dTimerTopBtn');if(!btn)return;
+  const btn=document.getElementById('dTimerTopBtn');
+  const listBtn=document.getElementById('listTimerBtn');
   if(globalTimerStartMs){
     const d=Math.floor((Date.now()-globalTimerStartMs)/1000);
     const h=Math.floor(d/3600),m=Math.floor((d%3600)/60),s=d%60;
     const ts=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-    btn.innerHTML='⏹ '+ts;
-    btn.className='btn btn-sm timer-top-active';
-    btn.title=globalTimerAuftragId!==detailId?'Aufzeichnung beenden (anderer Auftrag!)':'Aufzeichnung beenden';
-    // Live-Zeile in Zeiterfassung aktualisieren (nur wenn selber Auftrag)
-    if(globalTimerAuftragId===detailId){
-      const liveRow=document.getElementById('dZeitLiveRow');
-      const liveDisp=document.getElementById('dZeitLiveDisplay');
-      if(liveRow){liveRow.style.display='flex';}
-      if(liveDisp){liveDisp.textContent=ts;}
+    if(btn){
+      btn.innerHTML='⧙ '+ts;btn.className='btn btn-sm timer-top-active';
+      btn.title=globalTimerAuftragId!==detailId?'Aufzeichnung beenden (anderer Auftrag!)':'Aufzeichnung beenden';
+      if(globalTimerAuftragId===detailId){
+        const liveRow=document.getElementById('dZeitLiveRow');
+        const liveDisp=document.getElementById('dZeitLiveDisplay');
+        if(liveRow){liveRow.style.display='flex';}
+        if(liveDisp){liveDisp.textContent=ts;}
+      }
     }
+    if(listBtn){listBtn.innerHTML='⧙ '+ts;listBtn.className='btn btn-sm timer-top-active';}
   }else{
-    btn.innerHTML='⏺ Aufzeichnung';
-    btn.className='btn btn-secondary btn-sm';
-    btn.title='Aufzeichnung starten';
-    // Live-Zeile ausblenden
-    const liveRow=document.getElementById('dZeitLiveRow');
-    if(liveRow)liveRow.style.display='none';
+    if(btn){
+      btn.innerHTML='⧚ Aufzeichnung';btn.className='btn btn-secondary btn-sm';btn.title='Aufzeichnung starten';
+      const liveRow=document.getElementById('dZeitLiveRow');
+      if(liveRow)liveRow.style.display='none';
+    }
+    if(listBtn){listBtn.innerHTML='⧚ Aufzeichnung';listBtn.className='btn btn-secondary btn-sm';}
   }
+}
+function listTimerClick(){
+  if(globalTimerStartMs){openDetail(globalTimerAuftragId);}
+  else{toast('Öffne einen Auftrag und starte die Aufzeichnung dort.');}
 }
 
 // ═══ GOOGLE CALENDAR ═══
@@ -2061,15 +2074,16 @@ function pushToSync(){
   const termine=[];const zeiten=[];
   (auftraege||[]).forEach(a=>{
     const title=titelFormat(a)||a.id;
+    const ks=a.ks||'';
     (a.termine||[]).forEach((t,i)=>{
       if(!t.datum&&!t.von)return;
-      termine.push({syncId:'bau_'+a.id+'_t'+i,source:'bau',auftragTitle:title,
+      termine.push({syncId:'bau_'+a.id+'_t'+i,source:'bau',kostenstelle:ks,auftragTitle:title,
         datum:t.datum||'',von:t.von||'',bis:t.bis||'',beschreibung:t.beschreibung||''});
     });
     (a.zeiterfassung||[]).forEach((z,i)=>{
       if(!z.datum&&!z.von)return;
       const min=calcMin(z.von,z.bis);
-      zeiten.push({syncId:'bau_'+a.id+'_z'+i,source:'bau',auftragTitle:title,
+      zeiten.push({syncId:'bau_'+a.id+'_z'+i,source:'bau',kostenstelle:ks,auftragTitle:title,
         datum:z.datum||'',von:z.von||'',bis:z.bis||'',beschreibung:z.beschreibung||'',minuten:min});
     });
   });
@@ -2120,4 +2134,4 @@ function openSyncPanel(){
 
 </script>
 </body>
-</html>
+</ht
