@@ -623,9 +623,28 @@ function checkPtpImport(){
   if(!raw)return;
   let p;try{p=JSON.parse(raw);}catch(e){localStorage.removeItem('bau_ptp_import');return;}
   if(!p||p._quelle!=='ptp')return;
-  const ks=p.ks||'(keine KS)';
-  const adr=p.adresse||'(keine Adresse)';
-  if(!confirm('📋 PTP-Workboard hat einen Auftrag bereitgestellt:\n\nKostenstelle: '+ks+'\nAdresse: '+adr+'\n\nJetzt in Bau-Doku übernehmen?'))return;
+  showPtpBanner(p);
+}
+function showPtpBanner(p){
+  const existing=document.getElementById('ptpImportBanner');
+  if(existing)existing.remove();
+  const ks=p.ks||'?';const adr=p.adresse||'?';
+  const bar=document.createElement('div');
+  bar.id='ptpImportBanner';
+  bar.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:4000;background:#1a73e8;color:#fff;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.25);font-size:13px;max-width:90vw;';
+  bar.innerHTML='<span>📋 <b>PTP-Auftrag bereit</b> – KS: '+ks+' · '+adr+'</span>'
+    +'<button onclick="ptpImportAnnehmen()" style="background:#fff;color:#1a73e8;border:none;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:12px;white-space:nowrap;">Übernehmen</button>'
+    +'<button onclick="ptpImportAbweisen()" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;">✕</button>';
+  document.body.appendChild(bar);
+}
+function ptpImportAbweisen(){
+  const bar=document.getElementById('ptpImportBanner');if(bar)bar.remove();
+}
+function ptpImportAnnehmen(){
+  ptpImportAbweisen();
+  const raw=localStorage.getItem('bau_ptp_import');
+  if(!raw)return;
+  let p;try{p=JSON.parse(raw);}catch(e){localStorage.removeItem('bau_ptp_import');return;}
   const neuer={
     id:genId(),
     ks:p.ks||'',
