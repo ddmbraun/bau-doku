@@ -800,25 +800,27 @@ function updateFileStatus(state,name){
   document.getElementById('fileName').textContent=prefix+name;
 }
 async function openFile(){
-  fileSource='local';closeStart();
-  if(!hasFileAPI){fallbackImport();return;}
+  fileSource='local';
+  if(!hasFileAPI){closeStart();fallbackImport();return;}
   try{
     [fileHandle]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
     const f=await fileHandle.getFile();
     const data=JSON.parse(await f.text())||{};
     auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
     if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
-    updateFileStatus('ok',fileHandle.name);renderListe();
-  }catch(e){if(e.name!=='AbortError')toast('Fehler beim Öffnen');}
+    closeStart();updateFileStatus('ok',fileHandle.name);renderListe();
+  }catch(e){
+    if(e.name!=='AbortError')toast('Fehler beim Öffnen: '+e.message);
+  }
 }
 async function createNewFile(){
-  fileSource='local';closeStart();
-  if(!hasFileAPI){updateFileStatus('unsaved','Kein Auto-Speichern');renderListe();return;}
+  fileSource='local';
+  if(!hasFileAPI){closeStart();auftraege=[];updateFileStatus('unsaved','Kein Auto-Speichern');renderListe();return;}
   try{
     fileHandle=await window.showSaveFilePicker({suggestedName:'bau-doku.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});
     auftraege=[];
-    await saveFile();updateFileStatus('ok',fileHandle.name);renderListe();
-  }catch(e){if(e.name!=='AbortError')toast('Datei konnte nicht erstellt werden');}
+    await saveFile();closeStart();updateFileStatus('ok',fileHandle.name);renderListe();
+  }catch(e){if(e.name!=='AbortError')toast('Datei konnte nicht erstellt werden: '+e.message);}
 }
 function skipFile(){closeStart();updateFileStatus('none','Ohne Datei');renderListe();}
 async function saveFile(){
@@ -829,16 +831,24 @@ async function saveFile(){
     await w.write(JSON.stringify({auftraege,hvListe},null,2));
     await w.close();
     updateFileStatus('ok',fileHandle.name);
-  }catch(e){toast('⚠ Speichern fehlgeschlagen');}
+  }catch(e){toast('⚠ Speichern fehlgeschlagen: '+e.message);}
 }
 function fallbackImport(){
-  const i=document.createElement('input');i.type='file';i.accept='.json';
+  const i=document.createElement('input');
+  i.type='file';i.accept='.json';
+  i.style.cssText='position:fixed;top:-100px;left:-100px;opacity:0;';
   i.onchange=async e=>{
-    const data=JSON.parse(await e.target.files[0].text())||{};
-    auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
-    if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
-    updateFileStatus('unsaved','Importiert');renderListe();
-  };i.click();
+    if(!e.target.files||!e.target.files[0])return;
+    try{
+      const data=JSON.parse(await e.target.files[0].text())||{};
+      auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
+      if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
+      updateFileStatus('unsaved','Importiert');renderListe();toast('✅ Datei geladen');
+    }catch(err){toast('⚠ Datei konnte nicht gelesen werden');}
+    document.body.removeChild(i);
+  };
+  document.body.appendChild(i);
+  i.click();
 }
 function downloadFile(){
   const b=new Blob([JSON.stringify({auftraege,hvListe},null,2)],{type:'application/json'});
