@@ -101,10 +101,12 @@ a{color:inherit;text-decoration:none;}
 
 /* ── DETAIL BODY ── */
 .detail-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;zoom:var(--detail-zoom);}
-.detail-zoombar{display:flex;align-items:center;gap:8px;padding:5px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
-.detail-zoombar input[type=range]{flex:1;max-width:180px;accent-color:var(--accent);cursor:pointer;}
+.detail-zoombar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg2);border-bottom:1px solid var(--border);margin:-16px -16px 14px -16px;border-radius:0;}
+.detail-zoombar input[type=range]{flex:1;max-width:200px;accent-color:var(--accent);cursor:pointer;}
 .detail-zoombar span{font-size:11px;color:var(--accent2);font-weight:700;min-width:36px;}
-.detail-zoombar label{font-size:10px;color:var(--text2);white-space:nowrap;}
+.detail-zoombar label{font-size:11px;color:var(--text2);white-space:nowrap;}
+#dSch{transition:height .2s;min-height:60px;}
+#dSch.expanded{height:220px;}
 
 /* ── STATUS BAR ── */
 .detail-status-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
@@ -334,9 +336,9 @@ a{color:inherit;text-decoration:none;}
 
   <div class="tabs">
     <button class="tab active" onclick="setFilter('alle',this)">Alle <span class="tab-count" id="tc-alle">0</span></button>
-    <button class="tab" onclick="setFilter('neu',this)">&#128309; Neu <span class="tab-count" id="tc-neu">0</span></button>
-    <button class="tab" onclick="setFilter('bearbeitung',this)">&#128992; Bearbeitung <span class="tab-count" id="tc-bearbeitung">0</span></button>
-    <button class="tab" onclick="setFilter('abgeschlossen',this)">&#128994; Fertig <span class="tab-count" id="tc-abgeschlossen">0</span></button>
+    <button class="tab" onclick="setFilter('neu',this)"><span id="tab-label-neu">&#128309; Neu</span> <span class="tab-count" id="tc-neu">0</span></button>
+    <button class="tab" onclick="setFilter('bearbeitung',this)"><span id="tab-label-bearbeitung">&#128992; Bearbeitung</span> <span class="tab-count" id="tc-bearbeitung">0</span></button>
+    <button class="tab" onclick="setFilter('abgeschlossen',this)"><span id="tab-label-abgeschlossen">&#128994; Fertig</span> <span class="tab-count" id="tc-abgeschlossen">0</span></button>
     <div style="flex:1;"></div>
     <button id="listTimerBtn" onclick="listTimerClick()" class="btn btn-secondary btn-sm" style="white-space:nowrap;font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;">&#9210; Aufzeichnung</button>
     <div style="display:flex;align-items:center;gap:8px;padding:0 4px;flex-shrink:0;">
@@ -363,11 +365,6 @@ a{color:inherit;text-decoration:none;}
       <button class="btn btn-secondary btn-sm" onclick="triggerReadmeDetail()" title="README.txt importieren">&#128196; Auftrag</button>
       <button class="btn btn-danger btn-sm" onclick="loeschenDirekt()" title="Auftrag l&#246;schen">&#128465;</button>
     </div>
-  </div>
-  <div class="detail-zoombar">
-    <label>🔍 Schrift</label>
-    <input type="range" id="detailZoomSlider" min="70" max="150" value="100" oninput="setDetailZoom(this.value)">
-    <span id="detailZoomVal">100%</span>
   </div>
   <div class="detail-body" id="detailBody"></div>
 </div>
@@ -699,9 +696,10 @@ function setZoom(v){
   window._bau_zoom=String(v);
 }
 function setDetailZoom(v){
+  v=String(v);
   document.documentElement.style.setProperty('--detail-zoom',Number(v)/100);
-  const dz=document.getElementById('detailZoomVal');if(dz)dz.textContent=v+'%';
-  const ds=document.getElementById('detailZoomSlider');if(ds)ds.value=v;
+  document.querySelectorAll('#detailZoomVal').forEach(el=>el.textContent=v+'%');
+  document.querySelectorAll('#detailZoomSlider').forEach(el=>el.value=v);
   localStorage.setItem('bau_detail_zoom',v);
 }
 function initZoomSlider(){
@@ -727,6 +725,11 @@ function updateStatusSelects(){
     const cur=sel.value;sel.innerHTML='';
     statusConfig.forEach(s=>{const o=document.createElement('option');o.value=s.key;o.textContent=s.label;sel.appendChild(o);});
     if([...sel.options].some(o=>o.value===cur))sel.value=cur;
+  });
+  // Tab-Labels aktualisieren
+  statusConfig.forEach(s=>{
+    const el=document.getElementById('tab-label-'+s.key);
+    if(el)el.textContent=s.label;
   });
 }
 function openStatusModal(){
@@ -1058,7 +1061,15 @@ function renderDetailEditable(a){
   const statusLabel=sc.label;
   const adresse=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   const termine=(a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung);
+  const savedDz=localStorage.getItem('bau_detail_zoom')||'100';
   let html='';
+
+  // Zoom-Regler sticky oben in der Karte
+  html+='<div class="detail-zoombar">'
+    +'<label>🔍 Schrift</label>'
+    +'<input type="range" id="detailZoomSlider" min="70" max="150" value="'+savedDz+'" oninput="setDetailZoom(this.value)">'
+    +'<span id="detailZoomVal">'+savedDz+'%</span>'
+    +'</div>';
 
   html+='<div class="detail-status-bar">'
     +'<span class="status-badge '+a.status+'">'+statusLabel+'</span>'
@@ -1101,8 +1112,8 @@ function renderDetailEditable(a){
     +'<input type="text" id="dAdr" value="'+v(adresse)+'" oninput="scheduleAutoSave()" placeholder="Teststrasse 44, 99086 Erfurt" style="flex:1;">'
     +'<button type="button" onclick="detailMapsOeffnen()" style="padding:10px 16px;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">🗺</button>'
     +'</div></div>'
-    +'<div class="modal-field full"><label>Schadensbild</label>'
-    +'<textarea id="dSch" oninput="scheduleAutoSave()" placeholder="2. OG links, Feuchtigkeit Küche…">'+esc(a.schaden||'')+'</textarea>'
+    +'<div class="modal-field full"><label>Schadensbild <span style="font-size:9px;color:var(--text2);font-weight:400;text-transform:none;">(Doppelklick = vergrößern)</span></label>'
+    +'<textarea id="dSch" oninput="scheduleAutoSave()" ondblclick="this.classList.toggle(\'expanded\')" placeholder="2. OG links, Feuchtigkeit Küche…">'+esc(a.schaden||'')+'</textarea>'
     +'</div>'
     +'<div class="modal-field full"><label>Ausführungsdatum</label>'
     +'<input type="date" id="dAusf" oninput="scheduleAutoSave()" value="'+v(a.ausführungsdatum||'')+'" style="width:100%;">'
