@@ -617,6 +617,54 @@ let globalTimerIntervalId = null;
   if(t&&t.startMs&&t.auftragId){globalTimerStartMs=t.startMs;globalTimerAuftragId=t.auftragId;}
 })();
 
+// ═══ PTP → BAU-DOKU IMPORT ═══
+function checkPtpImport(){
+  const raw=localStorage.getItem('bau_ptp_import');
+  if(!raw)return;
+  let p;try{p=JSON.parse(raw);}catch(e){localStorage.removeItem('bau_ptp_import');return;}
+  if(!p||p._quelle!=='ptp')return;
+  const ks=p.ks||'(keine KS)';
+  const adr=p.adresse||'(keine Adresse)';
+  if(!confirm('📋 PTP-Workboard hat einen Auftrag bereitgestellt:\n\nKostenstelle: '+ks+'\nAdresse: '+adr+'\n\nJetzt in Bau-Doku übernehmen?'))return;
+  const neuer={
+    id:genId(),
+    ks:p.ks||'',
+    rep:p.rep||'',
+    datum:p.datum||new Date().toISOString().split('T')[0],
+    status:'neu',
+    hv:p.hv||'',
+    ag:p.ag||'',
+    knr:'',
+    adresse:p.adresse||'',
+    strasse:(()=>{const m=(p.adresse||'').match(/^(.+?),\s*\d{5}/);return m?m[1].trim():p.adresse||'';})(),
+    ort:(()=>{const m=(p.adresse||'').match(/,\s*(\d{5}.+)$/);return m?m[1].trim():'';})(),
+    schaden:p.schaden||'',
+    ausführungsdatum:p.ausführungsdatum||'',
+    agKontaktName:p.agKontaktName||'',
+    agKontaktTel:p.agKontaktTel||'',
+    agKontaktEmail:p.agKontaktEmail||'',
+    mieterName:p.mieterName||'',
+    mieterTel:p.mieterTel||'',
+    mieterEmail:p.mieterEmail||'',
+    eigentuemer:p.eigentuemer||'',
+    eigTel:p.eigTel||'',
+    eigEmail:p.eigEmail||'',
+    kontakte:p.kontakte||[],
+    gdrive:p.gdrive||'',
+    nas:p.nas||'',
+    notizen:p.notizen||'',
+    termine:[],zeiterfassung:[],anhaenge:[],
+    createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  auftraege.unshift(neuer);
+  detailId=neuer.id;
+  localStorage.removeItem('bau_ptp_import');
+  saveFile();renderListe();
+  openDetail(neuer.id);
+  toast('✅ Auftrag aus PTP-Workboard übernommen');
+}
+
 // ═══ UTILS ═══
 function genId(){ return 'a_'+Date.now()+'_'+Math.random().toString(36).substr(2,5); }
 function titelFormat(a){
@@ -844,6 +892,7 @@ async function openFile(){
     auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
     if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
     closeStart();updateFileStatus('ok',fileHandle.name);renderListe();
+    setTimeout(checkPtpImport,400);
   }catch(e){
     if(e.name!=='AbortError')toast('Fehler beim Öffnen: '+e.message);
   }
@@ -2142,7 +2191,7 @@ async function gdriveLoadFile(fileId,fileName){
   auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
   if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
   gdriveFileId=fileId;gdriveFileName=fileName;
-  updateFileStatus('ok',fileName);renderListe();toast('✅ Von Google Drive geladen');
+  updateFileStatus('ok',fileName);renderListe();toast('✅ Von Google Drive geladen');setTimeout(checkPtpImport,400);
 }
 async function gdriveCreateFile(){
   const content=JSON.stringify({auftraege:[],hvListe},null,2);
