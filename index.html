@@ -319,6 +319,7 @@ a{color:inherit;text-decoration:none;}
     </div>
     <div class="filebar-right">
       <button id="syncBtn" onclick="openSyncPanel()" style="padding:3px 10px;border-radius:4px;font-size:11px;background:transparent;color:#27ae60;border:1px solid #27ae60;cursor:pointer;font-weight:500">📡 Sync</button>
+      <button class="file-btn" onclick="openStatusModal()">⚙️ Status</button>
       <button class="file-btn" onclick="openFile()">&#128194; &#214;ffnen</button>
       <button class="file-btn" onclick="createNewFile()">&#10024; Neu</button>
       <button class="file-btn" onclick="downloadFile()">&#8659;</button>
@@ -427,7 +428,11 @@ a{color:inherit;text-decoration:none;}
         <div class="modal-field"><label>Rep.-Nr.</label><input type="text" id="fRep" placeholder="3476"></div>
         <div class="modal-field"><label>Datum</label><input type="date" id="fDat"></div>
         <div class="modal-field"><label>Status</label>
-          <input type="text" id="fStat" placeholder="z.B. Neu, In Bearbeitung, Abgeschlossen, Wartet auf Gutachter…" style="width:100%;">
+          <select id="fStat">
+            <option value="neu">&#128309; Neu</option>
+            <option value="bearbeitung">&#128992; In Bearbeitung</option>
+            <option value="abgeschlossen">&#128994; Abgeschlossen</option>
+          </select>
         </div>
         <div class="modal-field"><label>Auftraggeber (HV / Firma)</label><input type="text" id="fAG" placeholder="z.B. AHV, Muster Verwaltung"></div>
         <div class="modal-field"><label>Kunden-Nr.</label><input type="text" id="fKNr" placeholder="777"></div>
@@ -560,6 +565,24 @@ a{color:inherit;text-decoration:none;}
   </div>
 </div>
 
+<!-- ═══ STATUS VERWALTUNG MODAL ═══ -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>⚙️ Status verwalten</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px;">Status umbenennen, sortieren oder hinzufügen.</p>
+    <div id="statusListe" style="margin-bottom:12px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <input type="text" id="newStatusName" placeholder="Neuer Status..." style="flex:1;">
+      <button class="btn btn-primary btn-sm" onclick="addNewStatus()">➕ Hinzufügen</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeStatusModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveStatusConfig()">Übernehmen</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══ STATE ═══
 let auftraege = [];
@@ -679,6 +702,8 @@ function initZoomSlider(){
   window.addEventListener('DOMContentLoaded',()=>{
     const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=z;
     const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=z+'%';
+    loadStatusConfig();
+    updateStatusSelects();
   });
 })();
 
@@ -2196,6 +2221,73 @@ function openSyncPanel(){
   html+='<div style="margin-top:16px;text-align:right"><button onclick="this.closest(\'div[style*=position]\').remove()" style="padding:7px 16px;border-radius:6px;background:#6c63ff;color:#fff;border:none;cursor:pointer;font-size:13px">Schließen</button></div>';
   html+='</div></div>';
   document.body.insertAdjacentHTML('beforeend',html);
+}
+
+// ── STATUS VERWALTUNG ──
+let statusConfig={neu:'Neu',bearbeitung:'In Bearbeitung',abgeschlossen:'Abgeschlossen'};
+function loadStatusConfig(){
+  const saved=localStorage.getItem('bau_status_config');
+  if(saved)statusConfig=JSON.parse(saved);
+}
+function saveStatusConfigToStorage(){
+  localStorage.setItem('bau_status_config',JSON.stringify(statusConfig));
+}
+function openStatusModal(){
+  loadStatusConfig();
+  renderStatusList();
+  document.getElementById('statusModal').classList.add('open');
+  document.getElementById('newStatusName').value='';
+}
+function closeStatusModal(){
+  document.getElementById('statusModal').classList.remove('open');
+}
+function renderStatusList(){
+  const list=document.getElementById('statusListe');
+  let html='';
+  for(const key in statusConfig){
+    const name=statusConfig[key];
+    const colors={neu:'#4a90d9',bearbeitung:'#f39c12',abgeschlossen:'#2ecc71'};
+    const color=colors[key]||'#888';
+    html+=`<div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:8px;">
+      <span style="width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+      <input type="text" value="${esc(name)}" onchange="statusConfig['${key}']=this.value" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:4px;">
+      <button onclick="deleteStatus('${key}')" style="padding:4px 8px;background:#e74c3c;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">✕</button>
+    </div>`;
+  }
+  list.innerHTML=html;
+}
+function deleteStatus(key){
+  if(Object.keys(statusConfig).length<=1){alert('Es muss mindestens ein Status vorhanden sein');return;}
+  delete statusConfig[key];
+  renderStatusList();
+}
+function addNewStatus(){
+  const input=document.getElementById('newStatusName');
+  const name=input.value.trim();
+  if(!name){alert('Bitte einen Namen eingeben');return;}
+  const key=name.toLowerCase().replace(/\s+/g,'_').substring(0,20);
+  if(statusConfig[key]){alert('Dieser Status existiert bereits');return;}
+  statusConfig[key]=name;
+  input.value='';
+  renderStatusList();
+}
+function saveStatusConfig(){
+  saveStatusConfigToStorage();
+  updateStatusSelects();
+  toast('✓ Status-Konfiguration gespeichert');
+  closeStatusModal();
+}
+function updateStatusSelects(){
+  const fStat=document.getElementById('fStat');
+  const dStat=document.getElementById('dStat');
+  if(fStat){
+    fStat.innerHTML='';
+    for(const key in statusConfig)fStat.innerHTML+=`<option value="${key}">${statusConfig[key]}</option>`;
+  }
+  if(dStat){
+    dStat.innerHTML='';
+    for(const key in statusConfig)dStat.innerHTML+=`<option value="${key}">${statusConfig[key]}</option>`;
+  }
 }
 
 </script>
