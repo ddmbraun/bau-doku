@@ -1060,7 +1060,7 @@ async function statusWechseln(neuerStatus){
   auftraege[idx].status=neuerStatus;
   const dStat=document.getElementById('dStat');if(dStat)dStat.value=neuerStatus;
   updateDetailStatusBar(neuerStatus);
-  await saveFile();renderListe();toast('✅ Status geändert');
+  await saveFile();pushToSync();renderListe();toast('✅ Status geändert');
 }
 function updateDetailStatusBar(status){
   const scIdx=statusConfig.findIndex(s=>s.key===status);
@@ -1119,6 +1119,7 @@ async function speichernDetail(){
   document.getElementById('detailTitel').textContent=titelFormat(data);
   updateDetailStatusBar(data.status);
   await saveFile();renderListe();
+  pushToSync();
   const ind=document.getElementById('saveIndicator');
   if(ind){ind.textContent='✓ Gespeichert';ind.style.color='var(--green)';setTimeout(()=>{if(ind)ind.textContent='';},2500);}
 }
