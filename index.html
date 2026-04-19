@@ -455,6 +455,7 @@ a{color:inherit;text-decoration:none;}
           </div>
         </div>
         <div class="modal-field full"><label>Schadensbild</label><textarea id="fSch" placeholder="2. OG links, Feuchtigkeit K&#252;che&#8230;"></textarea></div>
+        <div class="modal-field full"><label>Ausführungsdatum</label><input type="date" id="fAusf" style="width:100%;"></div>
       </div>
     </div>
     <div class="form-collapse open" id="ansprchsect">
@@ -893,6 +894,7 @@ async function speichernDetail(){
     strasse:(()=>{const m=adresseRaw.match(/^(.+?),\s*\d{5}/);return m?m[1].trim():adresseRaw;})(),
     ort:(()=>{const m=adresseRaw.match(/,\s*(\d{5}.+)$/);return m?m[1].trim():'';})(),
     schaden:document.getElementById('dSch').value.trim(),
+    ausführungsdatum:document.getElementById('dAusf').value.trim(),
     agKontaktName:document.getElementById('dAGN').value.trim(),
     agKontaktTel:document.getElementById('dAGT').value.trim(),
     agKontaktEmail:document.getElementById('dAGE').value.trim(),
@@ -983,6 +985,9 @@ function renderDetailEditable(a){
     +'</div></div>'
     +'<div class="modal-field full"><label>Schadensbild</label>'
     +'<textarea id="dSch" oninput="scheduleAutoSave()" placeholder="2. OG links, Feuchtigkeit Küche…">'+esc(a.schaden||'')+'</textarea>'
+    +'</div>'
+    +'<div class="modal-field full"><label>Ausführungsdatum</label>'
+    +'<input type="date" id="dAusf" oninput="scheduleAutoSave()" value="'+v(a.ausführungsdatum||'')+'" style="width:100%;">'
     +'</div></div></div></div>';
 
   // Ansprechpartner (aufgeklappt) – dynamische Kontaktliste
@@ -1425,6 +1430,7 @@ function importReadmeDetail(event){
     }
     const str=rv('Objekt_Strasse');if(str)document.getElementById('dAdr').value=str;
     const sch=readValMulti(txt,'Baustelle_Schadensbild');if(sch)document.getElementById('dSch').value=sch;
+    const ausf=readValMulti(txt,'Baustelle_Ausführungsdatum');if(ausf)document.getElementById('dAusf').value=ausf;
     if(rv('AG_Kontakt_Name'))document.getElementById('dAGN').value=rv('AG_Kontakt_Name');
     if(rv('AG_Kontakt_Tel')){document.getElementById('dAGT').value=rv('AG_Kontakt_Tel');updateTelAnchor(document.getElementById('dAGT'));}
     if(rv('AG_Kontakt_Email'))document.getElementById('dAGE').value=rv('AG_Kontakt_Email');
@@ -1667,6 +1673,7 @@ function openBearbeiten(){
   document.getElementById('fHV').value=a.hv||'';
   document.getElementById('fAdr').value=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   document.getElementById('fSch').value=a.schaden||'';
+  document.getElementById('fAusf').value=a.ausführungsdatum||'';
   document.getElementById('fAGN').value=a.agKontaktName||'';
   document.getElementById('fAGT').value=a.agKontaktTel||'';
   document.getElementById('fAGE').value=a.agKontaktEmail||'';
@@ -1692,7 +1699,7 @@ function openBearbeiten(){
 }
 function closeForm(){document.getElementById('formModal').classList.remove('open');}
 function clearForm(){
-  ['fKS','fRep','fDat','fAG','fKNr','fHV','fAdr','fSch',
+  ['fKS','fRep','fDat','fAG','fKNr','fHV','fAdr','fSch','fAusf',
    'fAGN','fAGT','fAGE','fMN','fMT','fME','fEN','fET','fEE','fGD','fNAS','fNot'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
@@ -1717,6 +1724,7 @@ async function speichern(){
     strasse:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/^(.+?),\s*\d{5}/);return m?m[1].trim():a;})(),
     ort:(()=>{const a=document.getElementById('fAdr').value.trim();const m=a.match(/,\s*(\d{5}.+)$/);return m?m[1].trim():'';})(),
     schaden:document.getElementById('fSch').value.trim(),
+    ausführungsdatum:document.getElementById('fAusf').value.trim(),
     agKontaktName:document.getElementById('fAGN').value.trim(),
     agKontaktTel:document.getElementById('fAGT').value.trim(),
     agKontaktEmail:document.getElementById('fAGE').value.trim(),
@@ -1779,6 +1787,7 @@ function importReadme(event){
     }
     const str=v('Objekt_Strasse');if(str)document.getElementById('fAdr').value=str;
     if(v('Baustelle_Schadensbild'))document.getElementById('fSch').value=v('Baustelle_Schadensbild');
+    if(v('Baustelle_Ausführungsdatum'))document.getElementById('fAusf').value=v('Baustelle_Ausführungsdatum');
     if(v('Eigentuemer_Name'))document.getElementById('fEN').value=v('Eigentuemer_Name');
     if(v('Eigentuemer_Telefon'))document.getElementById('fET').value=v('Eigentuemer_Telefon');
     if(v('Eigentuemer_Email'))document.getElementById('fEE').value=v('Eigentuemer_Email');
@@ -1815,7 +1824,8 @@ function exportReadme(id){
   L('OBJEKT');
   L('Objekt_Strasse: '+(a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ')));
   L('Objekt_Hausverwaltung: '+(a.hv||'(noch offen)'));
-  L('Baustelle_Schadensbild: '+(a.schaden||'(noch offen)'));L('');
+  L('Baustelle_Schadensbild: '+(a.schaden||'(noch offen)'));
+  L('Baustelle_Ausführungsdatum: '+(a.ausführungsdatum||'(noch offen)'));L('');
   const _eig=(a.kontakte||[]).find(k=>k.rolle==='eigentuemer')||{};
   const _miet=(a.kontakte||[]).find(k=>k.rolle==='mieter')||{};
   L('EIGENTUEMER');
