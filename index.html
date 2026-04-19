@@ -694,6 +694,69 @@ function initZoomSlider(){
   const zsl=document.getElementById('zoomSliderList');if(zsl)zsl.value=z;
   const zvl=document.getElementById('zoomValList');if(zvl)zvl.textContent=z+'%';
 }
+// ═══ STATUS KONFIGURATION ═══
+let statusConfig=[
+  {key:'neu',label:'🔵 Neu'},
+  {key:'bearbeitung',label:'🟠 In Bearbeitung'},
+  {key:'abgeschlossen',label:'🟢 Abgeschlossen'}
+];
+function loadStatusConfig(){
+  const saved=localStorage.getItem('bau_status_config');
+  if(saved){try{const p=JSON.parse(saved);if(Array.isArray(p)&&p.length)statusConfig=p;}catch(e){}}
+}
+function updateStatusSelects(){
+  ['fStat'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    const cur=sel.value;sel.innerHTML='';
+    statusConfig.forEach(s=>{const o=document.createElement('option');o.value=s.key;o.textContent=s.label;sel.appendChild(o);});
+    if([...sel.options].some(o=>o.value===cur))sel.value=cur;
+  });
+}
+function openStatusModal(){
+  renderStatusListe();
+  document.getElementById('statusModal').classList.add('open');
+}
+function closeStatusModal(){
+  document.getElementById('statusModal').classList.remove('open');
+}
+function renderStatusListe(){
+  const c=document.getElementById('statusListe');if(!c)return;
+  c.innerHTML='';
+  statusConfig.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='status-edit-item';div.dataset.key=s.key;
+    div.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+    div.innerHTML='<input type="text" value="'+s.label.replace(/"/g,'&quot;')+'" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-size:13px;">'
+      +(statusConfig.length>1?'<button onclick="this.closest(\'.status-edit-item\').remove()" style="background:none;border:none;cursor:pointer;color:#e74c3c;font-size:18px;line-height:1;">🗑</button>':'');
+    c.appendChild(div);
+  });
+}
+function addNewStatus(){
+  const inp=document.getElementById('newStatusName');
+  const name=inp.value.trim();if(!name)return;
+  const key='custom_'+Date.now();
+  const c=document.getElementById('statusListe');
+  const div=document.createElement('div');
+  div.className='status-edit-item';div.dataset.key=key;
+  div.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+  div.innerHTML='<input type="text" value="'+name.replace(/"/g,'&quot;')+'" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-size:13px;">'
+    +'<button onclick="this.closest(\'.status-edit-item\').remove()" style="background:none;border:none;cursor:pointer;color:#e74c3c;font-size:18px;line-height:1;">🗑</button>';
+  c.appendChild(div);inp.value='';
+}
+function saveStatusConfig(){
+  const items=document.querySelectorAll('#statusListe .status-edit-item');
+  const newCfg=[];
+  items.forEach(item=>{
+    const key=item.dataset.key;
+    const label=(item.querySelector('input')||{}).value||'';
+    if(key&&label.trim())newCfg.push({key,label:label.trim()});
+  });
+  if(!newCfg.length){toast('⚠️ Mindestens ein Status erforderlich');return;}
+  statusConfig=newCfg;
+  localStorage.setItem('bau_status_config',JSON.stringify(statusConfig));
+  updateStatusSelects();closeStatusModal();toast('✅ Status gespeichert');
+}
+
 (function(){
   let z=localStorage.getItem('bau_zoom')||'100';
   if(Number(z)<30)z='100';
@@ -882,13 +945,13 @@ async function statusWechseln(neuerStatus){
   await saveFile();renderListe();toast('✅ Status geändert');
 }
 function updateDetailStatusBar(status){
-  const statusLabel={neu:'🔵 Neu',bearbeitung:'🟠 In Bearbeitung',abgeschlossen:'🟢 Abgeschlossen'}[status]||status;
-  const nextStatus={neu:'bearbeitung',bearbeitung:'abgeschlossen',abgeschlossen:'neu'};
-  const nextLabel={neu:'→ In Bearbeitung',bearbeitung:'→ Abgeschlossen',abgeschlossen:'→ Neu'};
+  const scIdx=statusConfig.findIndex(s=>s.key===status);
+  const sc=scIdx>=0?statusConfig[scIdx]:{key:status,label:status};
+  const nextSc=statusConfig[(scIdx+1)%statusConfig.length]||statusConfig[0];
   const sb=document.querySelector('#detailBody .status-badge');
-  if(sb){sb.className='status-badge '+status;sb.textContent=statusLabel;}
+  if(sb){sb.className='status-badge '+status;sb.textContent=sc.label;}
   const scb=document.querySelector('#detailBody .status-change-btn');
-  if(scb){scb.textContent=nextLabel[status];scb.setAttribute('onclick','statusWechseln(\''+nextStatus[status]+'\')');}
+  if(scb){scb.textContent='→ '+nextSc.label;scb.setAttribute('onclick','statusWechseln(\''+nextSc.key+'\')');}
 }
 
 // ═══ AUTO-SAVE ═══
@@ -957,16 +1020,17 @@ function loeschenDirekt(){
 // ═══ DETAIL FORM RENDER ═══
 function renderDetailEditable(a){
   function v(val){return(val||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
-  const statusLabel={neu:'🔵 Neu',bearbeitung:'🟠 In Bearbeitung',abgeschlossen:'🟢 Abgeschlossen'}[a.status]||a.status;
-  const nextStatus={neu:'bearbeitung',bearbeitung:'abgeschlossen',abgeschlossen:'neu'};
-  const nextLabel={neu:'→ In Bearbeitung',bearbeitung:'→ Abgeschlossen',abgeschlossen:'→ Neu'};
+  const scIdx=statusConfig.findIndex(s=>s.key===a.status);
+  const sc=scIdx>=0?statusConfig[scIdx]:{key:a.status,label:a.status};
+  const nextSc=statusConfig[(scIdx+1)%statusConfig.length]||statusConfig[0];
+  const statusLabel=sc.label;
   const adresse=a.adresse||[(a.strasse||''),(a.ort||'')].filter(Boolean).join(', ');
   const termine=(a.termine||[]).filter(t=>t.datum||t.von||t.beschreibung);
   let html='';
 
   html+='<div class="detail-status-bar">'
     +'<span class="status-badge '+a.status+'">'+statusLabel+'</span>'
-    +'<button class="status-change-btn" onclick="statusWechseln(\''+nextStatus[a.status]+'\')">'+nextLabel[a.status]+'</button>'
+    +'<button class="status-change-btn" onclick="statusWechseln(\''+nextSc.key+'\')">→ '+nextSc.label+'</button>'
     +'</div>';
 
   // Auftragsdaten als versteckte Felder (kein sichtbarer Abschnitt mehr)
