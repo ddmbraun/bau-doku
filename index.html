@@ -397,19 +397,15 @@ a{color:inherit;text-decoration:none;}
   <div class="start-card">
     <div class="modal-handle"></div>
     <h2>&#127959; Bau-Doku</h2>
-    <p>W&#228;hle einen Speicherort f&#252;r deine Daten.<br>Alle &#196;nderungen werden automatisch gespeichert.</p>
+    <p>Daten werden in Google Drive gespeichert.<br>Lokale Daten werden automatisch &#252;bertragen.</p>
     <div class="start-btns">
       <button class="start-btn drive-open" onclick="gdriveOpenExisting()">
         <span class="start-btn-icon">&#9729;&#65039;</span>
-        <span class="start-btn-text"><span class="start-btn-label">Google Drive &#246;ffnen</span><span class="start-btn-sub">Vorhandene bau-doku.json aus Drive laden</span></span>
-      </button>
-      <button class="start-btn drive-new" onclick="gdriveCreateNew()">
-        <span class="start-btn-icon">&#10024;</span>
-        <span class="start-btn-text"><span class="start-btn-label">Neue Datei in Google Drive</span><span class="start-btn-sub">Neue bau-doku.json in Drive anlegen</span></span>
+        <span class="start-btn-text"><span class="start-btn-label">Mit Google Drive verbinden</span><span class="start-btn-sub">Daten laden oder lokale Daten automatisch migrieren</span></span>
       </button>
       <button class="start-btn local-open" onclick="openFile()">
         <span class="start-btn-icon">&#128194;</span>
-        <span class="start-btn-text"><span class="start-btn-label">Lokale Datei &#246;ffnen</span><span class="start-btn-sub">bau-doku.json vom Computer laden</span></span>
+        <span class="start-btn-text"><span class="start-btn-label">Lokale Datei &#246;ffnen</span><span class="start-btn-sub">bau-doku.json vom Computer laden (Fallback)</span></span>
       </button>
       <button class="start-btn local-new" onclick="createNewFile()">
         <span class="start-btn-icon">&#128190;</span>
@@ -1132,6 +1128,7 @@ function loeschenDirekt(){
   if(globalTimerAuftragId===detailId){globalTimerStartMs=null;globalTimerAuftragId=null;localStorage.removeItem('bau_timer');}
   auftraege=auftraege.filter(a=>a.id!==detailId);isNewUnsaved=false;
   saveFile();
+  pushToSync();
   document.getElementById('detailView').classList.remove('active');
   document.getElementById('listView').classList.remove('hidden');
   detailId=null;document.getElementById('detailBody').innerHTML='';
@@ -1551,6 +1548,7 @@ function stopGlobalTimer(){
     if(!auftraege[idx].zeiterfassung)auftraege[idx].zeiterfassung=[];
     auftraege[idx].zeiterfassung.push({datum,von,bis,beschreibung:'Aufzeichnung'});
     saveFile();
+    pushToSync();
     if(detailId===aid){
       addZeitDetail(datum,von,bis,'Aufzeichnung');
       updateZeitGesamtDetail();
@@ -1989,6 +1987,7 @@ async function speichern(){
     data.createdAt=new Date().toISOString();auftraege.unshift(data);detailId=data.id;
   }
   await saveFile();closeForm();renderListe();
+  pushToSync();
   if(detailId){const a=auftraege.find(x=>x.id===detailId);if(a){document.getElementById('detailTitel').textContent=titelFormat(a);}}
   toast('✅ Gespeichert');
 }
@@ -1997,6 +1996,7 @@ async function loeschen(){
   const existId=document.getElementById('fId').value;
   auftraege=auftraege.filter(a=>a.id!==existId);
   await saveFile();closeForm();
+  pushToSync();
   document.getElementById('detailView').classList.remove('active');
   document.getElementById('listView').classList.remove('hidden');
   detailId=null;document.getElementById('detailBody').innerHTML='';
@@ -2159,12 +2159,16 @@ function nasKopierenForm(){
 // ═══ GOOGLE DRIVE OAUTH ═══
 const GDRIVE_CLIENT_ID='56419258975-2ri3eujer9p6saph1mesa5hihlcae1pl.apps.googleusercontent.com';
 const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.file';
+const WORKSPACE_FOLDER_NAME='PTP-BAU Daten';
+let workspaceFolderId=localStorage.getItem('workspace_folder_id')||null;
 let gdriveToken=null;
 let gdriveFileId=null;
-let gdriveFileName='bau-doku.json';
+let gdriveFileName='bau_auftraege.json';
 let gdriveTokenClient=null;
 let gdrivePendingAction=null;
 let gdriveSaving=false;
+let bauLastModified=null;
+let bauPollTimer=null;
 
 function gdriveInit(){
   if(!window.google||!window.google.accounts)return;
@@ -2172,7 +2176,29 @@ function gdriveInit(){
     client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPE,callback:gdriveTokenCallback,
   });
 }
-function gdriveTokenCallback(resp){
+async function ensureWorkspaceFolder(){
+  if(workspaceFolderId)return workspaceFolderId;
+  const q=encodeURIComponent("name='"+WORKSPACE_FOLDER_NAME+"' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+  const r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name)&orderBy=createdTime',
+    {headers:{Authorization:'Bearer '+gdriveToken}});
+  if(!r.ok)throw new Error('Ordner-Suche: HTTP '+r.status);
+  const d=await r.json();
+  if(d.files&&d.files.length>0){
+    workspaceFolderId=d.files[0].id;
+  }else{
+    const cr=await fetch('https://www.googleapis.com/drive/v3/files',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
+      body:JSON.stringify({name:WORKSPACE_FOLDER_NAME,mimeType:'application/vnd.google-apps.folder'})
+    });
+    if(!cr.ok)throw new Error('Ordner-Erstellung: HTTP '+cr.status);
+    const f=await cr.json();
+    workspaceFolderId=f.id;
+  }
+  localStorage.setItem('workspace_folder_id',workspaceFolderId);
+  return workspaceFolderId;
+}
+async function gdriveTokenCallback(resp){
   if(resp.error){
     toast('⚠ Google Drive: '+resp.error);
     // Startmenü wieder öffnen wenn kein File geladen
@@ -2181,6 +2207,7 @@ function gdriveTokenCallback(resp){
   }
   gdriveToken=resp.access_token;
   const action=gdrivePendingAction;gdrivePendingAction=null;
+  try{await ensureWorkspaceFolder();}catch(e){console.warn('Workspace-Ordner:',e);}
   if(action==='load')gdrivePickAndLoad();
   else if(action==='new')gdriveCreateFile();
   else if(action==='save')gdriveSaveData();
@@ -2212,65 +2239,286 @@ function gdriveCreateNew(){
 async function gdrivePickAndLoad(){
   updateFileStatus('none','☁️ Suche in Google Drive…');
   try{
+    // 1. Neue Datei bau_auftraege.json suchen
+    let q="name='bau_auftraege.json' and mimeType='application/json' and trashed=false";
+    if(workspaceFolderId)q+=" and '"+workspaceFolderId+"' in parents";
     const r=await fetch(
-      "https://www.googleapis.com/drive/v3/files?q=name%3D'bau-doku.json'%20and%20mimeType%3D'application%2Fjson'%20and%20trashed%3Dfalse&fields=files(id%2Cname%2CmodifiedTime)&orderBy=modifiedTime%20desc",
+      'https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(q)+'&fields=files(id%2Cname%2CmodifiedTime)&orderBy=modifiedTime%20desc',
       {headers:{Authorization:'Bearer '+gdriveToken}}
     );
     const json=await r.json();
-    const files=json.files||[];
-    if(!files.length){
-      if(confirm('Keine bau-doku.json in Google Drive gefunden.\nJetzt eine neue Datei erstellen?'))gdriveCreateFile();
-      else updateFileStatus('none','Keine Datei');
+    let files=json.files||[];
+
+    // 2. Fallback: Neue Datei ohne Ordnerfilter (Drive-Root)
+    if(!files.length&&workspaceFolderId){
+      const r2=await fetch(
+        'https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent("name='bau_auftraege.json' and mimeType='application/json' and trashed=false")+'&fields=files(id%2Cname%2CmodifiedTime)&orderBy=modifiedTime%20desc',
+        {headers:{Authorization:'Bearer '+gdriveToken}}
+      );
+      if(r2.ok){const d2=await r2.json();files=d2.files||[];}
+    }
+
+    if(files.length){
+      await gdriveLoadFile(files[0].id,files[0].name);
       return;
     }
-    let chosenFile=files[0];
-    if(files.length>1){
-      const namen=files.map((f,i)=>(i+1)+'. '+f.name+' ('+new Date(f.modifiedTime).toLocaleDateString('de-DE')+')').join('\n');
-      const idx=parseInt(prompt('Mehrere Dateien gefunden:\n'+namen+'\n\nNummer wählen:','1'));
-      if(isNaN(idx)||idx<1||idx>files.length){updateFileStatus('none','Abgebrochen');return;}
-      chosenFile=files[idx-1];
+
+    // 3. Alte bau-doku.json? → Daten laden + in neues Format migrieren
+    const rOld=await fetch(
+      'https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent("name='bau-doku.json' and mimeType='application/json' and trashed=false")+'&fields=files(id%2Cname%2CmodifiedTime)&orderBy=modifiedTime%20desc',
+      {headers:{Authorization:'Bearer '+gdriveToken}}
+    );
+    if(rOld.ok){
+      const dOld=await rOld.json();
+      if(dOld.files&&dOld.files.length){
+        const rData=await fetch('https://www.googleapis.com/drive/v3/files/'+dOld.files[0].id+'?alt=media',
+          {headers:{Authorization:'Bearer '+gdriveToken}});
+        if(rData.ok){
+          const oldData=await rData.json();
+          loadFromBauObject(oldData);
+          toast('↻ Alte bau-doku.json gelesen – migriere…');
+          await gdriveCreateFile(); // erstellt bau_auftraege.json mit aktuellem State
+          return;
+        }
+      }
     }
-    await gdriveLoadFile(chosenFile.id,chosenFile.name);
+
+    // 4. Nichts gefunden → Auto-Migration lokaler Daten oder neue Datei
+    await gdriveCreateFile();
   }catch(e){toast('⚠ Google Drive: '+e.message);updateFileStatus('none','Fehler');}
 }
 async function gdriveLoadFile(fileId,fileName){
-  const r=await fetch('https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media',{headers:{Authorization:'Bearer '+gdriveToken}});
+  const r=await fetch('https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media',
+    {headers:{Authorization:'Bearer '+gdriveToken}});
+  if(!r.ok)throw new Error('Laden fehlgeschlagen: HTTP '+r.status);
   const data=await r.json();
-  auftraege=(Array.isArray(data)?data:(data.auftraege||[])).map(migrateAuftrag);
-  if(data.hvListe){hvListe=data.hvListe;localStorage.setItem('bau_hv',JSON.stringify(hvListe));}
-  gdriveFileId=fileId;gdriveFileName=fileName;
-  updateFileStatus('ok',fileName);renderListe();toast('✅ Von Google Drive geladen');setTimeout(checkPtpImport,400);
+  loadFromBauObject(data);
+  gdriveFileId=fileId;gdriveFileName=fileName;fileSource='drive';
+  updateFileStatus('ok','☁️ '+fileName);renderListe();toast('✅ Von Google Drive geladen');
+  setTimeout(checkPtpImport,400);
+  // Polling starten
+  startBauPolling();
+  // Tägliches Backup
+  try{maybeDailyBauBackup();}catch(e){}
+  // Migration: Datei in Arbeitsordner verschieben, falls noch im Drive-Root
+  if(workspaceFolderId)migrateFileToWorkspaceFolder(fileId).catch(()=>{});
+}
+async function migrateFileToWorkspaceFolder(fileId){
+  if(!workspaceFolderId||!fileId||!gdriveToken)return;
+  const mr=await fetch('https://www.googleapis.com/drive/v3/files/'+fileId+'?fields=parents',
+    {headers:{Authorization:'Bearer '+gdriveToken}});
+  if(!mr.ok)return;
+  const meta=await mr.json();
+  const parents=meta.parents||[];
+  if(parents.includes(workspaceFolderId))return;
+  const removeParents=parents.join(',');
+  await fetch('https://www.googleapis.com/drive/v3/files/'+fileId
+    +'?addParents='+encodeURIComponent(workspaceFolderId)
+    +(removeParents?'&removeParents='+encodeURIComponent(removeParents):'')
+    +'&fields=id',
+    {method:'PATCH',headers:{Authorization:'Bearer '+gdriveToken}});
 }
 async function gdriveCreateFile(){
-  const content=JSON.stringify({auftraege:[],hvListe},null,2);
+  // Lokale Daten migrieren (hvListe + statusConfig aus localStorage, auftraege aus Speicher)
+  const localHv=JSON.parse(localStorage.getItem('bau_hv')||'[]');
+  const localSc=JSON.parse(localStorage.getItem('bau_status_config')||'null');
+  if(localHv.length&&!hvListe.length)hvListe=localHv;
+  if(localSc&&Array.isArray(localSc)&&localSc.length)statusConfig=localSc;
+  const saveObj=buildBauSaveObject();
+  const content=JSON.stringify(saveObj,null,2);
   const boundary='bau_boundary_'+Date.now();
+  const bauMeta={name:'bau_auftraege.json',mimeType:'application/json'};
+  if(workspaceFolderId)bauMeta.parents=[workspaceFolderId];
   const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'
-    +JSON.stringify({name:'bau-doku.json',mimeType:'application/json'})
+    +JSON.stringify(bauMeta)
     +'\r\n--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+content+'\r\n--'+boundary+'--';
   try{
-    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime',{
       method:'POST',
       headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+boundary},
       body
     });
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const file=await r.json();
-    gdriveFileId=file.id;gdriveFileName=file.name||'bau-doku.json';
-    auftraege=[];updateFileStatus('ok',gdriveFileName);renderListe();toast('✅ Neue Datei in Google Drive erstellt');
+    gdriveFileId=file.id;gdriveFileName=file.name||'bau_auftraege.json';
+    if(file.modifiedTime)bauLastModified=file.modifiedTime;
+    fileSource='drive';
+    const hadLocalData=auftraege.length>0||hvListe.length>0;
+    const msg=hadLocalData?'✅ Lokale Daten nach Drive übertragen':'✅ Neue Datei in Google Drive erstellt';
+    updateFileStatus('ok','☁️ '+gdriveFileName);renderListe();toast(msg);
+    startBauPolling();
+    try{maybeDailyBauBackup();}catch(e){}
   }catch(e){toast('⚠ Drive-Fehler: '+e.message);}
 }
 async function gdriveSaveData(){
   if(!gdriveFileId||!gdriveToken||gdriveSaving)return;
   gdriveSaving=true;
   try{
-    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+gdriveFileId+'?uploadType=media',{
+    // Konflikt-Check: hat ein anderes Gerät inzwischen geschrieben?
+    try{
+      const mr=await fetch('https://www.googleapis.com/drive/v3/files/'+gdriveFileId+'?fields=modifiedTime&_='+Date.now(),
+        {headers:{Authorization:'Bearer '+gdriveToken},cache:'no-store'});
+      if(mr.ok){
+        const meta=await mr.json();
+        if(bauLastModified&&meta.modifiedTime&&meta.modifiedTime!==bauLastModified){
+          const fr=await fetch('https://www.googleapis.com/drive/v3/files/'+gdriveFileId+'?alt=media&_='+Date.now(),
+            {headers:{Authorization:'Bearer '+gdriveToken,'Cache-Control':'no-cache'},cache:'no-store'});
+          if(fr.ok){
+            const remote=await fr.json();
+            const local=buildBauSaveObject();
+            const merged=mergeByAuftragId(remote,local);
+            loadFromBauObject(merged);
+            renderListe();
+          }
+        }
+      }
+    }catch(e){}
+    const content=JSON.stringify(buildBauSaveObject(),null,2);
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+gdriveFileId+'?uploadType=media&fields=modifiedTime',{
       method:'PATCH',
       headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
-      body:JSON.stringify({auftraege,hvListe},null,2)
+      body:content
     });
-    if(r.ok){pushToSync();updateFileStatus('ok',gdriveFileName);}
-    else updateFileStatus('unsaved',gdriveFileName);
+    if(r.ok){
+      try{const meta=await r.json();if(meta&&meta.modifiedTime)bauLastModified=meta.modifiedTime;}catch(e){}
+      pushToSync();
+      updateFileStatus('ok','☁️ '+gdriveFileName);
+    }else{
+      updateFileStatus('unsaved',gdriveFileName);
+    }
   }catch(e){updateFileStatus('unsaved',gdriveFileName);}
   finally{gdriveSaving=false;}
+}
+
+// ═══ BAU DRIVE HELPERS (Schema, Merge, Polling, Backup) ═══
+
+function buildBauSaveObject(){
+  return{
+    schema:1,
+    modifiedTime:new Date().toISOString(),
+    deviceId:DEVICE_ID,
+    hvListe:hvListe,
+    statusConfig:statusConfig,
+    auftraege:auftraege
+  };
+}
+
+function loadFromBauObject(data){
+  if(!data)return;
+  if(Array.isArray(data)){
+    auftraege=data.map(migrateAuftrag);
+  }else{
+    auftraege=(data.auftraege||[]).map(migrateAuftrag);
+    if(Array.isArray(data.hvListe)&&data.hvListe.length){
+      hvListe=data.hvListe;
+      localStorage.setItem('bau_hv',JSON.stringify(hvListe));
+    }
+    if(Array.isArray(data.statusConfig)&&data.statusConfig.length){
+      statusConfig=data.statusConfig;
+      localStorage.setItem('bau_status_config',JSON.stringify(statusConfig));
+      updateStatusSelects();
+    }
+  }
+}
+
+function mergeByAuftragId(remote,local){
+  const remoteArr=Array.isArray(remote.auftraege)?remote.auftraege:[];
+  const localArr=Array.isArray(local.auftraege)?local.auftraege:[];
+  const remoteIds=new Set(remoteArr.map(a=>a&&a.id).filter(Boolean));
+  const merged=[...remoteArr];
+  // Offenes Detail: lokale Version gewinnt
+  if(detailId){
+    const lt=localArr.find(a=>a&&a.id===detailId);
+    if(lt){
+      const idx=merged.findIndex(a=>a&&a.id===detailId);
+      if(idx>=0)merged[idx]=lt; else merged.push(lt);
+    }
+  }
+  // Lokal neu angelegte Aufträge hinzufügen
+  for(const la of localArr){
+    if(!la||!la.id)continue;
+    if(!remoteIds.has(la.id)&&la.id!==detailId){
+      if(!merged.some(a=>a&&a.id===la.id))merged.push(la);
+    }
+  }
+  return{
+    ...remote,
+    auftraege:merged,
+    hvListe:Array.isArray(remote.hvListe)&&remote.hvListe.length?remote.hvListe:(Array.isArray(local.hvListe)?local.hvListe:hvListe),
+    statusConfig:Array.isArray(remote.statusConfig)&&remote.statusConfig.length?remote.statusConfig:(Array.isArray(local.statusConfig)?local.statusConfig:statusConfig)
+  };
+}
+
+async function pollBauFile(){
+  if(!gdriveFileId||!gdriveToken)return;
+  const ae=document.activeElement;
+  if(ae&&['INPUT','TEXTAREA','SELECT'].includes(ae.tagName))return;
+  if(document.querySelector('.modal-overlay.open'))return;
+  try{
+    const mr=await fetch('https://www.googleapis.com/drive/v3/files/'+gdriveFileId+'?fields=modifiedTime&_='+Date.now(),
+      {headers:{Authorization:'Bearer '+gdriveToken},cache:'no-store'});
+    if(!mr.ok)return;
+    const meta=await mr.json();
+    if(!bauLastModified){bauLastModified=meta.modifiedTime;return;}
+    if(meta.modifiedTime===bauLastModified)return;
+    const r=await fetch('https://www.googleapis.com/drive/v3/files/'+gdriveFileId+'?alt=media&_='+Date.now(),
+      {headers:{Authorization:'Bearer '+gdriveToken,'Cache-Control':'no-cache'},cache:'no-store'});
+    if(!r.ok)return;
+    const data=await r.json();
+    loadFromBauObject(data);
+    renderListe();
+    bauLastModified=meta.modifiedTime;
+    try{
+      const fd=document.getElementById('fileName');
+      if(fd)fd.textContent='☁️ '+gdriveFileName+' ↻ '+new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){}
+  }catch(e){}
+}
+
+function startBauPolling(){
+  if(bauPollTimer)clearInterval(bauPollTimer);
+  pollBauFile();
+  bauPollTimer=setInterval(pollBauFile,10000);
+  if(!window._bauPollVisHooked){
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pollBauFile();});
+    window._bauPollVisHooked=true;
+  }
+}
+
+async function maybeDailyBauBackup(){
+  if(!gdriveFileId||!gdriveToken||!workspaceFolderId)return;
+  const today=new Date().toISOString().split('T')[0];
+  if(localStorage.getItem('bau_last_backup_date')===today)return;
+  try{
+    // backups/-Unterordner ermitteln oder anlegen
+    const q=encodeURIComponent("name='backups' and mimeType='application/vnd.google-apps.folder' and trashed=false and '"+workspaceFolderId+"' in parents");
+    const fr=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id)',
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    let bkpFolderId=null;
+    if(fr.ok){
+      const fd=await fr.json();
+      if(fd.files&&fd.files.length){
+        bkpFolderId=fd.files[0].id;
+      }else{
+        const cr=await fetch('https://www.googleapis.com/drive/v3/files',{
+          method:'POST',
+          headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
+          body:JSON.stringify({name:'backups',mimeType:'application/vnd.google-apps.folder',parents:[workspaceFolderId]})
+        });
+        if(cr.ok){const f=await cr.json();bkpFolderId=f.id;}
+      }
+    }
+    if(!bkpFolderId)return;
+    const bkpName='bau_auftraege_'+today+'.json';
+    const content=JSON.stringify(buildBauSaveObject(),null,2);
+    const b='bau_bkp_'+Date.now();
+    const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'
+      +JSON.stringify({name:bkpName,mimeType:'application/json',parents:[bkpFolderId]})
+      +'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+content+'\r\n--'+b+'--';
+    const br=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+      {method:'POST',headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+b},body});
+    if(br.ok)localStorage.setItem('bau_last_backup_date',today);
+  }catch(e){console.warn('BAU Backup:',e);}
 }
 
 // ═══ SCHADENSBILD OVERLAY ═══
@@ -2354,7 +2602,9 @@ async function syncCreate(){
   const empty={version:1,lastUpdated:new Date().toISOString(),updatedBy:SYNC_SOURCE,termine:[],zeiterfassung:[]};
   const content=JSON.stringify(empty,null,2);
   const b='sb_'+Date.now();
-  const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify({name:SYNC_FILE_NAME,mimeType:'application/json'})+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+content+'\r\n--'+b+'--';
+  const syncMeta={name:SYNC_FILE_NAME,mimeType:'application/json'};
+  if(workspaceFolderId)syncMeta.parents=[workspaceFolderId];
+  const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(syncMeta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+content+'\r\n--'+b+'--';
   const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
     {method:'POST',headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+b},body});
   const f=await r.json();
