@@ -1003,7 +1003,8 @@ function renderKarte(a){
   const zeiten=z.length?'<span class="badge">⏱ '+berechneTotalZeit(z)+'</span>':'';
   const aufnahme=(globalTimerStartMs&&globalTimerAuftragId===a.id)
     ?'<span class="badge" style="color:#dc2626;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);">⏺ läuft</span>':'';
-  const ptpMatch=a.ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&z.kostenstelle===a.ks):[];
+  const _aks=((a.ks||'')+'').trim();
+  const ptpMatch=_aks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&(z.kostenstelle||'').trim()===_aks):[];
   const ptpBadge=ptpMatch.length?'<span class="badge" style="color:#6c63ff;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);">🔄 '+ptpMatch.length+' PTP</span>':'';
   return '<div class="auftrag-karte" onclick="openDetail(\''+a.id+'\')" ondblclick="event.stopPropagation();karteSchadenDblClick(\''+a.id+'\')">'
     +'<div class="karte-kopf">'
@@ -1359,7 +1360,7 @@ function renderZeitenDetail(zeiten){
 }
 function renderPTPTermineSection(){
   const ks=(document.getElementById('dKS')?.value||'').trim();
-  const ptpT=ks?(syncData.termine||[]).filter(t=>t.source==='ptp'&&t.kostenstelle===ks):[];
+  const ptpT=ks?(syncData.termine||[]).filter(t=>t.source==='ptp'&&(t.kostenstelle||'').trim()===ks):[];
   const el=document.getElementById('dPTPTermineSection');if(!el)return;
   if(!ptpT.length){el.innerHTML='';return;}
   let html='<div class="ptp-sync-divider">&#128225; Von PTP Workboard ('+ptpT.length+')</div>';
@@ -1374,7 +1375,7 @@ function renderPTPTermineSection(){
 }
 function renderPTPZeitenSection(){
   const ks=(document.getElementById('dKS')?.value||'').trim();
-  const ptpZ=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&z.kostenstelle===ks):[];
+  const ptpZ=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&(z.kostenstelle||'').trim()===ks):[];
   const el=document.getElementById('dPTPZeitSection');if(!el)return;
   if(!ptpZ.length){el.innerHTML='';return;}
   let html='<div class="ptp-sync-divider">&#128225; Von PTP Workboard ('+ptpZ.length+')</div>';
@@ -1440,7 +1441,7 @@ function updateZeitGesamtDetail(){
   const el=document.getElementById('dZeitGesamt');
   if(!el)return;
   const ks=(document.getElementById('dKS')?.value||'').trim();
-  const ptpZ=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&z.kostenstelle===ks):[];
+  const ptpZ=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp'&&(z.kostenstelle||'').trim()===ks):[];
   if(ptpZ.length){
     const bauStr=berechneTotalZeit(e);
     const ptpStr=berechneTotalZeit(ptpZ.map(z=>({von:z.von,bis:z.bis})));
@@ -1493,6 +1494,16 @@ function toggleGlobalTimer(){
     }
     stopGlobalTimer();
   }else{
+    // Prüfen, ob auf einem anderen Gerät bereits ein Timer läuft
+    try{
+      const at=syncData&&syncData.activeTimer;
+      if(at&&at.deviceId&&at.deviceId!==DEVICE_ID){
+        const mins=Math.round((Date.now()-(at.startMs||Date.now()))/60000);
+        const msg='⚠ Auf einem anderen Gerät läuft bereits ein Timer:\n'
+          +(at.auftragTitle||at.taskId||'')+' (seit '+mins+' min)\n\nTrotzdem hier starten?';
+        if(!confirm(msg))return;
+      }
+    }catch(e){}
     startGlobalTimer();
   }
 }
@@ -1504,6 +1515,17 @@ function startGlobalTimer(){
   updateTimerTopBtn();
   const sect=document.getElementById('dZeitSect');if(sect&&!sect.classList.contains('open'))sect.classList.add('open');
   const liveRow=document.getElementById('dZeitLiveRow');if(liveRow)liveRow.style.display='flex';
+  // ActiveTimer in Sync publizieren
+  try{
+    if(syncFileId&&gdriveToken){
+      const a=auftraege.find(x=>x.id===detailId)||{};
+      const title=(typeof titelFormat==='function'?titelFormat(a):null)||a.id||'';
+      syncData.activeTimer={deviceId:DEVICE_ID,source:'bau',auftragId:detailId,kostenstelle:a.ks||'',auftragTitle:title,startMs:globalTimerStartMs};
+      syncData.lastUpdated=new Date().toISOString();syncData.updatedBy=SYNC_SOURCE;
+      syncWrite();
+      try{localStorage.setItem('bau_sync_ping',String(Date.now()));}catch(e){}
+    }
+  }catch(e){}
   renderListe();
   toast('⏺ Aufzeichnung gestartet');
 }
@@ -1518,6 +1540,12 @@ function stopGlobalTimer(){
   const aid=globalTimerAuftragId;
   globalTimerStartMs=null;globalTimerAuftragId=null;
   localStorage.removeItem('bau_timer');
+  // ActiveTimer in Sync löschen, wenn er von uns kam
+  try{
+    if(syncData&&syncData.activeTimer&&syncData.activeTimer.deviceId===DEVICE_ID){
+      syncData.activeTimer=null;
+    }
+  }catch(e){}
   const idx=auftraege.findIndex(a=>a.id===aid);
   if(idx>=0){
     if(!auftraege[idx].zeiterfassung)auftraege[idx].zeiterfassung=[];
@@ -2305,10 +2333,11 @@ renderListe();
 const SYNC_FILE_NAME='ptp_bau_sync.json';
 const SYNC_SOURCE='bau';
 let syncFileId=null;
-let syncData={version:1,lastUpdated:'',updatedBy:'',termine:[],zeiterfassung:[]};
+let syncData={version:1,lastUpdated:'',updatedBy:'',termine:[],zeiterfassung:[],activeTimer:null};
 let lastSyncTimestamp='';
 let syncPollingId=null;
 let syncNewCount=0;
+const DEVICE_ID=(function(){let d=localStorage.getItem('device_id');if(!d){d='dev_'+Math.random().toString(36).slice(2,10)+'_'+Date.now();localStorage.setItem('device_id',d);}return d;})();
 
 async function syncInit(){
   if(!gdriveToken)return;
@@ -2331,12 +2360,54 @@ async function syncCreate(){
   const f=await r.json();
   syncFileId=f.id;syncData=empty;lastSyncTimestamp=empty.lastUpdated;
 }
+let _bauLastSyncReadAt=0;
+function _bauSyncStateTooltip(){
+  let base='';
+  if(!gdriveToken)base='Nicht angemeldet';
+  else if(!syncFileId)base='Sync-Datei nicht verbunden';
+  else if(!navigator.onLine)base='Offline – Änderungen werden später übertragen';
+  else if(_bauLastSyncReadAt){
+    const sec=Math.max(0,Math.round((Date.now()-_bauLastSyncReadAt)/1000));
+    if(sec<15)base='Synchron vor '+sec+' s';
+    else if(sec<90)base='Zuletzt synchronisiert vor '+sec+' s';
+    else base='Zuletzt synchronisiert vor '+Math.round(sec/60)+' min';
+  } else base='Noch nicht synchronisiert';
+  try{
+    const at=syncData&&syncData.activeTimer;
+    if(at&&at.deviceId&&at.deviceId!==DEVICE_ID){
+      const mins=Math.round((Date.now()-(at.startMs||Date.now()))/60000);
+      base+='\n⏱ Fremder Timer läuft: '+(at.auftragTitle||'')+' ('+at.source+', seit '+mins+' min)';
+    }
+  }catch(e){}
+  return base;
+}
+function updateSyncUI(){
+  const btn=document.getElementById('syncBtn');
+  if(!btn)return;
+  const ptpTermine=(syncData.termine||[]).filter(t=>t.source==='ptp');
+  const ptpZeiten=(syncData.zeiterfassung||[]).filter(z=>z.source==='ptp');
+  const total=ptpTermine.length+ptpZeiten.length;
+  if(!navigator.onLine){
+    btn.textContent='📡 Offline';
+    btn.style.color='#e74c3c';btn.style.borderColor='#e74c3c';btn.style.background='transparent';
+  } else if(total>0){
+    btn.textContent='📡 PTP ('+total+')';
+    btn.style.color='#1a73e8';btn.style.borderColor='#1a73e8';btn.style.background='rgba(26,115,232,.1)';
+  } else {
+    btn.textContent='📡 Sync';
+    btn.style.color=syncFileId?'#27ae60':'#e74c3c';
+    btn.style.borderColor=syncFileId?'#27ae60':'#e74c3c';
+    btn.style.background='transparent';
+  }
+  btn.title=_bauSyncStateTooltip();
+}
 async function syncRead(initial=false){
   if(!syncFileId||!gdriveToken)return;
   try{
-    const r=await fetch('https://www.googleapis.com/drive/v3/files/'+syncFileId+'?alt=media',
-      {headers:{Authorization:'Bearer '+gdriveToken}});
+    const r=await fetch('https://www.googleapis.com/drive/v3/files/'+syncFileId+'?alt=media&_='+Date.now(),
+      {headers:{Authorization:'Bearer '+gdriveToken,'Cache-Control':'no-cache','Pragma':'no-cache'},cache:'no-store'});
     if(!r.ok)return;
+    _bauLastSyncReadAt=Date.now();
     const d=await r.json();
     if(d.lastUpdated&&d.lastUpdated!==lastSyncTimestamp){
       const isFromOther=d.updatedBy&&d.updatedBy!==SYNC_SOURCE;
@@ -2348,6 +2419,13 @@ async function syncRead(initial=false){
         updateSyncUI();
         if(syncNewCount>0)toast('📡 '+syncNewCount+' neue Einträge vom PTP Workboard');
       }
+      // offene Detailansicht auffrischen
+      try{
+        if(detailId){
+          if(typeof renderPTPTermineSection==='function')renderPTPTermineSection();
+          if(typeof renderPTPZeitenSection==='function')renderPTPZeitenSection();
+        } else if(typeof renderListe==='function'){renderListe();}
+      }catch(e){}
     }
   }catch(e){console.warn('syncRead:',e);}
 }
@@ -2361,14 +2439,35 @@ async function syncWrite(){
 }
 function startSyncPolling(){
   if(syncPollingId)clearInterval(syncPollingId);
-  syncPollingId=setInterval(()=>syncRead(),30000);
+  syncPollingId=setInterval(()=>syncRead(),10000);
+  if(!window._bauStorageHooked){
+    window.addEventListener('storage',e=>{
+      if(e.key==='ptp_sync_ping'||e.key==='bau_sync_ping'){syncRead();}
+    });
+    window._bauStorageHooked=true;
+  }
+  if(!window._bauVisHooked){
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible')syncRead();
+    });
+    window._bauVisHooked=true;
+  }
+  if(!window._bauNetHooked){
+    window.addEventListener('online',()=>{updateSyncUI();syncRead();});
+    window.addEventListener('offline',()=>updateSyncUI());
+    // Tooltip periodisch updaten (Sekundenanzeige)
+    setInterval(()=>{try{updateSyncUI();}catch(e){}},5000);
+    window._bauNetHooked=true;
+  }
 }
+function _syncHashTermin(t){return [t.kostenstelle||'',t.datum||'',t.von||'',t.bis||'',(t.beschreibung||'').trim().toLowerCase()].join('|');}
+function _syncHashZeit(z){return [z.kostenstelle||'',z.datum||'',z.von||'',z.bis||'',(z.beschreibung||'').trim().toLowerCase()].join('|');}
 function pushToSync(){
   if(!syncFileId||!gdriveToken)return;
   const termine=[];const zeiten=[];
   (auftraege||[]).forEach(a=>{
     const title=titelFormat(a)||a.id;
-    const ks=a.ks||'';
+    const ks=((a.ks||'')+'').trim();
     const ausf=a.ausführungsdatum||'';
     (a.termine||[]).forEach((t,i)=>{
       if(!t.datum&&!t.von)return;
@@ -2382,11 +2481,20 @@ function pushToSync(){
         datum:z.datum||'',von:z.von||'',bis:z.bis||'',beschreibung:z.beschreibung||'',minuten:min,ausführungsdatum:ausf});
     });
   });
-  syncData.termine=[...(syncData.termine||[]).filter(t=>t.source!=='bau'),...termine];
-  syncData.zeiterfassung=[...(syncData.zeiterfassung||[]).filter(z=>z.source!=='bau'),...zeiten];
+  // Merge per syncId: eigene überschreiben, fremde behalten, Duplikate per Hash entfernen
+  const mySyncIds=new Set(termine.map(x=>x.syncId));
+  const myZSyncIds=new Set(zeiten.map(x=>x.syncId));
+  const otherT=(syncData.termine||[]).filter(x=>x&&x.syncId&&!mySyncIds.has(x.syncId));
+  const otherZ=(syncData.zeiterfassung||[]).filter(x=>x&&x.syncId&&!myZSyncIds.has(x.syncId));
+  const seenT=new Set();const seenZ=new Set();
+  const mergedT=[...otherT,...termine].filter(x=>{const h=_syncHashTermin(x);if(seenT.has(h))return false;seenT.add(h);return true;});
+  const mergedZ=[...otherZ,...zeiten].filter(x=>{const h=_syncHashZeit(x);if(seenZ.has(h))return false;seenZ.add(h);return true;});
+  syncData.termine=mergedT;
+  syncData.zeiterfassung=mergedZ;
   syncData.lastUpdated=new Date().toISOString();
   syncData.updatedBy=SYNC_SOURCE;
   syncWrite();
+  try{localStorage.setItem('bau_sync_ping',String(Date.now()));}catch(e){}
 }
 </script>
 </body>
