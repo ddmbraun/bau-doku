@@ -2305,18 +2305,21 @@ async function gdriveLoadFile(fileId,fileName){
 }
 async function migrateFileToWorkspaceFolder(fileId){
   if(!workspaceFolderId||!fileId||!gdriveToken)return;
-  const mr=await fetch('https://www.googleapis.com/drive/v3/files/'+fileId+'?fields=parents',
-    {headers:{Authorization:'Bearer '+gdriveToken}});
-  if(!mr.ok)return;
-  const meta=await mr.json();
-  const parents=meta.parents||[];
-  if(parents.includes(workspaceFolderId))return;
-  const removeParents=parents.join(',');
-  await fetch('https://www.googleapis.com/drive/v3/files/'+fileId
-    +'?addParents='+encodeURIComponent(workspaceFolderId)
-    +(removeParents?'&removeParents='+encodeURIComponent(removeParents):'')
-    +'&fields=id',
-    {method:'PATCH',headers:{Authorization:'Bearer '+gdriveToken}});
+  try{
+    const mr=await fetch('https://www.googleapis.com/drive/v3/files/'+fileId+'?fields=parents',
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    if(mr.ok){
+      const meta=await mr.json();
+      const parents=meta.parents||[];
+      if(parents.includes(workspaceFolderId))return;
+    }
+    // In Arbeitsordner verschieben; 'root' ist der API-Alias für Meine Ablage
+    await fetch('https://www.googleapis.com/drive/v3/files/'+fileId
+      +'?addParents='+encodeURIComponent(workspaceFolderId)
+      +'&removeParents=root'
+      +'&fields=id',
+      {method:'PATCH',headers:{Authorization:'Bearer '+gdriveToken}});
+  }catch(e){console.warn('Migration:',e);}
 }
 async function gdriveCreateFile(){
   // Lokale Daten migrieren (hvListe + statusConfig aus localStorage, auftraege aus Speicher)
