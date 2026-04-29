@@ -1126,6 +1126,16 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .mv2-subhdr-status{margin-left:auto;font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px;background:rgba(39,174,96,0.12);color:#1a8a4a;white-space:nowrap;}
 .mv2-subhdr-maps{padding:2px 10px;border-radius:11px;background:#2e7d32;color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;line-height:1.5;}
 .mv2-subhdr-maps:disabled{opacity:0.4;cursor:default;}
+.mv2-subhdr-status-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:rgba(39,174,96,0.12);color:#1a7a40;white-space:nowrap;flex-shrink:0;}
+.mv2-subhdr-akt{font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:rgba(108,99,255,0.1);color:var(--accent);white-space:nowrap;flex-shrink:0;}
+.mv2-subhdr-obj-lbl{font-size:11px;color:var(--text2);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-right:4px;}
+.mv2-subhdr-tel{padding:2px 8px;border-radius:11px;background:#1565c0;color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;line-height:1.6;text-decoration:none;display:inline-flex;align-items:center;}
+/* ── ⋯ Mehr-Dropdown ── */
+.mv2-mehr-wrap{position:relative;display:inline-flex;}
+.mv2-mehr-menu{display:none;position:absolute;bottom:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:600;min-width:190px;padding:4px 0;overflow:hidden;}
+.mv2-mehr-menu.open{display:block;}
+.mv2-mehr-menu button,.mv2-mehr-menu label.mv2-mehr-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 16px;font-size:12px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;box-sizing:border-box;}
+.mv2-mehr-menu button:hover,.mv2-mehr-menu label.mv2-mehr-item:hover{background:var(--bg3);}
 .mv2-title-row h2{font-size:17px;margin:0;flex:1;pointer-events:none;}
 .mv2-title-input{flex:1;font-size:19px;font-weight:600;color:var(--text);background:transparent;border:none;border-bottom:2px solid transparent;outline:none;padding:2px 4px;border-radius:4px 4px 0 0;transition:border-color .15s,background .15s;min-width:0;cursor:text;}
 .mv2-title-input:focus{border-bottom-color:var(--accent);background:rgba(108,99,255,0.04);}
@@ -1750,14 +1760,14 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <input id="modalSizeSlider" type="range" min="80" max="180" step="10" value="100" oninput="setModalSize(this.value)" style="width:70px;accent-color:var(--accent);margin-left:4px;" autocomplete="off">
         </div>
       </div>
-      <!-- Zeile 2: Badge + Maps + HV + Adresse + Status -->
+      <!-- Zeile 2: Badge + Status + Aktivität + Objekt-Buttons -->
       <div class="mv2-subheader">
         <span id="_taskTypeIndicator" class="task-type-badge baustelle">🏗 Baustelle</span>
-        <button type="button" class="mv2-subhdr-maps baustelle-only" id="_hdrMapsBtn" onclick="_openTaskMaps()" title="In Google Maps öffnen" disabled>🗺 Maps</button>
-        <span class="mv2-subhdr-sep baustelle-only">|</span>
-        <span class="mv2-subhdr-hv baustelle-only" id="_hdrHV"></span>
-        <span class="mv2-subhdr-adr baustelle-only" id="_hdrAdr"></span>
-        <span class="mv2-subhdr-status" id="_hdrStatus"></span>
+        <span class="mv2-subhdr-status-chip" id="_hdrStatus"></span>
+        <span class="mv2-subhdr-akt" id="_hdrAkt" style="display:none;"></span>
+        <span class="mv2-subhdr-obj-lbl baustelle-only" id="_hdrObjLabel" style="display:none;">Objekt:</span>
+        <button type="button" class="mv2-subhdr-maps baustelle-only" id="_hdrMapsBtn" onclick="_openTaskMaps()" title="In Google Maps öffnen" style="display:none;">🗺</button>
+        <a class="mv2-subhdr-tel baustelle-only" id="_hdrTelBtn" style="display:none;" title="Anrufen">📞</a>
       </div>
     </div>
 
@@ -1947,7 +1957,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             <!-- Aktivität (hierher verschoben) -->
             <div class="modal-field" style="margin:0;margin-top:2px;font-size:11px">
               <label style="font-size:10px">Aktivität</label>
-              <select id="taskAktivitaetInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave()">
+              <select id="taskAktivitaetInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateMapsBtn()">
                 <option value="">— keine —</option>
                 <option value="anruf">📞 Telefonanruf</option>
                 <option value="besichtigung">📍 Besichtigungstermin</option>
@@ -1982,18 +1992,26 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 
     <!-- ── FIXED FOOTER ── -->
     <div class="mv2-footer">
+      <!-- Linke Seite: seltene / situative Buttons -->
       <button class="topbar-btn btn-danger" id="deleteTaskBtn" onclick="deleteTask()" style="display:none;margin-right:auto;">Löschen</button>
-      <button class="gcal-btn-modal" id="gcalModalBtn" onclick="openGoogleCalendarFromModal()" style="display:none;margin-right:auto;">📅 Google Kalender</button>
-      <button class="outlook-btn-modal" id="outlookModalBtn" onclick="openOutlookCalendarFromModal()" style="display:none;margin-right:auto;">📆 Outlook Kalender</button>
-      <button class="topbar-btn baustelle-only" id="abschlussBtn" onclick="createAbschlussakte()" style="display:none;margin-right:auto;background:var(--bg3);border:1px solid var(--border)">📁 Abschlussakte</button>
+      <button class="gcal-btn-modal" id="gcalModalBtn" onclick="openGoogleCalendarFromModal()" style="display:none;">📅 Kalender</button>
+      <button class="outlook-btn-modal" id="outlookModalBtn" onclick="openOutlookCalendarFromModal()" style="display:none;">📆 Outlook</button>
+      <button class="topbar-btn baustelle-only" id="abschlussBtn" onclick="createAbschlussakte()" style="display:none;background:var(--bg3);border:1px solid var(--border);">📁 Abschlussakte</button>
+      <!-- Rechte Seite: tägliche Aktionen -->
       <button class="topbar-btn btn-secondary" onclick="saveTaskAndBack()">← Zurück</button>
       <button class="topbar-btn" onclick="duplicateTask()" title="Task duplizieren" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">⧉ Duplizieren</button>
       <button class="topbar-btn" onclick="moveTaskToBoard()" title="Task verschieben" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">↗ Verschieben</button>
-      <button class="topbar-btn" onclick="exportTaskZip()" title="Task als ZIP sichern" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">⬇ Sichern</button>
-      <label class="topbar-btn" title="Task aus ZIP wiederherstellen" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer;">↩ Wiederherstellen<input type="file" accept=".zip" style="display:none" onchange="importTaskFromZip(this.files[0]);this.value='';" autocomplete="off"></label>
-      <button type="button" id="modalSaveSize" onclick="_saveModalDefault()" title="Aktuelle Position & Größe als Standard speichern" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap;">💾 Pos. speichern</button>
+      <!-- ⋯ Mehr-Dropdown -->
+      <div class="mv2-mehr-wrap">
+        <button type="button" class="topbar-btn" id="mv2MehrBtn" onclick="document.getElementById('mv2MehrMenu').classList.toggle('open');event.stopPropagation();" title="Weitere Optionen" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);letter-spacing:2px;padding:5px 10px;">⋯</button>
+        <div class="mv2-mehr-menu" id="mv2MehrMenu">
+          <button onclick="exportTaskZip();document.getElementById('mv2MehrMenu').classList.remove('open')">⬇ Sichern (ZIP)</button>
+          <label class="mv2-mehr-item">↩ Wiederherstellen<input type="file" accept=".zip" style="display:none" onchange="importTaskFromZip(this.files[0]);this.value='';document.getElementById('mv2MehrMenu').classList.remove('open');" autocomplete="off"></label>
+          <button id="modalSaveSize" onclick="_saveModalDefault();document.getElementById('mv2MehrMenu').classList.remove('open')">💾 Position & Größe speichern</button>
+        </div>
+      </div>
       <button class="topbar-btn btn-primary" onclick="saveTask()">Speichern</button>
-      <!-- Resize-Ecke direkt im Footer -->
+      <!-- Resize-Ecke -->
       <button type="button" class="modal-resize-corner" id="modalResizeCorner" title="Größe ändern – ziehen" style="position:absolute;right:0;bottom:0;border-radius:0 0 14px 0;">⤡</button>
     </div>
     <!-- resize-bar kept for JS compatibility -->
@@ -2492,21 +2510,41 @@ function _openTaskMaps(){
 }
 function _updateMapsBtn(){
   const adr=(document.getElementById('tAdr')?.value||'').trim();
-  // Maps-Button in Objekt-Sektion
+  const status=(document.getElementById('taskStatusInput')?.value||'').trim();
+  const akt=(document.getElementById('taskAktivitaetInput')?.value||'');
+  // Maps-Button in Objekt-Sektion (versteckt, JS-Kompatibilität)
   const btn=document.getElementById('taskMapsBtn');
   if(btn){btn.disabled=!adr;btn.style.opacity=adr?'1':'0.4';btn.style.cursor=adr?'pointer':'default';}
-  // Maps-Button im Header
-  const hBtn=document.getElementById('_hdrMapsBtn');
-  if(hBtn){hBtn.disabled=!adr;hBtn.style.opacity=adr?'1':'0.4';}
-  // HV im Header
-  const hvEl=document.getElementById('_hdrHV');
-  if(hvEl) hvEl.textContent=(document.getElementById('tHV')?.value||'').trim();
-  // Adresse im Header
-  const adrEl=document.getElementById('_hdrAdr');
-  if(adrEl) adrEl.textContent=adr;
-  // Status im Header
+  // Header: Status-Chip
   const stEl=document.getElementById('_hdrStatus');
-  if(stEl) stEl.textContent=(document.getElementById('taskStatusInput')?.value||'').trim();
+  if(stEl) stEl.textContent=status?'Status: '+status:'';
+  // Header: Aktivität-Chip
+  const aktEl=document.getElementById('_hdrAkt');
+  if(aktEl){
+    const aktMap={'besichtigung':'📍 Besichtigung','anruf':'📞 Anruf'};
+    const aktTxt=aktMap[akt]||'';
+    aktEl.textContent=aktTxt;
+    aktEl.style.display=aktTxt?'':'none';
+  }
+  // Header: Maps-Button
+  const hBtn=document.getElementById('_hdrMapsBtn');
+  if(hBtn) hBtn.style.display=adr?'':'none';
+  // Header: Tel-Button (erster Kontakt mit Telefonnummer)
+  const hTel=document.getElementById('_hdrTelBtn');
+  if(hTel){
+    let tel='',telName='';
+    try{
+      const contacts=typeof getKontaktePTP==='function'?getKontaktePTP():[];
+      const k=contacts.find(c=>c.tel&&c.tel.trim());
+      if(k){tel=k.tel.trim();telName=k.name||'';}
+    }catch(e){}
+    hTel.style.display=tel?'':'none';
+    hTel.href=tel?'tel:'+tel.replace(/[^0-9+]/g,''):'#';
+    hTel.title=tel?(telName?telName+': ':'')+tel:'';
+  }
+  // Header: Objekt-Label – nur wenn Maps oder Tel sichtbar
+  const objLbl=document.getElementById('_hdrObjLabel');
+  if(objLbl) objLbl.style.display=(adr||(hTel&&hTel.style.display!=='none'))?'':'none';
 }
 // Speichert Task-Daten ohne Modal zu schließen
 function saveTaskData(){
@@ -9197,7 +9235,15 @@ function _applyBoardType(boardName){
 const TASK_SECTION_IDS=['tStammSect','tObjektSect','tAnsprchSect','tTermineSect','tZeitSect','tChecklisteSect','tNotizenSect','tNotizVerlaufSect','tFotoSect'];
 function collapseAllTaskSections(){
   TASK_SECTION_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('open');});
+  // Beide Spalten nach oben scrollen
+  const l=document.querySelector('.mv2-left');const r=document.querySelector('.mv2-right');
+  if(l)l.scrollTop=0;if(r)r.scrollTop=0;
 }
+// Mehr-Menü schließen wenn außerhalb geklickt
+document.addEventListener('click',function(e){
+  const m=document.getElementById('mv2MehrMenu');
+  if(m&&m.classList.contains('open')&&!e.target.closest('.mv2-mehr-wrap'))m.classList.remove('open');
+});
 
 // Collapsible mv2-sections
 function _toggleMv2Sect(id, evt){
