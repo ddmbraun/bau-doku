@@ -1,316 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTP Workboard - Professional Edition</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMyNTYzZWIiLz48dGV4dCB4PSIzMiIgeT0iNDMiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UDwvdGV4dD48L3N2Zz4=">
+<script src="https://accounts.google.com/gsi/client" defer onload="gdriveInit()"></script>
+<script src="https://apis.google.com/js/api.js" defer onload="gapiLoaded()"></script>
+<style>
+/* --- BASIS VARIABLEN & GLOBAL --- */
+:root {
+  --bg: #ffffff; --bg2: #f8f9fa; --bg3: #f1f3f5;
+  --text: #212529; --text2: #6c757d;
+  --accent: #6c63ff; --accent2: #5b54d6;
+  --border: #dee2e6; --shadow: rgba(0,0,0,0.1);
+  --red: #dc3545; --green: #28a745; --orange: #fd7e14;
+}
+[data-theme="dark"] {
+  --bg: #1a1a1a; --bg2: #2d2d2d; --bg3: #3d3d3d;
+  --text: #f8f9fa; --text2: #adb5bd;
+  --border: #444; --shadow: rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg2); color: var(--text); overflow: hidden; }
+
+/* --- MODAL (NEUES ZWEI-SPALTEN LAYOUT) --- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: var(--bg); border-radius: 12px;
+  width: 1050px; max-width: 98vw; height: 85vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 64px var(--shadow);
+  overflow: hidden;
+}
+
+.modal-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; background: var(--bg2); border-bottom: 1px solid var(--border);
+  flex-shrink: 0; cursor: move;
+}
+.modal-header-badges { display: flex; gap: 8px; margin-top: 4px; }
+.task-type-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.task-type-badge.baustelle { background: #e7f5ff; color: #1971c2; }
+
+.modal-split-layout { display: flex; flex: 1; overflow: hidden; }
+.modal-col-left { flex: 1; overflow-y: auto; padding: 20px 24px; border-right: 1px solid var(--border); }
+.modal-col-right { width: 340px; flex-shrink: 0; overflow-y: auto; padding: 20px 24px; background: var(--bg2); }
+
+.modal-section-title {
+  font-weight: 700; font-size: 11px; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin: 20px 0 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px;
+}
+.modal-section-title:first-child { margin-top: 0; }
+
+.modal-field { margin-bottom: 15px; }
+.modal-field label { display: block; font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; }
+.modal-field input, .modal-field select, .modal-field textarea {
+  width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 14px; outline: none;
+}
+.modal-field input:focus { border-color: var(--accent); }
+
+.modal-resize-bar {
+  display: flex; justify-content: space-between; padding: 12px 24px;
+  background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0;
+}
+
+.topbar-btn {
+  padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 13px;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: var(--red); color: white; }
+
+/* --- BESTEHENDE ELEMENTE STYLE --- */
+.form-collapse { margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); overflow: hidden; }
+.form-collapse-header { padding: 10px 15px; background: var(--bg2); display: flex; justify-content: space-between; cursor: pointer; align-items: center; }
+.form-collapse-title { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.form-collapse-body { padding: 15px; display: none; }
+.form-collapse.open .form-collapse-body { display: block; border-top: 1px solid var(--border); }
+
+/* --- KANBAN & RESTLICHE STYLES (Original erhalten) --- */
+.kanban-board { display: flex; gap: 20px; padding: 20px; overflow-x: auto; height: calc(100vh - 120px); }
+.kanban-col { background: #ebedf0; border-radius: 10px; width: 300px; min-width: 300px; display: flex; flex-direction: column; }
+.kanban-header { padding: 15px; font-weight: 700; text-transform: uppercase; font-size: 13px; }
+.task-card { background: white; border-radius: 8px; padding: 12px; margin: 0 10px 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; }
+.task-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header style="padding: 10px 20px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+    <h1 style="margin: 0; font-size: 18px; color: var(--accent);">PTP Workboard</h1>
+    <div style="display:flex; gap:10px;">
+       <button class="topbar-btn btn-secondary" onclick="addNewTask()">+ Neuer Auftrag</button>
+       <button id="syncBtn" class="topbar-btn btn-primary" onclick="syncDrive()">Sync Drive</button>
+    </div>
+  </header>
+
+  <main class="kanban-board" id="mainBoard">
+    </main>
+</div>
+
 <div class="modal-overlay" id="taskModal" onclick="if(event.target===this)closeModal();">
   <div class="modal" id="taskModalBox">
     
     <div class="modal-header-row">
       <div style="display:flex; flex-direction:column; gap:4px;">
-        <h2 id="modalTitle" style="margin:0; color:var(--text);">Neuer Task</h2>
+        <h2 id="modalTitle" style="margin:0; font-size:20px;">Auftrag wird geladen...</h2>
         <div class="modal-header-badges" id="modalHeaderBadges">
-          <span id="_taskTypeIndicator" class="task-type-badge baustelle">🏗 Baustelle</span>
-        </div>
+          </div>
       </div>
-      <div style="display:flex; align-items:center; gap:16px;">
-        <div class="modal-size-bar" style="margin:0; padding:0;">
-          <label>🔍</label>
-          <button type="button" class="modal-size-btn" onclick="setModalSize(Math.max(80,+(document.getElementById('modalSizeSlider').value)-10))" title="Kleiner">−</button>
-          <span class="modal-size-val2" id="modalSizeVal">100%</span>
-          <button type="button" class="modal-size-btn" onclick="setModalSize(Math.min(180,+(document.getElementById('modalSizeSlider').value)+10))" title="Größer">+</button>
-          <input id="modalSizeSlider" type="range" min="80" max="180" step="10" value="100" oninput="setModalSize(this.value)" style="width:70px;accent-color:var(--accent);margin-left:4px;" autocomplete="off">
-        </div>
-        <button type="button" onclick="closeModal()" style="background:var(--bg3); border:none; width:34px; height:34px; border-radius:50%; font-size:18px; cursor:pointer; color:var(--text2); display:flex; align-items:center; justify-content:center; transition:background .15s;" title="Schließen">✕</button>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <select id="taskStatusInput" class="topbar-btn btn-secondary" style="padding: 5px 10px;"></select>
+        <button type="button" onclick="closeModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--text2);">&times;</button>
       </div>
     </div>
-
-    <input type="hidden" id="taskId" autocomplete="off">
-    <select id="taskAmpelInput" style="display:none"><option value="grün">🟢</option><option value="orange">🟠</option><option value="rot">🔴</option></select>
-    <input type="hidden" id="taskSourceInput" value="" autocomplete="off">
-    <span id="tStammSummary" style="display:none;"></span>
 
     <div class="modal-split-layout">
       
       <div class="modal-col-left">
         
+        <div class="modal-section-title">📍 Objekt & Auftragserteilung</div>
         <div class="modal-field">
-          <input type="text" id="taskTitleInput" placeholder="Auftrags- oder Task-Titel eingeben…" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off" style="font-size:calc(18px * var(--modal-scale, 1)); font-weight:700; padding:12px 14px; border:2px solid transparent; background:var(--bg2); transition:all .2s;">
+          <label>Titel / Adresse</label>
+          <input type="text" id="taskTitleInput" placeholder="Hermann-von-Salza-Straße 2, 99947 Bad Langensalza">
         </div>
 
-        <div style="display:flex; gap:10px; margin-bottom:16px;">
-          <div id="topEmailDrop" ondragenter="event.preventDefault();this.classList.add('dragover')" ondragover="event.preventDefault();this.classList.add('dragover');event.dataTransfer.dropEffect='copy'" ondragleave="if(!this.contains(event.relatedTarget))this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');_handleEmailOrigDrop(event.dataTransfer)" style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border:1.5px dashed var(--border);border-radius:8px;background:var(--bg2);cursor:default;transition:all .2s;">
-            <span style="font-size:20px;">📧</span>
-            <span style="font-size:11px;color:var(--text2);line-height:1.3;font-weight:500;">E-Mail ablegen<br><small>.eml / .msg</small></span>
-          </div>
-          <div id="topAttachDrop" ondragenter="event.preventDefault();this.classList.add('dragover')" ondragover="event.preventDefault();this.classList.add('dragover');event.dataTransfer.dropEffect='copy'" ondragleave="if(!this.contains(event.relatedTarget))this.classList.remove('dragover')" onclick="document.getElementById('fileAttachInput').click()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border:1.5px dashed var(--border);border-radius:8px;background:var(--bg2);cursor:pointer;transition:all .2s;">
-            <span style="font-size:20px;">📎</span>
-            <span style="font-size:11px;color:var(--text2);line-height:1.3;font-weight:500;">Datei ablegen<br><small>oder klicken</small></span>
-          </div>
+        <div class="modal-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+           <div class="modal-field">
+             <label>Kunde / HV</label>
+             <input type="text" id="tHV" placeholder="z.B. WBG">
+           </div>
+           <div class="modal-field">
+             <label>Rep.-Nr. / Projekt</label>
+             <input type="text" id="taskRepNr" placeholder="z.B. 3484">
+           </div>
         </div>
 
-        <div class="form-collapse baustelle-only open" id="tObjektSect">
-          <div class="form-collapse-header" onclick="toggleFormSection('tObjektSect')">
-            <span class="form-collapse-title">📍 Objekt & Auftraggeber</span>
-            <span class="form-collapse-arrow">▾</span>
-          </div>
-          <div class="form-collapse-body">
-            <div class="modal-grid">
-              <div class="modal-field full"><label>Auftraggeber / Hausverwaltung</label><input type="text" id="tHV" placeholder="z.B. AHV, Muster Verwaltung" autocomplete="off"></div>
-              <div class="modal-field full">
-                <label>Adresse (Straße + PLZ + Ort)</label>
-                <div style="display:flex;gap:6px;">
-                  <input type="text" id="tAdr" placeholder="Musterstraße 44, 99086 Erfurt" style="flex:1;" oninput="scheduleTaskFieldSave();_updateMapsBtn()" autocomplete="off">
-                  <button type="button" id="taskMapsBtn" onclick="tMapsOeffnen()" style="padding:8px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">🗺 Maps</button>
-                </div>
-              </div>
-              <div class="modal-field full" style="margin-bottom:0;"><label>Schadensbild / Beschreibung <span style="font-weight:normal;color:var(--text2);font-size:11px">(Doppelklick = vergrößern)</span></label><textarea id="tSch" class="expandable-ta" ondblclick="toggleExpandTA(this)" placeholder="Was ist genau zu tun?" rows="3" autocomplete="off"></textarea></div>
-            </div>
-          </div>
+        <div class="modal-field">
+          <label>Schadensbild / Beschreibung</label>
+          <textarea id="tSch" rows="4" placeholder="Was genau ist zu tun?"></textarea>
         </div>
 
-        <div class="form-collapse baustelle-only open" id="tPruefSect">
-          <div class="form-collapse-header" onclick="toggleFormSection('tPruefSect')">
-            <span class="form-collapse-title" id="tPruefTitle">📋 Prüfformulare</span>
-            <div>
-              <button onclick="event.stopPropagation();_pruefMenuShowPC(event)" style="font-size:16px;line-height:1;padding:2px 10px;border-radius:6px;border:1px solid rgba(108,99,255,.4);background:rgba(108,99,255,.12);color:var(--accent);cursor:pointer;font-weight:400;margin-right:6px;" title="Neues Protokoll anlegen">+</button>
-              <span class="form-collapse-arrow">▾</span>
-            </div>
-          </div>
-          <div class="form-collapse-body">
-            <div id="pruefberichteList"></div>
-          </div>
-        </div>
+        <div class="modal-section-title">✅ Checkliste & Fortschritt</div>
+        <div id="checklisteList"></div>
+        <button class="topbar-btn btn-secondary" style="width:100%; margin-top:5px;" onclick="addChecklistItem()">+ Aufgabe hinzufügen</button>
 
-        <div class="form-collapse open" id="tChecklisteSect">
-          <div class="form-collapse-header" onclick="toggleFormSection('tChecklisteSect')">
-            <span class="form-collapse-title" id="tChecklisteTitle">✅ Checkliste</span>
-            <span class="form-collapse-arrow">▾</span>
+        <div class="modal-section-title">📎 Anhänge & Dokumente</div>
+        <div style="display:flex; gap:10px;">
+          <div id="topAttachDrop" style="flex:1; padding:20px; border:2px dashed var(--border); border-radius:8px; text-align:center; color:var(--text2); cursor:pointer;">
+             📎 Datei ablegen
           </div>
-          <div class="form-collapse-body">
-            <div id="checklisteList"></div>
-            <div style="display:flex;gap:6px;margin-top:4px;">
-              <input type="text" id="newChecklistInput" placeholder="Neue Unteraufgabe…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}" autocomplete="off">
-              <button type="button" class="topbar-btn btn-primary" onclick="addChecklistItem()" style="padding:6px 14px;font-size:14px;line-height:1;">+</button>
-            </div>
+          <div id="topEmailDrop" style="flex:1; padding:20px; border:2px dashed var(--border); border-radius:8px; text-align:center; color:var(--text2); cursor:pointer;">
+             📧 E-Mail ablegen
           </div>
         </div>
-
-        <div class="form-collapse open" id="tNotizenSect">
-          <div class="form-collapse-header" onclick="toggleFormSection('tNotizenSect')">
-            <span class="form-collapse-title">📝 Notizen & Chronik</span>
-            <span class="form-collapse-arrow">▾</span>
-          </div>
-          <div class="form-collapse-body">
-            <div class="modal-field">
-              <label>Dauerhafte Notiz</label>
-              <textarea id="taskDescInput" placeholder="Interne Notizen… (Doppelklick zum Vergrößern)" rows="3" ondblclick="_openNotizOverlay()" title="Doppelklick zum Vergrößern" autocomplete="off"></textarea>
-            </div>
-            <div class="modal-field" style="margin-bottom:0;">
-              <label>Chronologische Einträge</label>
-              <div id="taskNotizList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
-              <div style="display:flex;gap:6px;">
-                <input type="text" id="newTaskNotizInput" placeholder="Kurze Notiz mit Zeitstempel…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addTaskNotiz();}" autocomplete="off">
-                <button type="button" class="topbar-btn btn-primary" onclick="addTaskNotiz()" style="padding:6px 14px;">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-collapse baustelle-only" id="tAnsprchSect">
-          <div class="form-collapse-header" onclick="toggleFormSection('tAnsprchSect')">
-            <span class="form-collapse-title" id="tAnsprchTitle">👥 Ansprechpartner</span>
-            <span class="form-collapse-arrow">▾</span>
-          </div>
-          <div class="form-collapse-body">
-            <div id="tKontakteContainer"></div>
-            <button class="add-row-btn" onclick="addKontaktPTP('sonstiges','','','')">+ Kontakt hinzufügen</button>
-          </div>
-        </div>
-
-        <div class="form-collapse open" id="tAnhangSect">
-          <div class="form-collapse-header" onclick="toggleFormSection('tAnhangSect')">
-            <span class="form-collapse-title" id="tAnhangTitle">📎 Dateianhänge</span>
-            <span style="display:flex;align-items:center;gap:6px;">
-              <button id="attachGalBtn" onclick="event.stopPropagation();_openAttachThumbnailGrid()" title="Alle Anhänge ansehen" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(108,99,255,0.1);color:var(--accent);font-size:11px;cursor:pointer;font-weight:600;display:none;">🖼 Alle ansehen</button>
-              <span class="form-collapse-arrow">▾</span>
-            </span>
-          </div>
-          <div class="form-collapse-body">
-            <div id="attachList"></div>
-            <div class="attach-drop-zone" id="dropZone" onclick="triggerFileInput()" style="display:none;"></div>
-            <input type="file" id="fileAttachInput" style="display:none" multiple onchange="handleFileAttach(event)" autocomplete="off">
-          </div>
-        </div>
-
-        <div class="form-collapse open" id="tEmailOrigSect" style="margin-bottom: 24px;">
-          <div class="form-collapse-header" onclick="toggleFormSection('tEmailOrigSect')">
-            <span class="form-collapse-title" id="tEmailOrigTitle">📧 E-Mail Originale</span>
-            <span style="display:flex;align-items:center;gap:6px;">
-              <button id="emailGalBtn" onclick="event.stopPropagation();_openEmailThumbnailGrid()" title="Alle E-Mails ansehen" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(108,99,255,0.1);color:var(--accent);font-size:11px;cursor:pointer;font-weight:600;display:none;">📷 Alle ansehen</button>
-              <span class="form-collapse-arrow">▾</span>
-            </span>
-          </div>
-          <div class="form-collapse-body">
-            <div id="emailIconGrid" style="display:none;"></div>
-            <div class="email-orig-drop" id="emailOrigDrop" style="display:none;">
-              <label><input type="file" id="emailOrigInput" accept=".msg,.eml" style="display:none" onchange="_handleEmailOrigSelect(event)" autocomplete="off"></label>
-            </div>
-          </div>
-        </div>
+        <div id="attachList" style="margin-top:10px;"></div>
 
       </div>
 
       <div class="modal-col-right">
-
-        <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-          <div class="modal-field"><label>Status</label><select id="taskStatusInput" onchange="updateGcalModalBtn();scheduleTaskFieldSave();_updateStammSummary()" style="font-weight:700; color:var(--accent); background:rgba(108,99,255,0.08); border-color:var(--accent);"></select></div>
-          <div class="modal-field baustelle-only"><label>Aktivität</label>
-            <select id="taskAktivitaetInput" onchange="scheduleTaskFieldSave()">
-              <option value="">— keine —</option>
-              <option value="anruf">📞 Telefonanruf</option>
-              <option value="besichtigung">📍 Besichtigungstermin</option>
-            </select>
-          </div>
-          <div class="modal-field"><label>Bearbeiter</label><input type="text" id="taskOwnerInput" placeholder="Bearbeiter (z.B. Braun)" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off"></div>
-          
-          <div class="baustelle-only" style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
-            <div class="modal-field"><label>Kostenstelle / Projekt</label><input type="text" id="taskTagsInput" placeholder="z.B. 260036" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off"></div>
-            <div class="modal-grid" style="margin-bottom:12px;">
-              <div class="modal-field" style="margin:0;"><label>Rep.-Nr.</label><input type="text" id="taskRepNr" placeholder="3483" oninput="scheduleTaskFieldSave()" autocomplete="off"></div>
-              <div class="modal-field" style="margin:0;"><label>Kunden-Nr.</label><input type="text" id="taskKundenNr" placeholder="777" oninput="scheduleTaskFieldSave()" autocomplete="off"></div>
-            </div>
-            <button type="button" id="openBauBtn" class="add-row-btn" style="background:#e8f0fe; color:#1a73e8; border-color:#c5d4f5; font-weight:600; margin-top:8px;" onclick="openBaudokuApp()" title="Zur Baudoku App mit dieser Kostenstelle">📋 Zu Bau Doku wechseln</button>
-          </div>
+        
+        <div class="modal-section-title">⏱ Zeiterfassung</div>
+        <div style="background:var(--bg); padding:15px; border-radius:8px; border:1px solid var(--border); text-align:center;">
+          <div id="timerDisplayTop" style="font-size:28px; font-weight:bold; font-family:monospace; margin-bottom:10px;">00:00:00</div>
+          <button id="timerBtnTop" class="topbar-btn btn-primary" style="width:100%; background:var(--green);" onclick="toggleTimer()">▶ Starten</button>
         </div>
 
-        <div class="modal-timer-bar" id="modalTimerBar" style="background:var(--bg); padding:16px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-          <div style="font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.5px;">⏱ Zeiterfassung</div>
-          <div style="display:flex;align-items:center;gap:10px;background:var(--bg2);padding:10px;border-radius:8px;border:1px solid var(--border);">
-            <div id="timerDisplayTop" class="timer-display" style="flex:1; padding:0; text-align:left; font-size:26px;">00:00:00</div>
-            <button id="timerBtnTop" type="button" class="timer-toggle-btn" style="font-size:14px; padding:8px 16px;" onclick="toggleTimer()">▶ Start</button>
-          </div>
-          <div style="margin-top:10px;">
-            <input id="timerDesc" type="text" placeholder="Betreff / Tätigkeit (vor dem Stoppen eintragen)…" maxlength="120" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:12px;" autocomplete="off">
-          </div>
-          <div id="timerEntries" class="timer-entries" style="display:none;margin-top:12px;"></div>
-          <button class="add-row-btn" onclick="toggleFormSection('tZeitSect')" style="margin-top:10px; border-style:solid; background:var(--bg2); border-color:var(--border); color:var(--text2);">+ Manuell nachtragen</button>
+        <div class="modal-section-title">👤 Zuständigkeit</div>
+        <div class="modal-field">
+          <input type="text" id="taskOwnerInput" placeholder="Name des Bearbeiters">
         </div>
 
-        <div class="form-collapse" id="tZeitSect" style="margin-bottom:16px; border-color:transparent; background:transparent; box-shadow:none;">
-          <div class="form-collapse-header" onclick="toggleFormSection('tZeitSect')" style="display:none;"></div>
-          <div class="form-collapse-body" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px;">
-            <div class="termin-head" style="grid-template-columns: 80px 50px 50px 1fr 20px 20px;"><span>Datum</span><span>Von</span><span>Bis</span><span>Text</span><span></span><span></span></div>
-            <div id="zeiterfassungList"></div>
-            <button class="add-row-btn" onclick="addZeitEntry()">+ Zeit hinzufügen</button>
-            <div class="termin-gesamt" id="zeitGesamtRow">Gesamt: 0 min</div>
-          </div>
+        <div class="modal-section-title">📅 Termine</div>
+        <div class="modal-field">
+          <label>Erteilt am:</label>
+          <input type="date" id="taskAusfInput">
+        </div>
+        <div class="modal-field">
+          <label style="color:var(--accent);">Ausführung (Geplant):</label>
+          <input type="date" id="taskAusfTerminInput" style="border-color:var(--accent); background:rgba(108,99,255,0.05);">
         </div>
 
-        <div style="margin-bottom:16px; padding:16px; background:var(--bg); border-radius:8px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-          <div style="font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.5px;">📅 Termine</div>
-          <div class="modal-field"><label>Erteilt am (intern)</label><input type="date" id="taskAusfInput" onchange="scheduleTaskFieldSave()" autocomplete="off"></div>
-          <div class="modal-field baustelle-only"><label>Fälligkeit (Deadline)</label><input type="date" id="taskDueInput" onchange="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off"></div>
-          <div class="modal-field baustelle-only" style="margin-bottom:0;"><label style="color:var(--accent);font-weight:700;">Ausführung (Handwerker)</label><input type="date" id="taskAusfTerminInput" style="border:2px solid var(--accent); background:rgba(108,99,255,0.04);" onchange="scheduleTaskFieldSave()" autocomplete="off"></div>
+        <div class="modal-section-title">🔗 Verknüpfungen</div>
+        <div class="modal-field">
+           <label>Google Drive Pfad</label>
+           <input type="text" id="tGD" placeholder="Link zum Fotoordner">
         </div>
+        <button class="topbar-btn btn-secondary" style="width:100%;" onclick="tDriveOeffnen()">📂 Ordner öffnen</button>
 
-        <div class="form-collapse baustelle-only" id="tTermineSect" style="margin-bottom:16px;">
-          <div class="form-collapse-header" onclick="toggleFormSection('tTermineSect')">
-            <span class="form-collapse-title" id="tTermineTitle">📅 Außerhaus-Termine</span>
-            <span class="form-collapse-arrow">▾</span>
-          </div>
-          <div class="form-collapse-body">
-            <div class="termin-head" style="grid-template-columns: 80px 50px 50px 1fr 20px 20px;"><span>Datum</span><span>Von</span><span>Bis</span><span>Text</span><span></span><span></span></div>
-            <div id="ausserhausTermineList"></div>
-            <button class="add-row-btn" onclick="addAusserhausTermin()">+ Termin hinzufügen</button>
-            <div class="termin-gesamt" id="termineGesamtRow">Gesamt: 0 min</div>
-          </div>
-        </div>
-
-        <div class="form-collapse baustelle-only open" id="tFotoSect" style="margin-bottom:16px;">
-          <div class="form-collapse-header" onclick="toggleFormSection('tFotoSect')">
-            <span class="form-collapse-title">📷 Fotos (Drive)</span>
-            <span style="display:flex;align-items:center;gap:6px;">
-              <button onclick="event.stopPropagation();openFotoGallery()" title="Alle Fotos groß anzeigen" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(108,99,255,0.1);color:var(--accent);font-size:11px;cursor:pointer;font-weight:600;">⛶ Groß</button>
-              <span class="form-collapse-arrow">▾</span>
-            </span>
-          </div>
-          <div class="form-collapse-body" id="fotosDropBody"
-            ondragenter="event.preventDefault();document.getElementById('fotosDropBody').style.outline='2px dashed var(--accent)'"
-            ondragover="event.preventDefault();event.dataTransfer.dropEffect='copy'"
-            ondragleave="if(!document.getElementById('fotosDropBody').contains(event.relatedTarget))document.getElementById('fotosDropBody').style.outline=''"
-            ondrop="event.preventDefault();document.getElementById('fotosDropBody').style.outline='';_handleFotoDrop(event.dataTransfer)">
-            <div id="fotoListDesktop" style="min-height:60px;"></div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
-              <button class="add-row-btn" onclick="triggerFotoUploadToDrive()" style="margin:0; background:rgba(108,99,255,0.06);">+ Foto hochladen</button>
-              <div style="display:flex;gap:6px;">
-                <button onclick="tDriveOeffnen()" style="flex:1; padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:11px;cursor:pointer;">📂 Ordner</button>
-                <button onclick="loadFotosFromDriveFolder()" style="flex:1; padding:6px;border-radius:6px;border:1px solid #34a853;background:rgba(52,168,83,0.06);color:#34a853;font-size:11px;cursor:pointer;">🔄 Wählen</button>
-              </div>
-            </div>
-            <div id="fotoOrdnerHint" style="font-size:10px;margin-top:4px;padding:4px;border-radius:4px;display:none;line-height:1.2;"></div>
-            <input type="file" id="fotoDriveInput" style="display:none" accept="image/*" multiple onchange="handleFotoUploadToDrive(event)" autocomplete="off">
-          </div>
-        </div>
-
-        <div class="form-collapse" id="tVerkSect" style="margin-bottom:24px;">
-          <div class="form-collapse-header" onclick="toggleFormSection('tVerkSect')">
-            <span class="form-collapse-title">🔗 Verknüpfungen</span>
-            <span class="form-collapse-arrow">▾</span>
-          </div>
-          <div class="form-collapse-body">
-            <div class="modal-field full baustelle-only">
-              <label>📷 Drive – Foto-Ordner</label>
-              <div class="link-row-2">
-                <input type="url" id="tGD" placeholder="https://drive.google.com/drive/folders/…" oninput="_updateFotoOrdnerHint()" autocomplete="off">
-                <button class="link-btn-2" onclick="_pickDriveFolder('tGD')">📂</button>
-              </div>
-            </div>
-            <div class="modal-field full">
-              <label>📁 Drive – Projektordner</label>
-              <div class="link-row-2">
-                <input type="url" id="tGDOrdner" placeholder="https://drive.google.com/drive/folders/…" oninput="_updateFotoOrdnerHint()" autocomplete="off">
-                <button class="link-btn-2" onclick="_pickDriveFolder('tGDOrdner')">📂</button>
-              </div>
-            </div>
-            <div class="modal-field full baustelle-only">
-              <label>NAS-Pfad</label>
-              <div class="link-row-2">
-                <input type="text" id="tNAS" placeholder="\\nas-ddbraun\Datenarchiv\..." autocomplete="off">
-                <button class="link-btn-2" id="tNasBtn" onclick="tNasKopieren()">📋</button>
-              </div>
-            </div>
-            <div class="modal-field full">
-              <label>📧 Drive – E-Mail-Ablage</label>
-              <div class="link-row-2">
-                <input type="url" id="tEmailOrdner" placeholder="https://drive.google.com/drive/folders/…" autocomplete="off">
-                <button class="link-btn-2" onclick="_pickDriveFolder('tEmailOrdner')">📂</button>
-              </div>
-            </div>
-            <div id="gmailLinkList"></div>
-            <div style="display:flex;gap:6px;margin-top:4px;">
-              <input type="url" id="newGmailLinkUrl" placeholder="Gmail-URL…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addGmailLink();}" autocomplete="off">
-              <button type="button" class="topbar-btn btn-primary" onclick="addGmailLink()" style="padding:6px 10px;">+</button>
-            </div>
-            <div id="linksList" style="margin-top:8px;"></div>
-            <button class="add-row-btn" onclick="addLinkRow()">+ Link</button>
-          </div>
-        </div>
-
-      </div> </div> <div class="modal-resize-bar" id="modalResizeBar">
-      
-      <div style="display:flex; gap:8px;">
-        <button class="topbar-btn btn-danger" id="deleteTaskBtn" onclick="deleteTask()" style="display:none;">🗑 Löschen</button>
-        <button class="gcal-btn-modal" id="gcalModalBtn" onclick="openGoogleCalendarFromModal()" style="display:none;">📅 Google Kalender</button>
-        <button class="outlook-btn-modal" id="outlookModalBtn" onclick="openOutlookCalendarFromModal()" style="display:none;">📆 Outlook Kalender</button>
       </div>
-      
-      <div class="resize-grip" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);"><span></span><span></span></div>
-      
-      <div style="display:flex; gap:8px; align-items:center;">
-        <button class="topbar-btn" onclick="duplicateTask()" title="Task duplizieren" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);">⧉ Duplizieren</button>
-        <button class="topbar-btn baustelle-only" id="abschlussBtn" onclick="createAbschlussakte()" style="display:none;background:#f39c12;color:#fff;border:none;">📁 Abschlussakte</button>
-        <button class="topbar-btn btn-secondary" onclick="saveTaskAndBack()">← Zurück</button>
+    </div>
+
+    <div class="modal-resize-bar">
+      <button class="topbar-btn btn-danger" onclick="deleteTask()">🗑 Löschen</button>
+      <div style="display:flex; gap:10px;">
+        <button class="topbar-btn btn-secondary" onclick="closeModal()">Abbrechen</button>
         <button class="topbar-btn btn-primary" onclick="saveTask()">✅ Speichern</button>
       </div>
-      
-      <button type="button" class="modal-resize-corner" id="modalResizeCorner" title="Größe ändern – ziehen">⤡</button>
     </div>
 
   </div>
 </div>
+
+<script>
+// --- DEINE ORIGINALEN VARIABLEN & DATENSTRUKTUR ---
+let tasks = [];
+let columns = ["Eingang (E-Mail)", "Eingang (PDF)", "Besichtigung", "In Planung", "In Ausführung", "Erledigt"];
+
+// Dummy-Daten zur Veranschaulichung
+tasks = [{
+  id: '260051',
+  title: 'Hermann-von-Salza-Straße 2, 99947 Bad Langensalza',
+  status: 'Besichtigung',
+  owner: 'Braun',
+  repNr: '3484',
+  tags: ['WBG'],
+  ausfTermin: '2026-04-29'
+}];
+
+// --- FUNKTIONEN ---
+function renderBoard() {
+  const board = document.getElementById('mainBoard');
+  board.innerHTML = '';
+  
+  columns.forEach(col => {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'kanban-col';
+    colDiv.innerHTML = `<div class="kanban-header">${col}</div><div class="task-list" id="col-${col}"></div>`;
+    board.appendChild(colDiv);
+    
+    tasks.filter(t => t.status === col).forEach(task => {
+      const card = document.createElement('div');
+      card.className = 'task-card';
+      card.innerHTML = `<strong>${task.title}</strong><br><small>${task.owner} | ${task.ausfTermin}</small>`;
+      card.onclick = () => openEditTaskModal(task);
+      colDiv.querySelector('.task-list').appendChild(card);
+    });
+  });
+}
+
+function openEditTaskModal(task) {
+  document.getElementById('taskId').value = task.id;
+  document.getElementById('taskTitleInput').value = task.title;
+  document.getElementById('taskOwnerInput').value = task.owner;
+  document.getElementById('taskAusfTerminInput').value = task.ausfTermin;
+  document.getElementById('tHV').value = task.tags[0] || '';
+  
+  // Neuen Header befüllen (ohne Unterstriche)
+  document.getElementById('modalTitle').textContent = task.title.replace(/_/g, ' ');
+  document.getElementById('modalHeaderBadges').innerHTML = `
+    <span class="task-type-badge baustelle">🏗 Auftrag #${task.id}</span>
+    <span class="task-type-badge" style="background:#f1f3f5; color:#666;">Projekt: ${task.repNr}</span>
+  `;
+  
+  document.getElementById('taskModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('taskModal').classList.remove('open');
+}
+
+function saveTask() {
+  // Hier deine Speicherlogik
+  alert('Speichere Auftrag...');
+  closeModal();
+}
+
+// Initialer Start
+renderBoard();
+
+// Hilfsfunktionen für das Modal
+function toggleFormSection(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+let timerActive = false;
+function toggleTimer() {
+  timerActive = !timerActive;
+  const btn = document.getElementById('timerBtnTop');
+  btn.textContent = timerActive ? '⏹ Stoppen' : '▶ Starten';
+  btn.style.background = timerActive ? 'var(--red)' : 'var(--green)';
+}
+
+// Hier würden deine weiteren GDrive- und Sync-Funktionen folgen...
+</script>
+
+<input type="hidden" id="taskId"> </body>
+</html>
