@@ -1132,7 +1132,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .mv2-subhdr-tel{padding:2px 8px;border-radius:11px;background:#1565c0;color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;line-height:1.6;text-decoration:none;display:inline-flex;align-items:center;}
 /* ── ⋯ Mehr-Dropdown ── */
 .mv2-mehr-wrap{position:relative;display:inline-flex;}
-.mv2-mehr-menu{display:none;position:absolute;bottom:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:600;min-width:190px;padding:4px 0;overflow:hidden;}
+.mv2-mehr-menu{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:1300;min-width:200px;padding:4px 0;overflow:hidden;}
 .mv2-mehr-menu.open{display:block;}
 .mv2-mehr-menu button,.mv2-mehr-menu label.mv2-mehr-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 16px;font-size:12px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;box-sizing:border-box;}
 .mv2-mehr-menu button:hover,.mv2-mehr-menu label.mv2-mehr-item:hover{background:var(--bg3);}
@@ -1993,7 +1993,17 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
     <!-- ── FIXED FOOTER ── -->
     <div class="mv2-footer">
       <!-- Linke Seite: seltene / situative Buttons -->
-      <button class="topbar-btn btn-danger" id="deleteTaskBtn" onclick="deleteTask()" style="display:none;margin-right:auto;">Löschen</button>
+      <!-- Linke Seite: Löschen + ⋯ Mehr + situative Buttons -->
+      <button class="topbar-btn btn-danger" id="deleteTaskBtn" onclick="deleteTask()" style="display:none;">Löschen</button>
+      <!-- ⋯ Mehr-Dropdown -->
+      <div class="mv2-mehr-wrap" style="margin-right:auto;">
+        <button type="button" class="topbar-btn" id="mv2MehrBtn" onclick="_toggleMehrMenu(event)" title="Weitere Optionen" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);letter-spacing:2px;padding:5px 10px;">⋯</button>
+        <div class="mv2-mehr-menu" id="mv2MehrMenu">
+          <button onclick="exportTaskZip();_closeMehrMenu()">⬇ Sichern (ZIP)</button>
+          <label class="mv2-mehr-item">↩ Wiederherstellen<input type="file" accept=".zip" style="display:none" onchange="importTaskFromZip(this.files[0]);this.value='';_closeMehrMenu();" autocomplete="off"></label>
+          <button id="modalSaveSize" onclick="_saveModalDefault();_closeMehrMenu()">💾 Position & Größe speichern</button>
+        </div>
+      </div>
       <button class="gcal-btn-modal" id="gcalModalBtn" onclick="openGoogleCalendarFromModal()" style="display:none;">📅 Kalender</button>
       <button class="outlook-btn-modal" id="outlookModalBtn" onclick="openOutlookCalendarFromModal()" style="display:none;">📆 Outlook</button>
       <button class="topbar-btn baustelle-only" id="abschlussBtn" onclick="createAbschlussakte()" style="display:none;background:var(--bg3);border:1px solid var(--border);">📁 Abschlussakte</button>
@@ -2001,15 +2011,6 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
       <button class="topbar-btn btn-secondary" onclick="saveTaskAndBack()">← Zurück</button>
       <button class="topbar-btn" onclick="duplicateTask()" title="Task duplizieren" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">⧉ Duplizieren</button>
       <button class="topbar-btn" onclick="moveTaskToBoard()" title="Task verschieben" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">↗ Verschieben</button>
-      <!-- ⋯ Mehr-Dropdown -->
-      <div class="mv2-mehr-wrap">
-        <button type="button" class="topbar-btn" id="mv2MehrBtn" onclick="document.getElementById('mv2MehrMenu').classList.toggle('open');event.stopPropagation();" title="Weitere Optionen" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);letter-spacing:2px;padding:5px 10px;">⋯</button>
-        <div class="mv2-mehr-menu" id="mv2MehrMenu">
-          <button onclick="exportTaskZip();document.getElementById('mv2MehrMenu').classList.remove('open')">⬇ Sichern (ZIP)</button>
-          <label class="mv2-mehr-item">↩ Wiederherstellen<input type="file" accept=".zip" style="display:none" onchange="importTaskFromZip(this.files[0]);this.value='';document.getElementById('mv2MehrMenu').classList.remove('open');" autocomplete="off"></label>
-          <button id="modalSaveSize" onclick="_saveModalDefault();document.getElementById('mv2MehrMenu').classList.remove('open')">💾 Position & Größe speichern</button>
-        </div>
-      </div>
       <button class="topbar-btn btn-primary" onclick="saveTask()">Speichern</button>
       <!-- Resize-Ecke -->
       <button type="button" class="modal-resize-corner" id="modalResizeCorner" title="Größe ändern – ziehen" style="position:absolute;right:0;bottom:0;border-radius:0 0 14px 0;">⤡</button>
@@ -2865,7 +2866,7 @@ function _showDriveWarnBanner(secondsLeft){
   if(!banner){
     banner = document.createElement('div');
     banner.id = '_driveWarnBanner';
-    banner.style.cssText = 'position:relative;z-index:999;background:#e67e22;color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.3);';
+    banner.style.cssText = 'position:sticky;top:0;z-index:1500;background:#e67e22;color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;';
     banner.innerHTML = '<span id="_driveWarnMsg">⚠ Google Drive Verbindung läuft ab</span>'
       + '<button onclick="_renewDriveTokenSilent()" style="background:#fff;color:#e67e22;border:none;border-radius:6px;padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer;">🔑 Erneut anmelden</button>';
     // Vor der Topbar einfügen, damit er den Inhalt nach unten schiebt statt zu überdecken
@@ -9239,10 +9240,16 @@ function collapseAllTaskSections(){
   const l=document.querySelector('.mv2-left');const r=document.querySelector('.mv2-right');
   if(l)l.scrollTop=0;if(r)r.scrollTop=0;
 }
-// Mehr-Menü schließen wenn außerhalb geklickt
-document.addEventListener('click',function(e){
+// Mehr-Menü Hilfsfunktionen
+function _closeMehrMenu(){const m=document.getElementById('mv2MehrMenu');if(m)m.classList.remove('open');}
+function _toggleMehrMenu(e){
+  e.stopPropagation();
   const m=document.getElementById('mv2MehrMenu');
-  if(m&&m.classList.contains('open')&&!e.target.closest('.mv2-mehr-wrap'))m.classList.remove('open');
+  if(m)m.classList.toggle('open');
+}
+// Mehr-Menü schließen wenn außerhalb geklickt (ohne stopPropagation!)
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.mv2-mehr-wrap'))_closeMehrMenu();
 });
 
 // Collapsible mv2-sections
