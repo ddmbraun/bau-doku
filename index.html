@@ -1140,7 +1140,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .mv2-section{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
 .mv2-section:last-child{border-bottom:none;margin-bottom:0;}
 .mv2-section-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
-.mv2-footer{flex-shrink:0;display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;padding:10px 16px;background:var(--bg3);border-top:1px solid var(--border);border-radius:0 0 14px 14px;}
+.mv2-footer{flex-shrink:0;display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;padding:10px 16px;background:var(--bg3);border-top:1px solid var(--border);border-radius:0 0 14px 14px;position:relative;}
 .mv2-footer button,.mv2-footer label.topbar-btn{padding:5px 11px!important;border-radius:6px;font-size:12px!important;font-weight:500;}
 .modal-size-preset{padding:2px 9px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:10px;cursor:pointer;transition:background .15s,color .15s;}
 .modal-size-preset:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
@@ -1991,13 +1991,14 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
       <button class="topbar-btn" onclick="moveTaskToBoard()" title="Task verschieben" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">↗ Verschieben</button>
       <button class="topbar-btn" onclick="exportTaskZip()" title="Task als ZIP sichern" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">⬇ Sichern</button>
       <label class="topbar-btn" title="Task aus ZIP wiederherstellen" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);cursor:pointer;">↩ Wiederherstellen<input type="file" accept=".zip" style="display:none" onchange="importTaskFromZip(this.files[0]);this.value='';" autocomplete="off"></label>
+      <button type="button" id="modalSaveSize" onclick="_saveModalDefault()" title="Aktuelle Position & Größe als Standard speichern" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap;">💾 Pos. speichern</button>
       <button class="topbar-btn btn-primary" onclick="saveTask()">Speichern</button>
+      <!-- Resize-Ecke direkt im Footer -->
+      <button type="button" class="modal-resize-corner" id="modalResizeCorner" title="Größe ändern – ziehen" style="position:absolute;right:0;bottom:0;border-radius:0 0 14px 0;">⤡</button>
     </div>
     <!-- resize-bar kept for JS compatibility -->
     <div class="modal-resize-bar" id="modalResizeBar" style="display:none;">
-      <button type="button" id="modalSaveSize" onclick="_saveModalDefault()" style="padding:2px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0;">💾 Größe speichern</button>
       <div class="resize-grip"><span></span><span></span></div>
-      <button type="button" class="modal-resize-corner" id="modalResizeCorner" title="Größe ändern – ziehen">⤡</button>
     </div>
   </div>
 </div>
@@ -3913,8 +3914,8 @@ function renderHeute(){
     var isBesicht=t.aktivitaet==='besichtigung';
     var k=(t.kontakte||[]).find(function(c){return c.anrufKontakt&&c.tel;});
     var adr=(t.adresse||'').trim();
-    var showTel=k&&k.tel&&(isAnruf||(isBesicht&&!!k));
-    var showMaps=adr&&isBesicht;
+    var showTel=!!(k&&k.tel);
+    var showMaps=!!adr;
     if(!showTel&&!showMaps)return'';
     var btnBase='width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;border:none;cursor:pointer;';
     var telBtn=showTel
