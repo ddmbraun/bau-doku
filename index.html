@@ -1116,8 +1116,15 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .modal-resize-corner:active{opacity:1;color:var(--accent);}
 /* ═══════════ PTP v2 · Zwei-Spalten-Modal ═══════════ */
 .modal.modal-v2{width:960px;max-width:99vw;max-height:96vh;padding:0;display:flex;flex-direction:column;border-radius:14px;}
-.mv2-header{flex-shrink:0;padding:14px 20px 0;background:var(--bg2);border-radius:14px 14px 0 0;border-bottom:1px solid var(--border);cursor:move;user-select:none;display:flex;flex-direction:column;align-items:stretch;}
+.mv2-header{flex-shrink:0;padding:10px 20px 0;background:var(--bg2);border-radius:14px 14px 0 0;border-bottom:1px solid var(--border);cursor:move;user-select:none;display:flex;flex-direction:column;align-items:stretch;}
 .mv2-header *{pointer-events:auto;}
+/* ── Meta-Zeile (Rep.-Nr. · Kostenstelle · Bearbeiter) ── */
+.mv2-meta-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:7px;}
+.mv2-meta-fields{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;min-width:0;}
+.mv2-meta-item{display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.mv2-meta-lbl{color:var(--text2);font-weight:500;}
+.mv2-meta-val{color:var(--text);font-weight:600;}
+.mv2-meta-sep{color:var(--border);font-size:13px;flex-shrink:0;}
 .mv2-title-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .mv2-subheader{display:flex;align-items:center;gap:7px;padding-bottom:10px;flex-wrap:wrap;min-height:24px;}
 .mv2-subhdr-sep{color:var(--border);font-size:14px;flex-shrink:0;}
@@ -1749,9 +1756,15 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 
     <!-- ── FIXED HEADER ── -->
     <div class="mv2-header modal-header-row" id="modalDragHandle">
-      <!-- Zeile 1: Titel + Zoom -->
-      <div class="mv2-title-row">
-        <input type="text" id="taskTitleInput" class="mv2-title-input" placeholder="Titel eingeben…" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off">
+      <!-- Zeile 1: Rep.-Nr. · Kostenstelle · Bearbeiter + Zoom -->
+      <div class="mv2-meta-row">
+        <div class="mv2-meta-fields">
+          <span class="mv2-meta-item"><span class="mv2-meta-lbl">Rep.-Nr.:</span>&nbsp;<span id="_hdrRepNr" class="mv2-meta-val">–</span></span>
+          <span class="mv2-meta-sep">·</span>
+          <span class="mv2-meta-item"><span class="mv2-meta-lbl">Kostenstelle:</span>&nbsp;<span id="_hdrKst" class="mv2-meta-val">–</span></span>
+          <span class="mv2-meta-sep">·</span>
+          <span class="mv2-meta-item"><span class="mv2-meta-lbl">Bearbeiter:</span>&nbsp;<span id="_hdrOwner" class="mv2-meta-val">–</span></span>
+        </div>
         <div class="mv2-size-ctrl">
           <label style="font-size:10px;color:var(--text2);">🔍</label>
           <button type="button" class="modal-size-btn" onclick="setModalSize(Math.max(80,+(document.getElementById('modalSizeSlider').value)-10))" title="Kleiner">−</button>
@@ -1760,7 +1773,11 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <input id="modalSizeSlider" type="range" min="80" max="180" step="10" value="100" oninput="setModalSize(this.value)" style="width:70px;accent-color:var(--accent);margin-left:4px;" autocomplete="off">
         </div>
       </div>
-      <!-- Zeile 2: Badge + Status + Aktivität + Objekt-Buttons -->
+      <!-- Zeile 2: Titel (bereinigt) -->
+      <div class="mv2-title-row">
+        <input type="text" id="taskTitleInput" class="mv2-title-input" placeholder="Titel eingeben…" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off">
+      </div>
+      <!-- Zeile 3: Badge + Status + Aktivität + Objekt-Buttons -->
       <div class="mv2-subheader">
         <span id="_taskTypeIndicator" class="task-type-badge baustelle">🏗 Baustelle</span>
         <span class="mv2-subhdr-status-chip" id="_hdrStatus"></span>
@@ -1921,12 +1938,12 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <!-- versteckter Maps-Button für JS-Kompatibilität -->
           <button type="button" id="taskMapsBtn" onclick="_openTaskMaps()" style="display:none;" disabled></button>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
-            <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Bearbeiter</label><input type="text" id="taskOwnerInput" placeholder="Name" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off"></div>
+            <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Bearbeiter</label><input type="text" id="taskOwnerInput" placeholder="Name" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
             <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Status</label><select id="taskStatusInput" style="font-size:12px;padding:4px 6px" onchange="updateGcalModalBtn();scheduleTaskFieldSave();_updateStammSummary();_updateMapsBtn()"></select></div>
           </div>
           <div class="baustelle-only" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:end;">
-            <div class="modal-field" style="margin:0"><label style="font-size:11px">Kostenstelle</label><input type="text" id="taskTagsInput" placeholder="z.B. 260036" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off"></div>
-            <div class="modal-field" style="margin:0"><label style="font-size:11px">Rep.-Nr.</label><input type="text" id="taskRepNr" placeholder="z.B. 3483" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave()" autocomplete="off"></div>
+            <div class="modal-field" style="margin:0"><label style="font-size:11px">Kostenstelle</label><input type="text" id="taskTagsInput" placeholder="z.B. 260036" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
+            <div class="modal-field" style="margin:0"><label style="font-size:11px">Rep.-Nr.</label><input type="text" id="taskRepNr" placeholder="z.B. 3483" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateHdrMeta()" autocomplete="off"></div>
             <div class="modal-field" style="margin:0"><label style="font-size:11px">Kunden-Nr.</label><input type="text" id="taskKundenNr" placeholder="z.B. 777" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave()" autocomplete="off"></div>
             <button type="button" id="openBauBtn" class="topbar-btn btn-primary" style="flex-shrink:0;padding:5px 9px;border-radius:6px;font-size:11px;font-weight:600;" onclick="openBaudokuApp()" title="Zur Baudoku App">📋 Bau</button>
           </div>
@@ -2546,6 +2563,16 @@ function _updateMapsBtn(){
   // Header: Objekt-Label – nur wenn Maps oder Tel sichtbar
   const objLbl=document.getElementById('_hdrObjLabel');
   if(objLbl) objLbl.style.display=(adr||(hTel&&hTel.style.display!=='none'))?'':'none';
+}
+// Header-Metadaten (Zeile 1) aktualisieren
+function _updateHdrMeta(){
+  const rep=(document.getElementById('taskRepNr')?.value||'').trim();
+  const kst=(document.getElementById('taskTagsInput')?.value||'').trim();
+  const owner=(document.getElementById('taskOwnerInput')?.value||'').trim();
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v||'–';};
+  set('_hdrRepNr',rep);
+  set('_hdrKst',kst);
+  set('_hdrOwner',owner);
 }
 // Speichert Task-Daten ohne Modal zu schließen
 function saveTaskData(){
@@ -9236,6 +9263,8 @@ function _applyBoardType(boardName){
 const TASK_SECTION_IDS=['tStammSect','tObjektSect','tAnsprchSect','tTermineSect','tZeitSect','tChecklisteSect','tNotizenSect','tNotizVerlaufSect','tFotoSect'];
 function collapseAllTaskSections(){
   TASK_SECTION_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('open');});
+  // Alle Popup-Panels schließen
+  document.querySelectorAll('.sect-popup.open').forEach(el=>el.classList.remove('open'));
   // Beide Spalten nach oben scrollen
   const l=document.querySelector('.mv2-left');const r=document.querySelector('.mv2-right');
   if(l)l.scrollTop=0;if(r)r.scrollTop=0;
@@ -9419,7 +9448,7 @@ function openEditTaskModal(id){
   // currentBoard auf das Board des Tasks setzen (wichtig für Heute-Ansicht)
   if(taskBoard&&taskBoard!==currentBoard){currentBoard=taskBoard;}
   document.getElementById('taskId').value=task.id;
-  document.getElementById('taskTitleInput').value=task.title;
+  document.getElementById('taskTitleInput').value=(task.title||'').replace(/[-_]+/g,' ').replace(/\s+/g,' ').trim();
   document.getElementById('taskDescInput').value=task.desc||'';
   document.getElementById('taskOwnerInput').value=task.owner||'Braun';
   document.getElementById('taskDueInput').value=task.due||'';
@@ -9435,7 +9464,7 @@ function openEditTaskModal(id){
   document.getElementById('tHV').value=task.hausverwaltung||'';
   document.getElementById('tAdr').value=task.adresse||'';
   document.getElementById('tSch').value=task.schadensbild||'';
-  setTimeout(_updateMapsBtn,50);
+  setTimeout(()=>{_updateMapsBtn();_updateHdrMeta();},50);
   // Kontakte: migrate old static fields if no kontakte array yet
   let _kontakte=task.kontakte||[];
   if(!_kontakte.length){
