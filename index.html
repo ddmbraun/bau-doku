@@ -1165,7 +1165,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .modal-header-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;cursor:move;user-select:none;}
 .mv2-header.modal-header-row{flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;margin-bottom:0;}
 .modal-header-row h2{margin-bottom:0;pointer-events:none;}
-.modal-header-row *{pointer-events:auto;}
+.modal-overlay.open .modal-header-row *{pointer-events:auto;}
 .modal-size-bar{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin:-10px 0 12px;padding:3px 2px;}
 .modal-size-bar label{font-size:10px;color:var(--text2);white-space:nowrap;margin:0 4px 0 0;cursor:default;}
 .modal-size-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
@@ -2366,6 +2366,7 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
 
   // Drag via header row
   document.addEventListener('mousedown',function(e){
+    if(!document.getElementById('taskModal').classList.contains('open'))return;
     const hdr=e.target.closest('.modal-header-row');
     if(!hdr)return;
     if(e.target.tagName==='BUTTON'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
@@ -2380,6 +2381,7 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
 
   // Resize via corner button
   document.addEventListener('mousedown',function(e){
+    if(!document.getElementById('taskModal').classList.contains('open'))return;
     if(!e.target.closest('#modalResizeCorner'))return;
     const box=_mb();if(!box)return;
     const r=box.getBoundingClientRect();
@@ -2415,12 +2417,14 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
     _mdDrag=false;_mdResize=false;
     if(wasDrag||wasResize){
       const box=_mb();
-      if(box){
+      if(box&&document.getElementById('taskModal').classList.contains('open')){
         _persistModalState(box);
         if(typeof showToast==='function')showToast('📌 Position gespeichert','info',1400);
       }
     }
   });
+  // Sicherheitsnetz: Drag-State zurücksetzen wenn Maus den Browser verlässt
+  document.addEventListener('mouseleave',function(){_mdDrag=false;_mdResize=false;document.body.style.cursor='';document.body.style.userSelect='';});
 
   window._setModalPreset=function(p){
     const box=_mb();if(!box)return;
@@ -9602,9 +9606,9 @@ function renderProjList(){
          ondragover="onProjDragOver(event)" ondragleave="onProjDragLeave(event)" ondrop="onProjDrop(event,${i})">
       <span class="proj-drag" title="Ziehen zum Umsortieren" style="cursor:grab;user-select:none;color:var(--text2);padding:0 4px;">⋮⋮</span>
       <span class="proj-icon">${(p.type||'baustelle')==='notiz'?'✅':'🏗'}</span>
-      <input type="text" value="${esc(p.name)}" id="projinput-${i}" placeholder="Projektname" autocomplete="off">
+      <input type="text" value="${esc(p.name)}" id="projinput-${i}" placeholder="Projektname" autocomplete="off" onmousedown="event.stopPropagation()" ondragstart="event.stopPropagation()">
       <span class="proj-count">${p.count} Task${p.count!==1?'s':''}</span>
-      <select id="projtype-${i}" class="proj-type-sel" title="Projekt-Typ">
+      <select id="projtype-${i}" class="proj-type-sel" title="Projekt-Typ" onmousedown="event.stopPropagation()">
         <option value="baustelle" ${(p.type||'baustelle')==='baustelle'?'selected':''}>🏗 Baustelle</option>
         <option value="notiz" ${(p.type||'baustelle')==='notiz'?'selected':''}>✅ Aufgaben</option>
       </select>
