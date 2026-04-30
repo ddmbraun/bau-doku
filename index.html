@@ -10388,4 +10388,21 @@ async function exportTaskZip(){
     }
     if((taskFotos||[]).length){
       showToast('📷 Fotos werden zusammengestellt…','info');
-      try{const b=await _buildF
+      try{const b=await _buildFosPdfForExport(taskFotos);if(b)zip.file('fotos.pdf',b);}catch(e){console.warn('[PTP] FotosPDF:',e);}
+    }
+    const blob=await zip.generateAsync({type:'blob'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=safe+'_Sicherung.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ ZIP gespeichert: '+safe+'_Sicherung.zip','ok',4000);
+  }catch(e){
+    console.error('[PTP] exportTaskZip:',e);
+    showToast('⚠ Fehler beim ZIP-Export: '+e.message,'error',6000);
+  }
+}
+</script>
+</body>
+</html>
