@@ -9372,18 +9372,6 @@ function openModal(){
   const _sb=document.querySelector('.modal-scroll-body');if(_sb)_sb.scrollTop=0;
   // Alle Sektionen beim Öffnen schließen
   collapseAllTaskSections();
-  // Sektionen je nach Board-Typ öffnen
-  const _isNotizBoard=(boardTypes[currentBoard]||'baustelle')==='notiz';
-  if(!_isNotizBoard){
-    // Baustelle: Objekt + Ansprechpartner + Checkliste direkt offen
-    ['tObjektSect','tAnsprchSect','tChecklisteSect'].forEach(function(sid){
-      const s=document.getElementById(sid);if(s)s.classList.add('open');
-    });
-  } else {
-    // Aufgaben-Board: Checkliste offen
-    const s=document.getElementById('tChecklisteSect');
-    if(s)s.classList.add('open');
-  }
   // Datumsfelder: leere verstecken
   setTimeout(_updateDateFieldVis,30);
   // Zusammenfassung in Stammdaten-Header aktualisieren
@@ -10392,7 +10380,7 @@ async function exportTaskZip(){
     }
     if((taskFotos||[]).length){
       showToast('📷 Fotos werden zusammengestellt…','info');
-      try{const b=await _buildFosPdfForExport(taskFotos);if(b)zip.file('fotos.pdf',b);}catch(e){console.warn('[PTP] FotosPDF:',e);}
+      try{const b=await _buildFotosPdfForExport(taskFotos);if(b)zip.file('fotos.pdf',b);}catch(e){console.warn('[PTP] FotosPDF:',e);}
     }
     const blob=await zip.generateAsync({type:'blob'});
     const url=URL.createObjectURL(blob);
@@ -10404,7 +10392,7 @@ async function exportTaskZip(){
     showToast('✅ ZIP gespeichert: '+safe+'_Sicherung.zip','ok',4000);
   }catch(e){
     console.error('[PTP] exportTaskZip:',e);
-    showToast('⚠ Fehler beim ZIP-Export: '+e.message,'error',6000);
+    showToast('⚠ Fehler beim Export: '+e.message,'error',5000);
   }
 }
 </script>
