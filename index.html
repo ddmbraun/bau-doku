@@ -1819,7 +1819,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
         <div class="mv2-section" id="tNotizenSect">
           <div class="mv2-section-label">📝 Beschreibung &amp; Anweisungen</div>
           <div class="modal-field" style="margin-bottom:0;">
-            <textarea id="taskDescInput" placeholder="Beschreibung, Anweisungen, Notizen… (Doppelklick zum Vergrößern)" rows="4" ondblclick="_openNotizOverlay()" title="Doppelklick zum Vergrößern" autocomplete="off"></textarea>
+            <textarea id="taskDescInput" placeholder="Beschreibung &amp; Anweisungen… (Doppelklick zum Öffnen)" rows="2" ondblclick="_openNotizOverlay()" title="Doppelklick zum Öffnen und Bearbeiten" autocomplete="off" style="min-height:0;max-height:calc(46px * var(--modal-scale,1));overflow:hidden;cursor:pointer;resize:none;"></textarea>
           </div>
         </div>
 
@@ -3898,12 +3898,14 @@ function taskCardHTML(task){
     ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="openEditTaskModal('${esc(task.id)}')">
     <div class="task-card-toprow">
       <span>${[repNrTxt,ksTxt].filter(Boolean).join(' · ')||'&nbsp;'}</span>
+      <span style="font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;${isNotizBoard?'background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;':'background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;'}">${isNotizBoard?'✅ Aufgabe':'🏗 Auftrag'}</span>
       <span class="task-card-owner-chip">${esc(task.owner)}</span>
     </div>
-    <div class="task-card-title">${isNotizBoard?'📋 ':''}${esc(task.title)}</div>
-    ${!isNotizBoard&&(task.status||(isTel||isBesi))?`<div class="task-card-taskrow">
+    <div class="task-card-title">${esc(task.title)}</div>
+    ${(task.status||(isTel||isBesi||isErteilt)||(task.due))?`<div class="task-card-taskrow">
       ${task.status?`<span style="color:var(--text2);">Task:</span><span class="task-card-chip task-card-chip-task">${esc(task.status)}</span>`:''}
       ${(isTel||isBesi||isErteilt)?`<span style="color:var(--text2);margin-left:2px;">Status:</span><span class="task-card-chip ${isTel?'task-card-chip-tel':isBesi?'task-card-chip-besi':'task-card-chip-erteilt'}">${isTel?'📞 Telefon':isBesi?'📍 Besichtigung':'📋 Auftrag erteilt'}</span>`:''}
+      ${isNotizBoard&&task.due?`<span style="color:var(--text2);margin-left:2px;">Fällig:</span><span class="task-card-chip" style="${overdue?'background:#FCEBEB;color:#A32D2D;border:0.5px solid #F7C1C1;':'background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;'}">${formatDate(task.due)}</span>`:''}
       ${_adr?`<a href="https://maps.google.com/?q=${encodeURIComponent(_adr)}" target="_blank" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;margin-left:auto;" title="${esc(_adr)}">🗺</a>`:''}
       ${_tel?`<a href="tel:${_tel.replace(/[^0-9+]/g,'')}" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;" title="${esc(_tel)}">📞</a>`:''}
     </div>`:''}
@@ -4115,6 +4117,10 @@ function renderHeute(){
     var isBesicht=t.aktivitaet==='besichtigung';
     var isAnruf=(t.aktivitaet==='anruf'||t.aktivitaet==='telefon');
     var isErteilt=t.aktivitaet==='auftrag_erteilt';
+    var isAufgabe=(boardTypes[item.board]||'baustelle')==='notiz';
+    var typBadge=isAufgabe
+      ?'<span style="font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;white-space:nowrap;flex-shrink:0;">✅ Aufgabe</span>'
+      :'<span style="font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;white-space:nowrap;flex-shrink:0;">🏗 Auftrag</span>';
     var k=(t.kontakte||[]).find(function(c){return c.anrufKontakt&&c.tel;});
     var lbl='<span style="font-size:10px;color:var(--text2);white-space:nowrap;">';
     // Zeile 2: Task + Status + Ortstermin + Datum
@@ -4126,22 +4132,22 @@ function renderHeute(){
     if(t.ortstermin)badges+=' '+chip('📍 Ortstermin: '+fmtDate(t.ortstermin),'background:#B5D4F4;border-color:#185FA5;color:#0C447C;font-weight:600;');
     if(dringlichkeit==='overdue'){
       var d=diffDays(t.due);
-      badges+=' '+chip(fmtDate(t.due)+' · '+d+(d===1?' Tag':' Tage')+' überfällig','background:#FCEBEB;border-color:#F7C1C1;color:#A32D2D;font-weight:600;');
+      badges+=' '+lbl+'Fällig:</span> '+chip(fmtDate(t.due)+' · '+d+(d===1?' Tag':' Tage')+' überfällig','background:#FCEBEB;border-color:#F7C1C1;color:#A32D2D;font-weight:600;');
     }else if(dringlichkeit==='heute'){
-      badges+=' '+chip(fmtDate(t.due),'background:#FAEEDA;border-color:#FAC775;color:#854F0B;font-weight:600;');
+      badges+=' '+lbl+'Fällig:</span> '+chip(fmtDate(t.due),'background:#FAEEDA;border-color:#FAC775;color:#854F0B;font-weight:600;');
     }else if(dringlichkeit==='ausf'){
-      badges+=' '+chip('Ausf. '+fmtDate(t.ausfuehrungstermin),'background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:600;');
+      badges+=' '+lbl+'Ausf.:</span> '+chip(fmtDate(t.ausfuehrungstermin),'background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:600;');
     }else{
-      badges+=' '+chip(fmtDate(t.due),'background:#EAF3DE;border-color:#C0DD97;color:#3B6D11;font-weight:600;');
+      badges+=' '+lbl+'Fällig:</span> '+chip(fmtDate(t.due),'background:#EAF3DE;border-color:#C0DD97;color:#3B6D11;font-weight:600;');
     }
     if(t.ausfuehrungstermin&&dringlichkeit!=='ausf'){
-      badges+=' '+chip('Ausf. '+fmtDate(t.ausfuehrungstermin),'background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:500;');
+      badges+=' '+lbl+'Ausf.:</span> '+chip(fmtDate(t.ausfuehrungstermin),'background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:500;');
     }
     var al=actionLine(t);
     return'<div style="display:flex;flex-direction:column;border:0.5px solid var(--border);border-left:3px solid '+bc
       +';border-radius:0 8px 8px 0;background:var(--bg2);margin-bottom:5px;cursor:pointer;overflow:hidden;" '
       +'onclick="openEditTaskModal(\''+esc(t.id)+'\')">'
-      +'<div style="padding:8px 12px 3px;font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(t.title)+'</div>'
+      +'<div style="padding:8px 12px 3px;display:flex;align-items:center;gap:7px;min-width:0;">'+typBadge+'<span style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">'+esc(t.title)+'</span></div>'
       +'<div style="padding:3px 12px 6px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">'+badges+'</div>'
       +al
       +'</div>';
@@ -8237,6 +8243,67 @@ function tNasKopieren(){
   });
 }
 // ── TASK MODAL ──
+
+// ── BESCHREIBUNGS-OVERLAY (Doppelklick auf Beschreibungsfeld) ──
+function _openNotizOverlay(){
+  const src=document.getElementById('taskDescInput');
+  if(!src)return;
+  // Overlay-Container
+  const ov=document.createElement('div');
+  ov.id='_notizOverlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;';
+  // Karten-Box
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg2);border-radius:14px;width:min(720px,96vw);height:min(520px,85vh);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.4);overflow:hidden;';
+  // Header
+  const hdr=document.createElement('div');
+  hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0;';
+  hdr.innerHTML='<span style="font-size:14px;font-weight:700;color:var(--text);">📝 Beschreibung &amp; Anweisungen</span>';
+  const closeBtn=document.createElement('button');
+  closeBtn.textContent='✕';
+  closeBtn.style.cssText='background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2);padding:0 4px;line-height:1;';
+  hdr.appendChild(closeBtn);
+  // Textarea
+  const ta=document.createElement('textarea');
+  ta.value=src.value;
+  ta.placeholder='Beschreibung, Anweisungen, Notizen…';
+  ta.style.cssText='flex:1;width:100%;border:none;outline:none;resize:none;padding:14px 16px;font-size:14px;line-height:1.6;color:var(--text);background:var(--bg2);font-family:inherit;';
+  ta.autocomplete='off';
+  // Footer
+  const ftr=document.createElement('div');
+  ftr.style.cssText='display:flex;justify-content:flex-end;gap:8px;padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;';
+  const saveBtn=document.createElement('button');
+  saveBtn.textContent='✓ Übernehmen';
+  saveBtn.style.cssText='background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:13px;font-weight:700;cursor:pointer;';
+  const discardBtn=document.createElement('button');
+  discardBtn.textContent='Abbrechen';
+  discardBtn.style.cssText='background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;';
+  ftr.appendChild(discardBtn);
+  ftr.appendChild(saveBtn);
+
+  function _save(){
+    src.value=ta.value;
+    // Vorschau aktualisieren (erste 2 Zeilen sichtbar)
+    if(typeof scheduleTaskFieldSave==='function')scheduleTaskFieldSave();
+    document.body.removeChild(ov);
+  }
+  function _close(){ document.body.removeChild(ov); }
+  saveBtn.onclick=_save;
+  discardBtn.onclick=_close;
+  closeBtn.onclick=_close;
+  ov.onclick=function(e){ if(e.target===ov)_save(); };
+  // Strg+Enter speichert
+  ta.onkeydown=function(e){ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){ e.preventDefault(); _save(); } };
+
+  box.appendChild(hdr);
+  box.appendChild(ta);
+  box.appendChild(ftr);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  // Cursor ans Ende setzen
+  setTimeout(()=>{ ta.focus(); ta.selectionStart=ta.selectionEnd=ta.value.length; },50);
+}
+
 // ── GMAIL-LINKS ──
 function renderGmailLinks(){
   const el=document.getElementById('gmailLinkList');
