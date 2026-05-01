@@ -1736,7 +1736,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 <div class="main" id="mainContent"></div>
 
 <!-- START MODAL -->
-<div class="modal-overlay open" id="startModal">
+<div class="modal-overlay" id="startModal">
   <div class="start-modal">
     <h2>PTP Workboard</h2>
     <p>Wähle einen Speicherort für deine Daten.<br>Alle Änderungen werden automatisch gespeichert.</p>
@@ -2831,6 +2831,10 @@ function gdriveInit() {
   if (storedFile || localStorage.getItem('gdrive_last_action')) {
     gdrivePendingAction = storedFile ? 'autoload' : localStorage.getItem('gdrive_last_action');
     try { gdriveTokenClient.requestAccessToken({ prompt: 'none' }); } catch(e) { gdrivePendingAction = null; }
+  } else {
+    // Kein gespeicherter Dateistand → Start-Modal öffnen (Erststart / Browser-Daten gelöscht)
+    const sm = document.getElementById('startModal');
+    if (sm) sm.classList.add('open');
   }
 }
 
@@ -3712,6 +3716,13 @@ function restoreLocalBackup(){
 }
 // Backup-Button im Start-Modal anzeigen wenn Backup vorhanden
 document.addEventListener('DOMContentLoaded',()=>{
+  // Sicherheits-Fallback: falls GSI-Script nicht lädt, Modal nach 3s öffnen
+  setTimeout(()=>{
+    if(!gdriveTokenClient){
+      const sm=document.getElementById('startModal');
+      if(sm&&!sm.classList.contains('open'))sm.classList.add('open');
+    }
+  },3000);
   const bk=_getLocalBackup();
   if(bk&&bk.data&&bk.ts){
     const btn=document.getElementById('restoreBackupBtn');
