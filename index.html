@@ -586,7 +586,7 @@ async function _pdfAuftragCreate(boardName){
     title:p.title||'Neuer Auftrag',
     desc:'',owner:'Braun',due:'',
     status:(getBoardStatuses(boardName)||[])[0]||'',
-    ampel:'grün',ausführungsdatum:'',ausfuehrungstermin:'',aktivitaet:'',tags:[],source:'',repNr:'',kundenNr:'',
+    ampel:'grün',ausführungsdatum:'',ausfuehrungstermin:'',ortstermin:'',aktivitaet:'',tags:[],source:'',repNr:'',kundenNr:'',
     hausverwaltung:'',adresse:'',schadensbild:'',kontakte:[],
     links:[],attachments:[],ausserhausTermine:[],zeitEntries:[],
     notizVerlauf:[],fotos:[],checkliste:[],gmailLinks:[],
@@ -982,14 +982,14 @@ input,select,textarea{font-family:inherit;}
 
 /* KANBAN */
 .kanban{display:flex;gap:14px;height:100%;min-height:0;overflow-x:auto;padding-bottom:8px;user-select:none;}
-.kanban-col-alle{flex:0 0 260px;min-width:180px;background:var(--bg2);border-radius:10px;display:flex;flex-direction:column;max-height:100%;border-top:3px solid #888;position:relative;opacity:.97;}
+.kanban-col-alle{flex:0 0 200px;min-width:150px;background:var(--bg2);border-radius:10px;display:flex;flex-direction:column;max-height:100%;border-top:3px solid #888;position:relative;opacity:.97;}
 .kanban-col-alle .kanban-col-header{padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .kanban-col-alle .kanban-col-body{flex:1;overflow-y:auto;padding:6px 10px 10px;display:flex;flex-direction:column;gap:8px;}
 .kanban-col-alle .task-card{cursor:grab;}
 .kanban-col-alle .task-card.alle-drag-over-above{border-top:2px solid var(--accent);}
 .kanban-col-alle .task-card.alle-drag-over-below{border-bottom:2px solid var(--accent);}
 #alleColBtn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.kanban-col{flex:0 0 260px;min-width:150px;background:var(--bg2);border-radius:10px;display:flex;flex-direction:column;max-height:100%;transition:none;position:relative;}
+.kanban-col{flex:0 0 200px;min-width:130px;background:var(--bg2);border-radius:10px;display:flex;flex-direction:column;max-height:100%;transition:none;position:relative;}
 .kanban-col::after{content:'';position:absolute;right:-7px;top:0;bottom:0;width:14px;cursor:col-resize;background:linear-gradient(90deg,transparent,var(--accent));opacity:0;transition:opacity .2s;pointer-events:auto;border-radius:0 10px 10px 0;}
 .kanban-col:hover::after{opacity:0.8;}
 .kanban-col.collapsed{flex:0 0 36px!important;min-width:36px!important;max-width:36px;overflow:hidden;}
@@ -1010,19 +1010,35 @@ input,select,textarea{font-family:inherit;}
 .col-collapse-btn:hover{color:var(--accent);background:var(--bg3);}
 
 /* TASK CARD */
-.task-card{background:var(--bg3);border-radius:8px;padding:calc(10px * var(--card-scale, 1)) calc(12px * var(--card-scale, 1));cursor:grab;transition:transform .18s,box-shadow .18s,border-color .15s;border:1px solid var(--border);border-left:5px solid #ccc;position:relative;}
+.task-card{background:var(--bg3);border-radius:8px;padding:8px 11px;cursor:grab;transition:transform .18s,box-shadow .18s,border-color .15s;border:1px solid var(--border);border-left:5px solid #ccc;position:relative;}
 .task-card:hover{border-color:var(--accent);border-left-color:inherit;transform:translateY(-2px);box-shadow:0 5px 14px var(--shadow);}
 .task-card.dragging{opacity:0.5;}
-.task-card-title{font-size:calc(13px * var(--card-scale, 1));font-weight:600;margin-bottom:calc(5px * var(--card-scale, 1));line-height:1.35;}
-.task-card-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:4px;}
-.task-card-owner{font-size:calc(11px * var(--card-scale, 1));color:var(--accent);background:rgba(108,99,255,0.1);padding:2px 7px;border-radius:4px;font-weight:700;}
-.task-card-due{font-size:calc(11px * var(--card-scale, 1));color:var(--text2);}
+.task-card-title{font-size:12px;font-weight:600;margin-bottom:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.task-card-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;}
+.task-card-owner{font-size:10px;color:var(--accent);background:rgba(108,99,255,0.1);padding:2px 7px;border-radius:4px;font-weight:700;}
+.task-card-due{font-size:10px;color:var(--text2);}
 .task-card-due.overdue{color:var(--red);}
 /* Karten-Kopfzeile: Rep-Nr + Kostenstelle */
-.task-card-toprow{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--text2);margin-bottom:5px;gap:6px;}
+.task-card-toprow{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px;gap:5px;}
 .task-card-toprow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* Karten-Fußzeile */
-.task-card-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:6px;margin-top:6px;font-size:11px;color:var(--text2);}
+.task-card-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:5px;margin-top:5px;font-size:11px;color:var(--text2);}
+.task-card-owner-chip{font-size:10px;font-weight:700;color:var(--accent);background:rgba(108,99,255,0.12);padding:1px 6px;border-radius:10px;border:0.5px solid rgba(108,99,255,0.3);white-space:nowrap;flex-shrink:0;}
+.task-card-taskrow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:3px 0 4px;font-size:9px;color:var(--text2);}
+.task-card-chip{padding:2px 6px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap;}
+.task-card-chip-task{background:rgba(52,168,83,0.1);color:#1e7e34;border:0.5px solid rgba(52,168,83,0.3);}
+.task-card-chip-tel{background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;}
+.task-card-chip-besi{background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;}
+.task-card-chip-erteilt{background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;}
+.task-card-datebox-row{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;margin:0 0 4px;}
+.task-card-datebox{border-radius:4px;border:0.5px solid var(--border);background:var(--bg3);padding:2px 6px;display:flex;flex-direction:row;align-items:center;gap:4px;}
+.task-card-datebox.miss{background:#FCEBEB;border-color:#F7C1C1;}
+.task-card-dbox-dot{width:6px;height:6px;border-radius:50%;border:1.5px solid;flex-shrink:0;}
+.task-card-dbox-lbl{font-size:9px;color:var(--text2);font-weight:500;white-space:nowrap;}
+.task-card-dbox-val{font-size:9px;font-weight:700;color:var(--text);white-space:nowrap;}
+.task-card-dbox-val.muted{color:var(--text2);font-weight:400;}
+.task-card-dbox-val.miss{color:#A32D2D;font-style:italic;}
+.task-card-icons-row{display:none;}
 /* Alarm: Termin fehlt */
 .card-alert-termin{font-size:10px;font-weight:700;color:#dc3545;background:#ffebe6;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:5px;border:1px solid #ffbdad;}
 /* Spaltenfarben – linker Rand */
@@ -1117,7 +1133,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 /* ═══════════ PTP v2 · Zwei-Spalten-Modal ═══════════ */
 .modal.modal-v2{width:960px;max-width:99vw;max-height:96vh;padding:0;display:flex;flex-direction:column;border-radius:14px;}
 .mv2-header{flex-shrink:0;padding:10px 20px 0;background:var(--bg2);border-radius:14px 14px 0 0;border-bottom:1px solid var(--border);cursor:move;user-select:none;display:flex;flex-direction:column;align-items:stretch;}
-.mv2-header *{pointer-events:auto;}
+.modal-overlay.open .mv2-header *{pointer-events:auto;}
 /* ── Meta-Zeile (Rep.-Nr. · Kostenstelle · Bearbeiter) ── */
 .mv2-meta-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:7px;}
 .mv2-meta-fields{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;min-width:0;}
@@ -1187,7 +1203,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .form-collapse.open .form-collapse-arrow{transform:rotate(180deg);}
 .form-collapse.open .form-collapse-body{display:block;}
 /* ── Einklappbare Sektionen unterhalb Notizen ── */
-.mv2-section.collapsible:not(.open)>*:not(.mv2-section-label){display:none;}
+.mv2-section.collapsible:not(.open)>*:not(.mv2-section-label){display:none !important;}
 .mv2-section.collapsible .mv2-section-label{cursor:pointer;user-select:none;-webkit-user-select:none;}
 .mv2-coll-arrow{font-size:12px;color:var(--text2);transition:transform .2s;display:inline-block;margin-left:5px;line-height:1;}
 .mv2-section.collapsible.open .mv2-coll-arrow{transform:rotate(90deg);}
@@ -1206,6 +1222,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .mv2-popup-btn-row{display:flex;align-items:center;justify-content:space-between;padding:7px 4px;border-bottom:1px solid var(--border);cursor:pointer;gap:8px;border-radius:6px;transition:background .15s;}
 .mv2-popup-btn-row:last-child{border-bottom:none;}
 .mv2-popup-btn-row:hover{background:rgba(108,99,255,0.06);}
+.mv2-popup-btn-row.dragover{background:rgba(108,99,255,0.18);border:1.5px dashed var(--accent);border-radius:6px;}
 .mv2-popup-btn-row span{font-size:12px;color:var(--text);font-weight:500;}
 .mv2-popup-open-btn{padding:3px 10px;border-radius:5px;border:1px solid var(--accent);background:rgba(108,99,255,0.08);color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;pointer-events:none;}
 .mv2-popup-btn-row:hover .mv2-popup-open-btn{background:var(--accent);color:#fff;}
@@ -1939,7 +1956,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <button type="button" id="taskMapsBtn" onclick="_openTaskMaps()" style="display:none;" disabled></button>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
             <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Bearbeiter</label><input type="text" id="taskOwnerInput" placeholder="Name" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
-            <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Status</label><select id="taskStatusInput" style="font-size:12px;padding:4px 6px" onchange="updateGcalModalBtn();scheduleTaskFieldSave();_updateStammSummary();_updateMapsBtn()"></select></div>
+            <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Task</label><select id="taskStatusInput" style="font-size:12px;padding:4px 6px" onchange="updateGcalModalBtn();scheduleTaskFieldSave();_updateStammSummary();_updateMapsBtn()"></select></div>
           </div>
           <div class="baustelle-only" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:end;">
             <div class="modal-field" style="margin:0"><label style="font-size:11px">Kostenstelle</label><input type="text" id="taskTagsInput" placeholder="z.B. 260036" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
@@ -1959,6 +1976,11 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
               <input type="date" id="taskAusfTerminInput" style="font-size:12px;padding:4px 6px;width:100%;border-color:var(--accent);" onchange="scheduleTaskFieldSave();_updateDateFieldVis();" autocomplete="off">
             </div>
             <button class="date-add-btn baustelle-only" id="taskAusfTerminInputAdd" onclick="_showDateField('taskAusfTerminInput')" style="display:none;">＋ Ausführungstermin hinzufügen</button>
+            <!-- Ortstermin -->
+            <div class="modal-field baustelle-only date-field-row" id="taskOrtsterminInputRow" style="margin:0;font-size:11px">
+              <label style="font-size:10px">📍 Ortstermin <span style="font-weight:400;color:var(--text2);">– Besichtigungstermin vor Ort</span></label>
+              <input type="date" id="taskOrtsterminInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();" autocomplete="off">
+            </div>
             <!-- Fälligkeit -->
             <div class="modal-field date-field-row" id="taskDueInputRow" style="margin:0;font-size:11px">
               <label style="font-size:10px">📅 Fälligkeit <span style="font-weight:400;color:var(--text2);">– interne Deadline</span></label>
@@ -1971,13 +1993,14 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
               <input type="date" id="taskAusfInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateDateFieldVis();" autocomplete="off">
             </div>
             <button class="date-add-btn baustelle-only" id="taskAusfInputAdd" onclick="_showDateField('taskAusfInput')" style="display:none;">＋ Auftrag erteilt hinzufügen</button>
-            <!-- Aktivität (hierher verschoben) -->
+            <!-- Status (ehemals Aktivität) -->
             <div class="modal-field" style="margin:0;margin-top:2px;font-size:11px">
-              <label style="font-size:10px">Aktivität</label>
+              <label style="font-size:10px">Status</label>
               <select id="taskAktivitaetInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateMapsBtn()">
                 <option value="">— keine —</option>
-                <option value="anruf">📞 Telefonanruf</option>
-                <option value="besichtigung">📍 Besichtigungstermin</option>
+                <option value="telefon">📞 Telefon</option>
+                <option value="besichtigung">📍 Besichtigung</option>
+                <option value="auftrag_erteilt">📋 Auftrag erteilt</option>
               </select>
             </div>
           </div>
@@ -1986,11 +2009,17 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
         <!-- Dokumente & Links (Popup-Trigger) -->
         <div class="mv2-section" style="padding-bottom:6px;">
           <div class="mv2-section-label">🗂 Dokumente &amp; Links</div>
-          <div class="mv2-popup-btn-row" onclick="_openSectPopup('tAnhangSect')">
+          <div class="mv2-popup-btn-row" onclick="_openSectPopup('tAnhangSect')"
+            ondragover="event.preventDefault();event.stopPropagation();this.classList.add('dragover');event.dataTransfer.dropEffect='copy'"
+            ondragleave="event.stopPropagation();this.classList.remove('dragover')"
+            ondrop="event.preventDefault();event.stopPropagation();this.classList.remove('dragover');handleFileAttach({target:{files:[...event.dataTransfer.files]},preventDefault:()=>{}})">
             <span>📎 <span id="tAnhangTitle">Dateianhänge</span></span>
             <button type="button" class="mv2-popup-open-btn">Öffnen ›</button>
           </div>
-          <div class="mv2-popup-btn-row" onclick="_openSectPopup('tEmailOrigSect')">
+          <div class="mv2-popup-btn-row" onclick="_openSectPopup('tEmailOrigSect')"
+            ondragover="event.preventDefault();event.stopPropagation();this.classList.add('dragover');event.dataTransfer.dropEffect='copy'"
+            ondragleave="event.stopPropagation();this.classList.remove('dragover')"
+            ondrop="event.preventDefault();event.stopPropagation();this.classList.remove('dragover');_handleEmailOrigDrop(event.dataTransfer)">
             <span>📧 <span id="tEmailOrigTitle">E-Mail Originale</span></span>
             <button type="button" class="mv2-popup-open-btn">Öffnen ›</button>
           </div>
@@ -2019,16 +2048,17 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <button onclick="exportTaskZip();_closeMehrMenu()">⬇ Sichern (ZIP)</button>
           <label class="mv2-mehr-item">↩ Wiederherstellen<input type="file" accept=".zip" style="display:none" onchange="importTaskFromZip(this.files[0]);this.value='';_closeMehrMenu();" autocomplete="off"></label>
           <button id="modalSaveSize" onclick="_saveModalDefault();_closeMehrMenu()">💾 Position & Größe speichern</button>
+          <button id="abschlussBtn" onclick="createAbschlussakte();_closeMehrMenu()" style="display:none;">📁 Abschlussakte</button>
         </div>
       </div>
       <button class="gcal-btn-modal" id="gcalModalBtn" onclick="openGoogleCalendarFromModal()" style="display:none;">📅 Kalender</button>
       <button class="outlook-btn-modal" id="outlookModalBtn" onclick="openOutlookCalendarFromModal()" style="display:none;">📆 Outlook</button>
-      <button class="topbar-btn baustelle-only" id="abschlussBtn" onclick="createAbschlussakte()" style="display:none;background:var(--bg3);border:1px solid var(--border);">📁 Abschlussakte</button>
       <!-- Rechte Seite: tägliche Aktionen -->
       <button class="topbar-btn btn-secondary" onclick="saveTaskAndBack()">← Zurück</button>
       <button class="topbar-btn" onclick="duplicateTask()" title="Task duplizieren" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">⧉ Duplizieren</button>
       <button class="topbar-btn" onclick="moveTaskToBoard()" title="Task verschieben" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);">↗ Verschieben</button>
       <button class="topbar-btn btn-primary" onclick="saveTask()">Speichern</button>
+      <span style="display:inline-block;width:5cm;flex-shrink:0;pointer-events:none;"></span>
       <!-- Resize-Ecke -->
       <button type="button" class="modal-resize-corner" id="modalResizeCorner" title="Größe ändern – ziehen" style="position:absolute;right:0;bottom:0;border-radius:0 0 14px 0;">⤡</button>
     </div>
@@ -2337,7 +2367,8 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
   // Größe+Position in localStorage speichern (intern)
   function _persistModalState(box){
     const r=box.getBoundingClientRect();
-    try{localStorage.setItem(MODAL_DEFAULT_KEY,JSON.stringify({w:Math.round(r.width),h:Math.round(r.height),left:Math.round(r.left),top:Math.round(r.top)}));}catch(e){}
+    const _pZoom=parseFloat(box.style.zoom)||1;
+    try{localStorage.setItem(MODAL_DEFAULT_KEY,JSON.stringify({w:Math.round(r.width/_pZoom),h:Math.round(r.height/_pZoom),left:Math.round(r.left),top:Math.round(r.top)}));}catch(e){}
   }
 
   // 💾 Knopf → aktuelle Größe+Position als Standard speichern
@@ -2372,8 +2403,9 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
     if(e.target.tagName==='BUTTON'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
     const box=_mb();if(!box)return;
     const r=box.getBoundingClientRect();
+    const _dZoom=parseFloat(box.style.zoom)||1;
     box.style.left=r.left+'px';box.style.top=r.top+'px';
-    box.style.width=r.width+'px';box.style.height=r.height+'px';
+    box.style.width=(r.width/_dZoom)+'px';box.style.height=(r.height/_dZoom)+'px';
     box.classList.add('is-placed');
     _mdOx=e.clientX-r.left;_mdOy=e.clientY-r.top;_mdDrag=true;
     e.preventDefault();
@@ -2385,12 +2417,13 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
     if(!e.target.closest('#modalResizeCorner'))return;
     const box=_mb();if(!box)return;
     const r=box.getBoundingClientRect();
+    const _rZoom=parseFloat(box.style.zoom)||1;
     if(!box.classList.contains('is-placed')){
       box.style.left=r.left+'px';box.style.top=r.top+'px';
       box.classList.add('is-placed');
     }
-    box.style.width=r.width+'px';box.style.height=r.height+'px';
-    _mdRSX=e.clientX;_mdRSY=e.clientY;_mdRW=r.width;_mdRH=r.height;
+    box.style.width=(r.width/_rZoom)+'px';box.style.height=(r.height/_rZoom)+'px';
+    _mdRSX=e.clientX;_mdRSY=e.clientY;_mdRW=r.width/_rZoom;_mdRH=r.height/_rZoom;
     _mdResize=true;
     document.body.style.cursor='se-resize';
     document.body.style.userSelect='none';
@@ -2449,6 +2482,9 @@ let taskGmailLinks = [];
 
 // ── KANBAN COLUMN RESIZE ──
 let resizingCol=null,resizeStartX=0,resizeStartWidth=0,resizingColIdx=-1;
+// Version bump → setzt gespeicherte Spaltenbreiten einmalig auf neuen Standard zurück
+const _COL_W_VER='v2';
+if(localStorage.getItem('kanbanColWidthsVer')!==_COL_W_VER){localStorage.removeItem('kanbanColWidths');localStorage.setItem('kanbanColWidthsVer',_COL_W_VER);}
 const kanbanColWidths=JSON.parse(localStorage.getItem('kanbanColWidths')||'{}');
 
 document.addEventListener('mousedown',(e)=>{
@@ -2472,7 +2508,7 @@ document.addEventListener('mousedown',(e)=>{
 document.addEventListener('mousemove',(e)=>{
   if(!resizingCol)return;
   const delta=e.clientX-resizeStartX;
-  const newWidth=Math.max(150,resizeStartWidth+delta);
+  const newWidth=Math.max(130,resizeStartWidth+delta);
   resizingCol.style.flex='0 0 '+newWidth+'px';
   if(resizingColIdx>=0) kanbanColWidths[resizingColIdx]=newWidth;
 });
@@ -2543,7 +2579,7 @@ function _updateMapsBtn(){
   // Header: Aktivität-Chip
   const aktEl=document.getElementById('_hdrAkt');
   if(aktEl){
-    const aktMap={'besichtigung':'📍 Besichtigung','anruf':'📞 Anruf'};
+    const aktMap={'besichtigung':'📍 Besichtigung','telefon':'📞 Telefon','anruf':'📞 Telefon','auftrag_erteilt':'📋 Auftrag erteilt'};
     const aktTxt=aktMap[akt]||'';
     aktEl.textContent=aktTxt;
     aktEl.style.display=aktTxt?'':'none';
@@ -2594,6 +2630,7 @@ function saveTaskData(){
     ausführungsdatum:document.getElementById('taskAusfInput').value,
     ausfuehrungstermin:(document.getElementById('taskAusfTerminInput')?document.getElementById('taskAusfTerminInput').value:''),
     aktivitaet:document.getElementById('taskAktivitaetInput')?document.getElementById('taskAktivitaetInput').value:'',
+    ortstermin:(document.getElementById('taskOrtsterminInput')?document.getElementById('taskOrtsterminInput').value:''),
     tags:document.getElementById('taskTagsInput').value.split(',').map(s=>s.trim()).filter(Boolean),
     source:document.getElementById('taskSourceInput').value.trim(),
     repNr:document.getElementById('taskRepNr').value.trim(),
@@ -3777,51 +3814,71 @@ function taskCardHTML(task){
   const hasFotos=(task.fotos||[]).length>0;
   const isAH=isAusserhaus(task);
   const isNotizBoard=(boardTypes[currentBoard]||'baustelle')==='notiz';
-  // Spaltenfarbe: Position des Status in der Board-Statusliste → farbiger linker Rand
+  const isBaustelle=(boardTypes[currentBoard]||'baustelle')==='baustelle';
   const boardSts=getBoardStatuses(currentBoard)||[];
   const stIdx=boardSts.indexOf(task.status);
   const colClass=stIdx>=0?`card-col-${stIdx%8}`:'';
-  // Kopfzeile: Rep-Nr + Kostenstelle (tags[0])
-  const repNrTxt=task.repNr?`🏷️ Rep. ${esc(task.repNr)}`:'';
-  const ksTxt=(task.tags&&task.tags[0])?`🏢 ${esc(task.tags[0])}`:'';
-  // Termin-Alarm: Status "Auftrag erteilt" ohne Ausführungstermin
-  const showTerminAlarm=!isNotizBoard&&!task.ausfuehrungstermin&&
+  // Kopfzeile
+  const repNrTxt=task.repNr?`↩ Rep. ${esc(task.repNr)}`:'';
+  const ksTxt=(task.tags&&task.tags[0])?`Kst. ${esc(task.tags[0])}`:'';
+  // Aktivität – Rückwärtskompatibilität: anruf → telefon
+  const akt=task.aktivitaet||'';
+  const isTel=(akt==='telefon'||akt==='anruf');
+  const isBesi=akt==='besichtigung';
+  const isErteilt=akt==='auftrag_erteilt';
+  // Maps + Tel Quicklinks
+  const _adr=(task.adresse||'').trim();
+  const _telK=(task.kontakte||[]).find(k=>k.tel);
+  const _tel=_telK?(_telK.tel||'').trim():'';
+  // Termin-Alarm: kein Ausführungstermin bei "erteilt"
+  const showTerminAlarm=isBaustelle&&!isNotizBoard&&!task.ausfuehrungstermin&&
     (task.status||'').toLowerCase().includes('erteilt');
+  // Icons
+  const hasTime=(task.timeEntries||[]).length>0||isTaskTimerRunning(task.id);
+  const timeMs=hasTime?getTaskTotalMs(task):0;
+  const ks=(task.tags&&task.tags[0])||'';
+  const bauTermCount=ks?(syncData.termine||[]).filter(t=>t.source==='bau'&&(t.kostenstelle||'').trim()===ks).length:0;
+  const bauZeitCount=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='bau'&&(z.kostenstelle||'').trim()===ks).length:0;
+  const bauTotal=bauTermCount+bauZeitCount;
+  const iconBadges=[
+    hasLinks?`<span class="task-icon-badge">🔗 ${(task.links||[]).length}</span>`:'',
+    hasAttach?`<span class="task-icon-badge">📎 ${(task.attachments||[]).length}</span>`:'',
+    hasFotos?`<span class="task-icon-badge" title="Fotos">📷 ${(task.fotos||[]).length}</span>`:'',
+    hasTime?`<span class="timer-badge${isTaskTimerRunning(task.id)?' running':''}">⏱ ${formatDuration(timeMs)}</span>`:'',
+    bauTotal>0?`<span class="task-icon-badge" style="color:#e67e22;background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);cursor:pointer" onclick="event.stopPropagation();openSyncPanel()" title="Bau Doku">🔄 ${bauTotal}</span>`:'',
+    isAH?`<button class="gcal-btn" onclick="openGoogleCalendar('${task.id}',event)" title="Google Kalender">📅</button>`:'',
+    isAH?`<button class="outlook-btn" onclick="openOutlookCalendar('${task.id}',event)" title="Outlook">📆</button>`:'',
+  ].filter(Boolean).join('');
+  // Datumskästchen-Helper
+  function dbox(lbl,val,dotStyle,isMiss){
+    return`<div class="task-card-datebox${isMiss?' miss':''}"><div class="task-card-dbox-dot" style="${dotStyle}"></div><div class="task-card-dbox-lbl">${lbl}</div><div class="task-card-dbox-val${val?isMiss?' miss':'':' muted'}">${val||'–'}</div></div>`;
+  }
   return`<div class="task-card ${colClass}" draggable="true" data-id="${esc(task.id)}"
     ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="openEditTaskModal('${esc(task.id)}')">
-    ${(repNrTxt||ksTxt)?`<div class="task-card-toprow"><span>${repNrTxt}</span><span>${ksTxt}</span></div>`:''}
+    <div class="task-card-toprow">
+      <span>${[repNrTxt,ksTxt].filter(Boolean).join(' · ')||'&nbsp;'}</span>
+      <span class="task-card-owner-chip">${esc(task.owner)}</span>
+    </div>
     <div class="task-card-title">${isNotizBoard?'📋 ':''}${esc(task.title)}</div>
-    ${showTerminAlarm?'<div class="card-alert-termin">⏰ TERMIN FEHLT!</div>':''}
+    ${!isNotizBoard&&(task.status||(isTel||isBesi))?`<div class="task-card-taskrow">
+      ${task.status?`<span style="color:var(--text2);">Task:</span><span class="task-card-chip task-card-chip-task">${esc(task.status)}</span>`:''}
+      ${(isTel||isBesi||isErteilt)?`<span style="color:var(--text2);margin-left:2px;">Status:</span><span class="task-card-chip ${isTel?'task-card-chip-tel':isBesi?'task-card-chip-besi':'task-card-chip-erteilt'}">${isTel?'📞 Telefon':isBesi?'📍 Besichtigung':'📋 Auftrag erteilt'}</span>`:''}
+      ${_adr?`<a href="https://maps.google.com/?q=${encodeURIComponent(_adr)}" target="_blank" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;margin-left:auto;" title="${esc(_adr)}">🗺</a>`:''}
+      ${_tel?`<a href="tel:${_tel.replace(/[^0-9+]/g,'')}" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;" title="${esc(_tel)}">📞</a>`:''}
+    </div>`:''}
     ${(()=>{
-      const hasTime=(task.timeEntries||[]).length>0||isTaskTimerRunning(task.id);
-      const timeMs=hasTime?getTaskTotalMs(task):0;
-      const ks=(task.tags&&task.tags[0])||'';
-      const bauTermCount=ks?(syncData.termine||[]).filter(t=>t.source==='bau'&&(t.kostenstelle||'').trim()===ks).length:0;
-      const bauZeitCount=ks?(syncData.zeiterfassung||[]).filter(z=>z.source==='bau'&&(z.kostenstelle||'').trim()===ks).length:0;
-      const bauTotal=bauTermCount+bauZeitCount;
-      // Icons für Fußzeile sammeln
-      const iconBadges=[
-        hasLinks?`<span class="task-icon-badge">🔗 ${(task.links||[]).length}</span>`:'',
-        hasAttach?`<span class="task-icon-badge">📎 ${(task.attachments||[]).length}</span>`:'',
-        hasFotos?`<span class="task-icon-badge" title="Fotos">📷 ${(task.fotos||[]).length}</span>`:'',
-        hasTime?`<span class="timer-badge${isTaskTimerRunning(task.id)?' running':''}">⏱ ${formatDuration(timeMs)}</span>`:'',
-        bauTotal>0?`<span class="task-icon-badge" style="color:#e67e22;background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);cursor:pointer" onclick="event.stopPropagation();openSyncPanel()" title="Bau Doku">🔄 ${bauTotal}</span>`:'',
-        isAH?`<button class="gcal-btn" onclick="openGoogleCalendar('${task.id}',event)" title="Google Kalender">📅</button>`:'',
-        isAH?`<button class="outlook-btn" onclick="openOutlookCalendar('${task.id}',event)" title="Outlook">📆</button>`:'',
+      if(!isBaustelle||isNotizBoard)return'';
+      const boxes=[
+        task.ausführungsdatum?dbox('Erteilt',formatDate(task.ausführungsdatum),'background:#FAEEDA;border-color:#854F0B;',false):'',
+        task.ortstermin?dbox('Ortstermin',formatDate(task.ortstermin),'background:#B5D4F4;border-color:#185FA5;',false):'',
+        (task.ausfuehrungstermin||showTerminAlarm)?dbox('Ausführung',showTerminAlarm?'fehlt':formatDate(task.ausfuehrungstermin),'background:'+(showTerminAlarm?'#F7C1C1':'#C0DD97')+';border-color:'+(showTerminAlarm?'#A32D2D':'#3B6D11')+';',showTerminAlarm):'',
+        task.due?dbox('Fälligkeit',formatDate(task.due),overdue?'background:#F7C1C1;border-color:#A32D2D;':'background:#FAEEDA;border-color:#854F0B;',false):'',
       ].filter(Boolean).join('');
-      return`<div class="task-card-meta">
-        ${isNotizBoard?'':'<span class="ampel ampel-'+(task.ampel==='grün'?'green':task.ampel==='orange'?'orange':'red')+'"></span>'}
-        ${task.aktivitaet==='anruf'?'<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#e8f0fe;color:#1a56c4;font-weight:600;border:1px solid #b3c8fa;">📞 Anruf</span>':task.aktivitaet==='besichtigung'?'<svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#E24B4A;flex-shrink:0;vertical-align:middle;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'+(task.ausfuehrungstermin?`<span style="font-size:11px;padding:2px 7px;border-radius:4px;background:#E6F1FB;color:#185FA5;font-weight:600;border:0.5px solid #B5D4F4;">Ausf. ${formatDate(task.ausfuehrungstermin)}</span>`:'<span style="font-size:11px;padding:2px 7px;border-radius:4px;background:#e6f4ea;color:#1e7e34;font-weight:600;border:0.5px solid #a8d5b5;">Besichtigung</span>'):''}
-        ${task.due?`<span class="task-card-due ${overdue?'overdue':''}" style="font-size:11px;padding:2px 6px;border-radius:4px;background:${overdue?'#FCEBEB':'var(--bg3)'};border:0.5px solid ${overdue?'#F7C1C1':'var(--border)'};color:${overdue?'#A32D2D':'var(--text2)'};font-weight:${overdue?'600':'400'};">Fäll. ${formatDate(task.due)}</span>`:''}
-        ${task.ausführungsdatum?`<span style="font-size:11px;padding:2px 6px;border-radius:4px;background:#FAEEDA;border:0.5px solid #FAC775;color:#854F0B;">Ert. ${formatDate(task.ausführungsdatum)}</span>`:''}
-        ${task.ausfuehrungstermin&&task.aktivitaet!=='besichtigung'?`<span style="font-size:11px;padding:2px 6px;border-radius:4px;background:#E6F1FB;border:0.5px solid #B5D4F4;color:#185FA5;font-weight:600;">Ausf. ${formatDate(task.ausfuehrungstermin)}</span>`:''}
-        ${(task.tags||[]).slice(1).map(t=>`<span class="task-tag">${esc(t)}</span>`).join('')}
-      </div>
-      <div class="task-card-footer">
-        <span>${iconBadges}</span>
-        <span class="task-card-owner">${esc(task.owner)}</span>
-      </div>`;
+      return boxes?`<div class="task-card-datebox-row">${boxes}</div>`:'';
     })()}
+    <div class="task-card-icons-row">
+      ${iconBadges}
+    </div>
   </div>`;
 }
 
@@ -3980,7 +4037,7 @@ function renderHeute(){
   var pinIcon='<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#fff;flex-shrink:0;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
 
   function actionLine(t){
-    var isAnruf=t.aktivitaet==='anruf';
+    var isAnruf=(t.aktivitaet==='anruf'||t.aktivitaet==='telefon');
     var isBesicht=t.aktivitaet==='besichtigung';
     var k=(t.kontakte||[]).find(function(c){return c.anrufKontakt&&c.tel;});
     var adr=(t.adresse||'').trim();
@@ -4015,14 +4072,17 @@ function renderHeute(){
     var t=item.t;
     var bc=dringlichkeit==='overdue'?'#E24B4A':dringlichkeit==='heute'?'#EF9F27':'#639922';
     var isBesicht=t.aktivitaet==='besichtigung';
-    var isAnruf=t.aktivitaet==='anruf';
+    var isAnruf=(t.aktivitaet==='anruf'||t.aktivitaet==='telefon');
+    var isErteilt=t.aktivitaet==='auftrag_erteilt';
     var k=(t.kontakte||[]).find(function(c){return c.anrufKontakt&&c.tel;});
-    // Zeile 2: Aktivitäts-Badges + Status + Datum
+    var lbl='<span style="font-size:10px;color:var(--text2);white-space:nowrap;">';
+    // Zeile 2: Task + Status + Ortstermin + Datum
     var badges='';
-    if(isBesicht)badges+=chip('Besichtigung','background:#2e7d3215;border-color:#2e7d3240;color:#2e7d32;font-weight:600;');
-    if(isAnruf)badges+=chip('Anruf','background:#1565c015;border-color:#1565c040;color:#1565c0;font-weight:600;');
-    if(isBesicht&&k)badges+=' '+chip('+ Anruf','background:#1565c015;border-color:#1565c040;color:#1565c0;font-weight:600;');
-    badges+=' '+chip(esc(t.status));
+    if(t.status)badges+=lbl+'Task:</span> '+chip(esc(t.status));
+    if(isBesicht)badges+=' '+lbl+'Status:</span> '+chip('📍 Besichtigung','background:#FAEEDA;border-color:#FAC775;color:#854F0B;font-weight:600;');
+    if(isAnruf)badges+=' '+lbl+'Status:</span> '+chip('📞 Telefon','background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:600;');
+    if(isErteilt)badges+=' '+lbl+'Status:</span> '+chip('📋 Auftrag erteilt','background:#EAF3DE;border-color:#C0DD97;color:#3B6D11;font-weight:600;');
+    if(t.ortstermin)badges+=' '+chip('📍 Ortstermin: '+fmtDate(t.ortstermin),'background:#B5D4F4;border-color:#185FA5;color:#0C447C;font-weight:600;');
     if(dringlichkeit==='overdue'){
       var d=diffDays(t.due);
       badges+=' '+chip(fmtDate(t.due)+' · '+d+(d===1?' Tag':' Tage')+' überfällig','background:#FCEBEB;border-color:#F7C1C1;color:#A32D2D;font-weight:600;');
@@ -9399,6 +9459,7 @@ function openNewTaskModal(){
   document.getElementById('taskAmpelInput').value='grün';
   document.getElementById('taskAusfInput').value='';
   const _aktEl=document.getElementById('taskAktivitaetInput');if(_aktEl)_aktEl.value='';
+  const _ortEl=document.getElementById('taskOrtsterminInput');if(_ortEl)_ortEl.value='';
   document.getElementById('taskTagsInput').value='';
   document.getElementById('taskSourceInput').value='';
   document.getElementById('taskRepNr').value='';
@@ -9449,6 +9510,7 @@ function openEditTaskModal(id){
   document.getElementById('taskAusfInput').value=task.ausführungsdatum||'';
   const _atEl=document.getElementById('taskAusfTerminInput');if(_atEl)_atEl.value=task.ausfuehrungstermin||'';
   const _aktEditEl=document.getElementById('taskAktivitaetInput');if(_aktEditEl)_aktEditEl.value=task.aktivitaet||'';
+  const _ortEditEl=document.getElementById('taskOrtsterminInput');if(_ortEditEl)_ortEditEl.value=task.ortstermin||'';
   document.getElementById('taskTagsInput').value=(task.tags||[]).join(', ');
   document.getElementById('taskSourceInput').value=task.source||'';
   document.getElementById('taskRepNr').value=task.repNr||'';
@@ -10095,7 +10157,10 @@ function setCardSize(pct){
 function setModalSize(pct){
   const v=Math.max(70,Math.min(200,parseInt(pct,10)||100));
   const box=document.getElementById('taskModalBox');
-  if(box)box.style.setProperty('--modal-scale',(v/100).toFixed(2));
+  if(box){
+    box.style.setProperty('--modal-scale',(v/100).toFixed(2));
+    box.style.zoom=(v/100).toFixed(2);
+  }
   const lbl=document.getElementById('modalSizeVal');if(lbl)lbl.textContent=v+'%';
   const sl=document.getElementById('modalSizeSlider');if(sl&&String(sl.value)!==String(v))sl.value=String(v);
   try{localStorage.setItem('ptp_modal_size',String(v));}catch(e){console.warn('[PTP]',e);}
