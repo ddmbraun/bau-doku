@@ -1800,14 +1800,16 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
         <span id="_taskTypeIndicator" class="task-type-badge baustelle" style="flex-shrink:0;">🏗 Baustelle</span>
         <input type="text" id="taskTitleInput" class="mv2-title-input" placeholder="Titel eingeben…" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off">
       </div>
-      <!-- Zeile 3: Status + Aktivität + Objekt-Buttons -->
+      <!-- Zeile 3: Task-Chip + Status-Chip + Buttons -->
       <div class="mv2-subheader">
-        <span class="mv2-subhdr-status-chip" id="_hdrStatus"></span>
-        <span class="mv2-subhdr-akt" id="_hdrAkt" style="display:none;"></span>
+        <span id="_hdrStatus"></span>
+        <span id="_hdrAkt" style="display:none;"></span>
         <span class="mv2-subhdr-obj-lbl baustelle-only" id="_hdrObjLabel" style="display:none;">Objekt:</span>
         <button type="button" class="mv2-subhdr-maps baustelle-only" id="_hdrMapsBtn" onclick="_openTaskMaps()" title="In Google Maps öffnen" style="display:none;">📍 Maps</button>
         <a class="mv2-subhdr-tel baustelle-only" id="_hdrTelBtn" style="display:none;" title="Anrufen">📞</a>
       </div>
+      <!-- Zeile 4: Datums-Boxen (wie geschlossene Karte) -->
+      <div id="_hdrDates" class="task-card-datebox-row" style="margin-top:4px;display:none;"></div>
     </div>
 
     <!-- ── TWO-COLUMN BODY ── -->
@@ -2588,10 +2590,24 @@ function _updateMapsBtn(){
   // Maps-Button in Objekt-Sektion (versteckt, JS-Kompatibilität)
   const btn=document.getElementById('taskMapsBtn');
   if(btn){btn.disabled=!adr;btn.style.opacity=adr?'1':'0.4';btn.style.cursor=adr?'pointer':'default';}
-  // Header: Status-Chip
+  // Header: "Task: [Spalten-Chip]"
   const stEl=document.getElementById('_hdrStatus');
-  if(stEl) stEl.textContent=status?'Status: '+status:'';
-  // Header: Aktivität-Chip (farbig, wie auf Kanban-Karte)
+  if(stEl){
+    if(status){
+      const _bStatuses=getBoardStatuses(currentBoard);
+      const _si=_bStatuses.indexOf(status);
+      const _sc=typeof colColor==='function'&&_si>=0?colColor(_si):'#4a4a6a';
+      stEl.innerHTML='<span style="color:var(--text2);font-size:11px;font-weight:500;margin-right:3px;">Task:</span>'
+        +'<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:2px 9px;border-radius:10px;background:'+_sc+'22;color:'+_sc+';border:1px solid '+_sc+'55;white-space:nowrap;">'+esc(status)+'</span>';
+      stEl.style.display='inline-flex';
+      stEl.style.alignItems='center';
+      stEl.style.gap='2px';
+    }else{
+      stEl.innerHTML='';
+      stEl.style.display='none';
+    }
+  }
+  // Header: "Status: [Aktivitäts-Chip]"
   const aktEl=document.getElementById('_hdrAkt');
   if(aktEl){
     const _aktChipMapH={
@@ -2606,12 +2622,35 @@ function _updateMapsBtn(){
     };
     const chip=akt&&_aktChipMapH[akt]?_aktChipMapH[akt]:null;
     if(chip){
-      aktEl.innerHTML='<span class="task-card-chip '+chip.cls+'" style="font-size:11px;padding:2px 8px;">'+chip.lbl+'</span>';
-      aktEl.style.display='';
+      aktEl.innerHTML='<span style="color:var(--text2);font-size:11px;font-weight:500;margin-right:3px;">Status:</span>'
+        +'<span class="task-card-chip '+chip.cls+'" style="font-size:11px;padding:2px 8px;">'+chip.lbl+'</span>';
+      aktEl.style.display='inline-flex';
+      aktEl.style.alignItems='center';
+      aktEl.style.gap='2px';
     }else{
       aktEl.innerHTML='';
       aktEl.style.display='none';
     }
+  }
+  // Header: Datums-Boxen (wie geschlossene Karte)
+  const datesEl=document.getElementById('_hdrDates');
+  if(datesEl){
+    try{
+      const tid=document.getElementById('taskId')?.value;
+      const task=tid?findTaskById(tid):null;
+      function _dbox(lbl,val,dotStyle){
+        return'<div class="task-card-datebox"><div class="task-card-dbox-dot" style="'+dotStyle+'"></div><div class="task-card-dbox-lbl">'+lbl+'</div><div class="task-card-dbox-val">'+(val||'–')+'</div></div>';
+      }
+      const overdue=task&&task.due&&isOverdue(task.due);
+      const boxes=[
+        task&&task.ausführungsdatum?_dbox('Erteilt',formatDate(task.ausführungsdatum),'background:#FAEEDA;border-color:#854F0B;'):'',
+        task&&task.ortstermin?_dbox('Ortstermin',formatDate(task.ortstermin),'background:#B5D4F4;border-color:#185FA5;'):'',
+        task&&task.ausfuehrungstermin?_dbox('Ausführung',formatDate(task.ausfuehrungstermin),'background:#C0DD97;border-color:#3B6D11;'):'',
+        task&&task.due?_dbox('Erledigen bis',formatDate(task.due),overdue?'background:#F7C1C1;border-color:#A32D2D;':'background:#FAEEDA;border-color:#854F0B;'):'',
+      ].filter(Boolean).join('');
+      datesEl.innerHTML=boxes;
+      datesEl.style.display=boxes?'flex':'none';
+    }catch(e){datesEl.style.display='none';}
   }
   // Header: Maps-Button
   const hBtn=document.getElementById('_hdrMapsBtn');
