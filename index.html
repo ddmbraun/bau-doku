@@ -1988,10 +1988,10 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             </div>
             <!-- Fälligkeit -->
             <div class="modal-field date-field-row" id="taskDueInputRow" style="margin:0;font-size:11px">
-              <label style="font-size:10px">📅 Fälligkeit <span style="font-weight:400;color:var(--text2);">– interne Deadline</span></label>
+              <label style="font-size:10px">📅 Erledigen bis <span style="font-weight:400;color:var(--text2);">– interne Deadline</span></label>
               <input type="date" id="taskDueInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateStammSummary();_updateDateFieldVis();" autocomplete="off">
             </div>
-            <button class="date-add-btn" id="taskDueInputAdd" onclick="_showDateField('taskDueInput')" style="display:none;">＋ Fälligkeit hinzufügen</button>
+            <button class="date-add-btn" id="taskDueInputAdd" onclick="_showDateField('taskDueInput')" style="display:none;">＋ Erledigen bis hinzufügen</button>
             <!-- Auftrag erteilt -->
             <div class="modal-field baustelle-only date-field-row" id="taskAusfInputRow" style="margin:0;font-size:11px">
               <label style="font-size:10px">📋 Auftrag erteilt <span style="font-weight:400;color:var(--text2);">– von Hausverwaltung</span></label>
@@ -2001,7 +2001,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             <!-- Status (ehemals Aktivität) -->
             <div class="modal-field" style="margin:0;margin-top:2px;font-size:11px">
               <label style="font-size:10px">Status</label>
-              <select id="taskAktivitaetInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateMapsBtn()">
+              <select id="taskAktivitaetInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateMapsBtn();_updateStammSummary()">
                 <option value="">— keine —</option>
                 <option value="telefon">📞 Telefon</option>
                 <option value="besichtigung">📍 Besichtigung</option>
@@ -2591,13 +2591,27 @@ function _updateMapsBtn(){
   // Header: Status-Chip
   const stEl=document.getElementById('_hdrStatus');
   if(stEl) stEl.textContent=status?'Status: '+status:'';
-  // Header: Aktivität-Chip
+  // Header: Aktivität-Chip (farbig, wie auf Kanban-Karte)
   const aktEl=document.getElementById('_hdrAkt');
   if(aktEl){
-    const aktMap={'besichtigung':'📍 Besichtigung','telefon':'📞 Telefon','anruf':'📞 Telefon','auftrag_erteilt':'📋 Auftrag erteilt'};
-    const aktTxt=aktMap[akt]||'';
-    aktEl.textContent=aktTxt;
-    aktEl.style.display=aktTxt?'':'none';
+    const _aktChipMapH={
+      telefon:{cls:'task-card-chip-tel',lbl:'📞 Telefon'},
+      anruf:{cls:'task-card-chip-tel',lbl:'📞 Telefon'},
+      besichtigung:{cls:'task-card-chip-besi',lbl:'📍 Besichtigung'},
+      auftrag_erteilt:{cls:'task-card-chip-erteilt',lbl:'📋 Auftrag erteilt'},
+      angebot:{cls:'task-card-chip-angebot',lbl:'📝 Angebot'},
+      email:{cls:'task-card-chip-email',lbl:'📧 E-Mail'},
+      rueckfragen:{cls:'task-card-chip-rueckfragen',lbl:'❓ Rückfragen'},
+      abgeschlossen:{cls:'task-card-chip-abgeschlossen',lbl:'✅ Abgeschlossen'},
+    };
+    const chip=akt&&_aktChipMapH[akt]?_aktChipMapH[akt]:null;
+    if(chip){
+      aktEl.innerHTML='<span class="task-card-chip '+chip.cls+'" style="font-size:11px;padding:2px 8px;">'+chip.lbl+'</span>';
+      aktEl.style.display='';
+    }else{
+      aktEl.innerHTML='';
+      aktEl.style.display='none';
+    }
   }
   // Header: Maps-Button
   const hBtn=document.getElementById('_hdrMapsBtn');
@@ -3955,7 +3969,7 @@ function taskCardHTML(task){
         task.ausführungsdatum?dbox('Erteilt',formatDate(task.ausführungsdatum),'background:#FAEEDA;border-color:#854F0B;',false):'',
         task.ortstermin?dbox('Ortstermin',formatDate(task.ortstermin),'background:#B5D4F4;border-color:#185FA5;',false):'',
         task.ausfuehrungstermin?dbox('Ausführung',formatDate(task.ausfuehrungstermin),'background:#C0DD97;border-color:#3B6D11;',false):'',
-        task.due?dbox('Fälligkeit',formatDate(task.due),overdue?'background:#F7C1C1;border-color:#A32D2D;':'background:#FAEEDA;border-color:#854F0B;',false):'',
+        task.due?dbox('Erledigen bis',formatDate(task.due),overdue?'background:#F7C1C1;border-color:#A32D2D;':'background:#FAEEDA;border-color:#854F0B;',false):'',
       ].filter(Boolean).join('');
       return boxes?`<div class="task-card-datebox-row">${boxes}</div>`:'';
     })()}
@@ -4310,7 +4324,7 @@ function renderList(){
   let html=`<div class="list-view"><div class="list-sort-header">
     <span style="flex:1;font-size:11px;color:var(--text2)">TITEL</span>
     <button class="list-sort-btn ${listSortField==='owner'?'active':''}" style="min-width:80px" onclick="toggleListSort('owner')">Bearbeiter ${listSortField==='owner'?(listSortDir===1?'↑':'↓'):''}</button>
-    <button class="list-sort-btn ${listSortField==='due'?'active':''}" style="min-width:90px" onclick="toggleListSort('due')">Due Date ${listSortField==='due'?(listSortDir===1?'↑':'↓'):''}</button>
+    <button class="list-sort-btn ${listSortField==='due'?'active':''}" style="min-width:90px" onclick="toggleListSort('due')">Erledigen bis ${listSortField==='due'?(listSortDir===1?'↑':'↓'):''}</button>
     <span style="min-width:80px;font-size:11px;color:var(--text2);text-align:center">STATUS</span>
     <span style="width:12px"></span></div>`;
   for(const t of tasks){
@@ -4337,7 +4351,7 @@ function renderTable(){
   const tasks=getTasks();
   let html=`<div class="table-view"><table><thead><tr>
     <th onclick="toggleListSort('title')">Titel</th><th onclick="toggleListSort('status')">Status</th>
-    <th onclick="toggleListSort('owner')">Bearbeiter</th><th onclick="toggleListSort('due')">Due Date</th>
+    <th onclick="toggleListSort('owner')">Bearbeiter</th><th onclick="toggleListSort('due')">Erledigen bis</th>
     <th>Ampel</th><th>Tags</th><th>Links/Anhänge</th>
   </tr></thead><tbody>`;
   const sorted=tasks.slice().sort((a,b)=>{
@@ -9490,8 +9504,9 @@ function _applyBoardType(boardName){
   }
   const ti=document.getElementById('_taskTypeIndicator');
   if(ti){
-    if(type==='notiz'){ti.textContent='✅ Aufgaben';ti.className='task-type-badge notiz';}
-    else{ti.textContent='🏗 Baustelle';ti.className='task-type-badge baustelle';}
+    const _craneSvgTI='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="22" x2="9" y2="7"/><line x1="1" y1="7" x2="21" y2="7"/><line x1="9" y1="4" x2="21" y2="7"/><line x1="1" y1="7" x2="9" y2="4"/><line x1="17" y1="7" x2="17" y2="16"/><path d="M15 16 q2 2 4 0"/><line x1="6" y1="22" x2="12" y2="22"/></svg>';
+    if(type==='notiz'){ti.innerHTML='✅ Aufgaben';ti.className='task-type-badge notiz';}
+    else{ti.innerHTML=_craneSvgTI+' Auftrag';ti.className='task-type-badge baustelle';}
   }
   // Abschlussakte-Button: nur sichtbar für Baustelle-Tasks (und wenn ID vorhanden)
   const abBtn=document.getElementById('abschlussBtn');
