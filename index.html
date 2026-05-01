@@ -2342,7 +2342,7 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
 
   function _mb(){return document.getElementById('taskModalBox');}
 
-  const MODAL_DEFAULT_KEY='ptp_modal_default_v1';
+  const MODAL_DEFAULT_KEY='ptp_modal_default_v2'; // v2: kein zoom mehr
 
   // Gespeicherte Größe laden (Fallback: 945×756)
   function _getDefault(){
@@ -2350,26 +2350,34 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
     return {w:MODAL_W,h:MODAL_H};
   }
 
-  // Standardgröße+Position anwenden
+  // Standardgröße+Position anwenden – immer an Viewport anpassen
   function _applyDefault(box){
+    const vw=window.innerWidth, vh=window.innerHeight;
     const d=_getDefault();
-    box.style.width=d.w+'px';
-    box.style.height=d.h+'px';
+    // Breite/Höhe auf maximal 96vw / 92vh kappen
+    const w=Math.min(d.w, Math.round(vw*0.96));
+    const h=Math.min(d.h, Math.round(vh*0.92));
+    box.style.width=w+'px';
+    box.style.height=h+'px';
+    box.style.zoom=''; // alten Zoom-Wert löschen
     if(d.left!=null&&d.top!=null){
-      box.style.left=Math.max(0,Math.min(window.innerWidth-120,d.left))+'px';
-      box.style.top=Math.max(0,Math.min(window.innerHeight-80,d.top))+'px';
+      // Gespeicherte Position: sicherstellen, dass Modal auf Bildschirm liegt
+      const l=Math.max(0,Math.min(vw-120,d.left));
+      const t=Math.max(0,Math.min(vh-80,d.top));
+      box.style.left=l+'px';
+      box.style.top=t+'px';
     } else {
-      box.style.left=Math.max(0,Math.round((window.innerWidth-d.w)/2))+'px';
-      box.style.top=Math.max(0,Math.round((window.innerHeight-d.h)/2))+'px';
+      // Kein gespeicherter Ort: mittig platzieren
+      box.style.left=Math.max(0,Math.round((vw-w)/2))+'px';
+      box.style.top=Math.max(0,Math.round((vh-h)/2))+'px';
     }
     box.classList.add('is-placed');
   }
 
-  // Größe+Position in localStorage speichern (intern)
+  // Größe+Position in localStorage speichern (intern, kein Zoom mehr)
   function _persistModalState(box){
     const r=box.getBoundingClientRect();
-    const _pZoom=parseFloat(box.style.zoom)||1;
-    try{localStorage.setItem(MODAL_DEFAULT_KEY,JSON.stringify({w:Math.round(r.width/_pZoom),h:Math.round(r.height/_pZoom),left:Math.round(r.left),top:Math.round(r.top)}));}catch(e){}
+    try{localStorage.setItem(MODAL_DEFAULT_KEY,JSON.stringify({w:Math.round(r.width),h:Math.round(r.height),left:Math.round(r.left),top:Math.round(r.top)}));}catch(e){}
   }
 
   // 💾 Knopf → aktuelle Größe+Position als Standard speichern
@@ -2404,9 +2412,8 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
     if(e.target.tagName==='BUTTON'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
     const box=_mb();if(!box)return;
     const r=box.getBoundingClientRect();
-    const _dZoom=parseFloat(box.style.zoom)||1;
     box.style.left=r.left+'px';box.style.top=r.top+'px';
-    box.style.width=(r.width/_dZoom)+'px';box.style.height=(r.height/_dZoom)+'px';
+    box.style.width=r.width+'px';box.style.height=r.height+'px';
     box.classList.add('is-placed');
     _mdOx=e.clientX-r.left;_mdOy=e.clientY-r.top;_mdDrag=true;
     e.preventDefault();
@@ -2418,13 +2425,12 @@ let _colSort = {}; // { [status]: {field:'title'|'tags', dir:1|-1} }
     if(!e.target.closest('#modalResizeCorner'))return;
     const box=_mb();if(!box)return;
     const r=box.getBoundingClientRect();
-    const _rZoom=parseFloat(box.style.zoom)||1;
     if(!box.classList.contains('is-placed')){
       box.style.left=r.left+'px';box.style.top=r.top+'px';
       box.classList.add('is-placed');
     }
-    box.style.width=(r.width/_rZoom)+'px';box.style.height=(r.height/_rZoom)+'px';
-    _mdRSX=e.clientX;_mdRSY=e.clientY;_mdRW=r.width/_rZoom;_mdRH=r.height/_rZoom;
+    box.style.width=r.width+'px';box.style.height=r.height+'px';
+    _mdRSX=e.clientX;_mdRSY=e.clientY;_mdRW=r.width;_mdRH=r.height;
     _mdResize=true;
     document.body.style.cursor='se-resize';
     document.body.style.userSelect='none';
@@ -2779,10 +2785,20 @@ function gdriveInit() {
     callback: gdriveTokenCallback,
     error_callback: (err) => {
       console.warn('[PTP] GIS error_callback:', JSON.stringify(err));
-      _silentRefreshInProgress = false; // Flag immer zurücksetzen
+      const _wasSilent = _silentRefreshInProgress; // vor dem Zurücksetzen merken
+      _silentRefreshInProgress = false;
       if(err && (err.type==='popup_failed_to_open'||err.type==='popup_closed')){
-        showToast('⚠ Google-Popup wurde blockiert oder geschlossen – bitte Popup-Blocker prüfen','error',7000);
         _showDriveWarnBanner(0);
+        if(_wasSilent){
+          // Stille Erneuerung schlug fehl (kein echtes Popup – nur iframe) → sanfter Hinweis
+          showToast('☁️ Automatische Anmeldung fehlgeschlagen – bitte „Erneut anmelden" klicken','error',7000);
+        } else if(err.type==='popup_closed'){
+          // Nutzer hat das Google-Fenster selbst geschlossen
+          showToast('ℹ Google-Anmeldefenster geschlossen – bitte nochmals auf „Erneut anmelden" drücken','error',5000);
+        } else {
+          // Browser hat das Popup aktiv blockiert
+          showToast('⚠ Google-Popup wurde blockiert – bitte Popup-Blocker für diese Seite deaktivieren und nochmals drücken','error',9000);
+        }
       }
     }
   });
@@ -2959,8 +2975,13 @@ function _showDriveWarnBanner(secondsLeft){
   }
   banner.style.display = 'flex';
   if(secondsLeft != null){
-    const min = Math.ceil(secondsLeft/60);
-    document.getElementById('_driveWarnMsg').textContent = '⚠ Google Drive Verbindung läuft in ' + min + ' Min. ab – bitte jetzt erneuern';
+    const msg = document.getElementById('_driveWarnMsg');
+    if(secondsLeft <= 0){
+      msg.textContent = '⚠ Google Drive Verbindung abgelaufen – bitte jetzt erneuern';
+    } else {
+      const min = Math.ceil(secondsLeft/60);
+      msg.textContent = '⚠ Google Drive Verbindung läuft in ' + min + ' Min. ab – bitte jetzt erneuern';
+    }
   }
 }
 function _hideDriveWarnBanner(){
@@ -10178,8 +10199,9 @@ function setModalSize(pct){
   const v=Math.max(70,Math.min(200,parseInt(pct,10)||100));
   const box=document.getElementById('taskModalBox');
   if(box){
+    // Nur CSS-Variable für Schrift/Padding-Skalierung – KEIN zoom (zerstört position:fixed)
     box.style.setProperty('--modal-scale',(v/100).toFixed(2));
-    box.style.zoom=(v/100).toFixed(2);
+    box.style.zoom=''; // alten Zoom-Wert aus localStorage/alten Versionen löschen
   }
   const lbl=document.getElementById('modalSizeVal');if(lbl)lbl.textContent=v+'%';
   const sl=document.getElementById('modalSizeSlider');if(sl&&String(sl.value)!==String(v))sl.value=String(v);
@@ -10200,8 +10222,10 @@ function applyStoredModalSize(){
     const s=parseInt(localStorage.getItem('ptp_modal_size')||'80',10);
     setModalSize(s);
   }catch(e){console.warn('[PTP]',e);}
-  // Gespeicherte Pixelgröße ignorieren – verhindert zu großes Modal nach versehentlichem Ziehen
+  // Veraltete Pixelgrößen aus alten Versionen löschen (verhindert zu großes Modal)
   try{localStorage.removeItem('ptp_modal_dims');}catch(e){}
+  // Alten zoom-Key aus localStorage löschen
+  try{const b=document.getElementById('taskModalBox');if(b)b.style.zoom='';}catch(e){}
 }
 // ResizeObserver: kein Auto-Speichern mehr – Größe nur auf expliziten Klick auf 💾 gespeichert
 (function(){
