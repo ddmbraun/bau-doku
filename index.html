@@ -1010,7 +1010,7 @@ input,select,textarea{font-family:inherit;}
 .col-collapse-btn:hover{color:var(--accent);background:var(--bg3);}
 
 /* TASK CARD */
-.task-card{background:var(--bg3);border-radius:8px;padding:8px 11px;cursor:grab;transition:transform .18s,box-shadow .18s,border-color .15s;border:1px solid var(--border);border-left:5px solid #ccc;position:relative;}
+.task-card{background:var(--bg3);border-radius:8px;padding:8px 11px;cursor:grab;transition:transform .18s,box-shadow .18s,border-color .15s;border:1px solid var(--border);border-left:5px solid #ccc;position:relative;zoom:var(--card-scale,1);}
 .task-card:hover{border-color:var(--accent);border-left-color:inherit;transform:translateY(-2px);box-shadow:0 5px 14px var(--shadow);}
 .task-card.dragging{opacity:0.5;}
 .task-card-title{font-size:12px;font-weight:600;margin-bottom:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -1791,13 +1791,13 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <button type="button" class="modal-size-btn" onclick="saveModalSize()" title="Größe speichern" style="font-size:11px;padding:2px 7px;background:var(--accent);color:#fff;border-radius:5px;border:none;cursor:pointer;margin-left:4px;">💾</button>
         </div>
       </div>
-      <!-- Zeile 2: Titel (bereinigt) -->
+      <!-- Zeile 2: Badge + Titel -->
       <div class="mv2-title-row">
+        <span id="_taskTypeIndicator" class="task-type-badge baustelle" style="flex-shrink:0;">🏗 Baustelle</span>
         <input type="text" id="taskTitleInput" class="mv2-title-input" placeholder="Titel eingeben…" oninput="scheduleTaskFieldSave();_updateStammSummary()" autocomplete="off">
       </div>
-      <!-- Zeile 3: Badge + Status + Aktivität + Objekt-Buttons -->
+      <!-- Zeile 3: Status + Aktivität + Objekt-Buttons -->
       <div class="mv2-subheader">
-        <span id="_taskTypeIndicator" class="task-type-badge baustelle">🏗 Baustelle</span>
         <span class="mv2-subhdr-status-chip" id="_hdrStatus"></span>
         <span class="mv2-subhdr-akt" id="_hdrAkt" style="display:none;"></span>
         <span class="mv2-subhdr-obj-lbl baustelle-only" id="_hdrObjLabel" style="display:none;">Objekt:</span>
@@ -1819,7 +1819,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
         <div class="mv2-section" id="tNotizenSect">
           <div class="mv2-section-label">📝 Beschreibung &amp; Anweisungen</div>
           <div class="modal-field" style="margin-bottom:0;">
-            <textarea id="taskDescInput" placeholder="Beschreibung &amp; Anweisungen… (Doppelklick zum Öffnen)" rows="2" ondblclick="_openNotizOverlay()" title="Doppelklick zum Öffnen und Bearbeiten" autocomplete="off" style="min-height:0;max-height:calc(46px * var(--modal-scale,1));overflow:hidden;cursor:pointer;resize:none;"></textarea>
+            <textarea id="taskDescInput" placeholder="Beschreibung &amp; Anweisungen… (Doppelklick zum Öffnen)" rows="2" ondblclick="_openNotizOverlay()" title="Doppelklick zum Öffnen und Bearbeiten" autocomplete="off" style="min-height:0;max-height:calc(46px * var(--modal-scale,1));overflow:hidden;cursor:pointer;resize:none;font-size:calc(11px * var(--modal-scale,1));line-height:1.45;"></textarea>
           </div>
         </div>
 
@@ -3862,6 +3862,11 @@ function taskCardHTML(task){
   // Kopfzeile
   const repNrTxt=task.repNr?`↩ Rep. ${esc(task.repNr)}`:'';
   const ksTxt=(task.tags&&task.tags[0])?`Kst. ${esc(task.tags[0])}`:'';
+  // Kostenstelle aus dem angezeigten Titel ausblenden (Präfix wie "260022-" entfernen)
+  const _ks=task.tags&&task.tags[0]?task.tags[0]:'';
+  const displayTitle=_ks&&task.title&&task.title.startsWith(_ks)
+    ?task.title.slice(_ks.length).replace(/^[-–_\s]+/,'').trim()
+    :task.title;
   // Aktivität – Rückwärtskompatibilität: anruf → telefon
   const akt=task.aktivitaet||'';
   const isTel=(akt==='telefon'||akt==='anruf');
@@ -3897,16 +3902,16 @@ function taskCardHTML(task){
   return`<div class="task-card ${colClass}" draggable="true" data-id="${esc(task.id)}"
     ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="openEditTaskModal('${esc(task.id)}')">
     <div class="task-card-toprow">
-      <span>${[repNrTxt,ksTxt].filter(Boolean).join(' · ')||'&nbsp;'}</span>
       <span style="font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;${isNotizBoard?'background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;':'background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;'}">${isNotizBoard?'✅ Aufgabe':'🏗 Auftrag'}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);">${[repNrTxt,ksTxt].filter(Boolean).join(' · ')}</span>
       <span class="task-card-owner-chip">${esc(task.owner)}</span>
     </div>
-    <div class="task-card-title">${esc(task.title)}</div>
+    <div class="task-card-title">${esc(displayTitle)}</div>
     ${(task.status||(isTel||isBesi||isErteilt)||(task.due))?`<div class="task-card-taskrow">
       ${task.status?`<span style="color:var(--text2);">Task:</span><span class="task-card-chip task-card-chip-task">${esc(task.status)}</span>`:''}
       ${(isTel||isBesi||isErteilt)?`<span style="color:var(--text2);margin-left:2px;">Status:</span><span class="task-card-chip ${isTel?'task-card-chip-tel':isBesi?'task-card-chip-besi':'task-card-chip-erteilt'}">${isTel?'📞 Telefon':isBesi?'📍 Besichtigung':'📋 Auftrag erteilt'}</span>`:''}
       ${isNotizBoard&&task.due?`<span style="color:var(--text2);margin-left:2px;">Fällig:</span><span class="task-card-chip" style="${overdue?'background:#FCEBEB;color:#A32D2D;border:0.5px solid #F7C1C1;':'background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;'}">${formatDate(task.due)}</span>`:''}
-      ${_adr?`<a href="https://maps.google.com/?q=${encodeURIComponent(_adr)}" target="_blank" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;margin-left:auto;" title="${esc(_adr)}">🗺</a>`:''}
+      ${_adr?`<a href="https://maps.google.com/?q=${encodeURIComponent(_adr)}" target="_blank" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;margin-left:auto;" title="${esc(_adr)}">📍</a>`:''}
       ${_tel?`<a href="tel:${_tel.replace(/[^0-9+]/g,'')}" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;" title="${esc(_tel)}">📞</a>`:''}
     </div>`:''}
     ${(()=>{
@@ -3914,7 +3919,7 @@ function taskCardHTML(task){
       const boxes=[
         task.ausführungsdatum?dbox('Erteilt',formatDate(task.ausführungsdatum),'background:#FAEEDA;border-color:#854F0B;',false):'',
         task.ortstermin?dbox('Ortstermin',formatDate(task.ortstermin),'background:#B5D4F4;border-color:#185FA5;',false):'',
-        (task.ausfuehrungstermin||showTerminAlarm)?dbox('Ausführung',showTerminAlarm?'fehlt':formatDate(task.ausfuehrungstermin),'background:'+(showTerminAlarm?'#F7C1C1':'#C0DD97')+';border-color:'+(showTerminAlarm?'#A32D2D':'#3B6D11')+';',showTerminAlarm):'',
+        task.ausfuehrungstermin?dbox('Ausführung',formatDate(task.ausfuehrungstermin),'background:#C0DD97;border-color:#3B6D11;',false):'',
         task.due?dbox('Fälligkeit',formatDate(task.due),overdue?'background:#F7C1C1;border-color:#A32D2D;':'background:#FAEEDA;border-color:#854F0B;',false):'',
       ].filter(Boolean).join('');
       return boxes?`<div class="task-card-datebox-row">${boxes}</div>`:'';
