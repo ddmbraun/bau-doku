@@ -1030,6 +1030,10 @@ input,select,textarea{font-family:inherit;}
 .task-card-chip-tel{background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;}
 .task-card-chip-besi{background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;}
 .task-card-chip-erteilt{background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;}
+.task-card-chip-angebot{background:#F3E8FF;color:#6B21A8;border:0.5px solid #D8B4FE;}
+.task-card-chip-email{background:#E0F2FE;color:#075985;border:0.5px solid #BAE6FD;}
+.task-card-chip-rueckfragen{background:#FFF8E1;color:#E65100;border:0.5px solid #FFD54F;}
+.task-card-chip-abgeschlossen{background:#DCFCE7;color:#166534;border:0.5px solid #86EFAC;}
 .task-card-datebox-row{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;margin:0 0 4px;}
 .task-card-datebox{border-radius:4px;border:0.5px solid var(--border);background:var(--bg3);padding:2px 6px;display:flex;flex-direction:row;align-items:center;gap:4px;}
 .task-card-datebox.miss{background:#FCEBEB;border-color:#F7C1C1;}
@@ -2002,6 +2006,10 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
                 <option value="telefon">📞 Telefon</option>
                 <option value="besichtigung">📍 Besichtigung</option>
                 <option value="auftrag_erteilt">📋 Auftrag erteilt</option>
+                <option value="angebot">📝 Angebot</option>
+                <option value="email">📧 E-Mail</option>
+                <option value="rueckfragen">❓ Rückfragen</option>
+                <option value="abgeschlossen">✅ Abgeschlossen</option>
               </select>
             </div>
           </div>
@@ -3883,6 +3891,22 @@ function taskCardHTML(task){
   const isTel=(akt==='telefon'||akt==='anruf');
   const isBesi=akt==='besichtigung';
   const isErteilt=akt==='auftrag_erteilt';
+  const isAngebot=akt==='angebot';
+  const isEmail=akt==='email';
+  const isRueckfragen=akt==='rueckfragen';
+  const isAbgeschlossen=akt==='abgeschlossen';
+  // Chip-Map für alle Aktivitäten
+  const _aktChipMap={
+    telefon:{cls:'task-card-chip-tel',lbl:'📞 Telefon'},
+    anruf:{cls:'task-card-chip-tel',lbl:'📞 Telefon'},
+    besichtigung:{cls:'task-card-chip-besi',lbl:'📍 Besichtigung'},
+    auftrag_erteilt:{cls:'task-card-chip-erteilt',lbl:'📋 Auftrag erteilt'},
+    angebot:{cls:'task-card-chip-angebot',lbl:'📝 Angebot'},
+    email:{cls:'task-card-chip-email',lbl:'📧 E-Mail'},
+    rueckfragen:{cls:'task-card-chip-rueckfragen',lbl:'❓ Rückfragen'},
+    abgeschlossen:{cls:'task-card-chip-abgeschlossen',lbl:'✅ Abgeschlossen'},
+  };
+  const _aktChip=akt&&_aktChipMap[akt]?_aktChipMap[akt]:null;
   // Maps + Tel Quicklinks
   const _adr=(task.adresse||'').trim();
   const _telK=(task.kontakte||[]).find(k=>k.tel);
@@ -3913,14 +3937,14 @@ function taskCardHTML(task){
   return`<div class="task-card ${colClass}" draggable="true" data-id="${esc(task.id)}"
     ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="openEditTaskModal('${esc(task.id)}')">
     <div class="task-card-toprow">
-      <span style="font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;${isNotizBoard?'background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;':'background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;'}">${isNotizBoard?'✅ Aufgabe':'🏗 Auftrag'}</span>
+      <span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;${isNotizBoard?'background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;':'background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;'}">${isNotizBoard?'<span style="font-size:11px;">✅</span> Aufgabe':'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="22" x2="9" y2="7"/><line x1="1" y1="7" x2="21" y2="7"/><line x1="9" y1="4" x2="21" y2="7"/><line x1="1" y1="7" x2="9" y2="4"/><line x1="17" y1="7" x2="17" y2="16"/><path d="M15 16 q2 2 4 0"/><line x1="6" y1="22" x2="12" y2="22"/></svg> Auftrag'}</span>
       <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);">${[repNrTxt,ksTxt].filter(Boolean).join(' · ')}</span>
       <span class="task-card-owner-chip">${esc(task.owner)}</span>
     </div>
     <div class="task-card-title">${esc(displayTitle)}</div>
-    ${(task.status||(isTel||isBesi||isErteilt)||(task.due))?`<div class="task-card-taskrow">
+    ${(task.status||_aktChip||(task.due))?`<div class="task-card-taskrow">
       ${task.status?`<span style="color:var(--text2);">Task:</span><span class="task-card-chip task-card-chip-task">${esc(task.status)}</span>`:''}
-      ${(isTel||isBesi||isErteilt)?`<span style="color:var(--text2);margin-left:2px;">Status:</span><span class="task-card-chip ${isTel?'task-card-chip-tel':isBesi?'task-card-chip-besi':'task-card-chip-erteilt'}">${isTel?'📞 Telefon':isBesi?'📍 Besichtigung':'📋 Auftrag erteilt'}</span>`:''}
+      ${_aktChip?`<span style="color:var(--text2);margin-left:2px;">Status:</span><span class="task-card-chip ${_aktChip.cls}">${_aktChip.lbl}</span>`:''}
       ${isNotizBoard&&task.due?`<span style="color:var(--text2);margin-left:2px;">Fällig:</span><span class="task-card-chip" style="${overdue?'background:#FCEBEB;color:#A32D2D;border:0.5px solid #F7C1C1;':'background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;'}">${formatDate(task.due)}</span>`:''}
       ${_adr?`<a href="https://maps.google.com/?q=${encodeURIComponent(_adr)}" target="_blank" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;margin-left:auto;" title="${esc(_adr)}">📍</a>`:''}
       ${_tel?`<a href="tel:${_tel.replace(/[^0-9+]/g,'')}" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;" title="${esc(_tel)}">📞</a>`:''}
@@ -4134,17 +4158,28 @@ function renderHeute(){
     var isAnruf=(t.aktivitaet==='anruf'||t.aktivitaet==='telefon');
     var isErteilt=t.aktivitaet==='auftrag_erteilt';
     var isAufgabe=(boardTypes[item.board]||'baustelle')==='notiz';
+    var _craneSvg='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="22" x2="9" y2="7"/><line x1="1" y1="7" x2="21" y2="7"/><line x1="9" y1="4" x2="21" y2="7"/><line x1="1" y1="7" x2="9" y2="4"/><line x1="17" y1="7" x2="17" y2="16"/><path d="M15 16 q2 2 4 0"/><line x1="6" y1="22" x2="12" y2="22"/></svg>';
     var typBadge=isAufgabe
-      ?'<span style="font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;white-space:nowrap;flex-shrink:0;">✅ Aufgabe</span>'
-      :'<span style="font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;white-space:nowrap;flex-shrink:0;">🏗 Auftrag</span>';
+      ?'<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;white-space:nowrap;flex-shrink:0;"><span style="font-size:11px;">✅</span> Aufgabe</span>'
+      :'<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;white-space:nowrap;flex-shrink:0;">'+_craneSvg+' Auftrag</span>';
     var k=(t.kontakte||[]).find(function(c){return c.anrufKontakt&&c.tel;});
     var lbl='<span style="font-size:10px;color:var(--text2);white-space:nowrap;">';
+    // Aktivitäts-Chip-Map (Heute-Ansicht)
+    var _hAktMap={
+      telefon:{lbl:'📞 Telefon',sty:'background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:600;'},
+      anruf:{lbl:'📞 Telefon',sty:'background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:600;'},
+      besichtigung:{lbl:'📍 Besichtigung',sty:'background:#FAEEDA;border-color:#FAC775;color:#854F0B;font-weight:600;'},
+      auftrag_erteilt:{lbl:'📋 Auftrag erteilt',sty:'background:#EAF3DE;border-color:#C0DD97;color:#3B6D11;font-weight:600;'},
+      angebot:{lbl:'📝 Angebot',sty:'background:#F3E8FF;border-color:#D8B4FE;color:#6B21A8;font-weight:600;'},
+      email:{lbl:'📧 E-Mail',sty:'background:#E0F2FE;border-color:#BAE6FD;color:#075985;font-weight:600;'},
+      rueckfragen:{lbl:'❓ Rückfragen',sty:'background:#FFF8E1;border-color:#FFD54F;color:#E65100;font-weight:600;'},
+      abgeschlossen:{lbl:'✅ Abgeschlossen',sty:'background:#DCFCE7;border-color:#86EFAC;color:#166534;font-weight:600;'},
+    };
+    var _hAkt=t.aktivitaet&&_hAktMap[t.aktivitaet]?_hAktMap[t.aktivitaet]:null;
     // Zeile 2: Task + Status + Ortstermin + Datum
     var badges='';
     if(t.status)badges+=lbl+'Task:</span> '+chip(esc(t.status));
-    if(isBesicht)badges+=' '+lbl+'Status:</span> '+chip('📍 Besichtigung','background:#FAEEDA;border-color:#FAC775;color:#854F0B;font-weight:600;');
-    if(isAnruf)badges+=' '+lbl+'Status:</span> '+chip('📞 Telefon','background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;font-weight:600;');
-    if(isErteilt)badges+=' '+lbl+'Status:</span> '+chip('📋 Auftrag erteilt','background:#EAF3DE;border-color:#C0DD97;color:#3B6D11;font-weight:600;');
+    if(_hAkt)badges+=' '+lbl+'Status:</span> '+chip(_hAkt.lbl,_hAkt.sty);
     if(t.ortstermin)badges+=' '+chip('📍 Ortstermin: '+fmtDate(t.ortstermin),'background:#B5D4F4;border-color:#185FA5;color:#0C447C;font-weight:600;');
     if(dringlichkeit==='overdue'){
       var d=diffDays(t.due);
@@ -4262,6 +4297,11 @@ function renderKanban(){
 }
 
 function renderList(){
+  const _isNotizL=(boardTypes[currentBoard]||'baustelle')==='notiz';
+  const _craneSvgL='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="22" x2="9" y2="7"/><line x1="1" y1="7" x2="21" y2="7"/><line x1="9" y1="4" x2="21" y2="7"/><line x1="1" y1="7" x2="9" y2="4"/><line x1="17" y1="7" x2="17" y2="16"/><path d="M15 16 q2 2 4 0"/><line x1="6" y1="22" x2="12" y2="22"/></svg>';
+  const _typBadgeL=_isNotizL
+    ?'<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;flex-shrink:0;">✅ Aufgabe</span>'
+    :'<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;flex-shrink:0;">'+_craneSvgL+' Auftrag</span>';
   const tasks=getTasks().slice().sort((a,b)=>{
     if(listSortField==='due'){const da=a.due||'9999',db=b.due||'9999';return(da<db?-1:da>db?1:0)*listSortDir;}
     if(listSortField==='owner')return a.owner.localeCompare(b.owner)*listSortDir;
@@ -4278,7 +4318,7 @@ function renderList(){
     const badges=[(t.links||[]).length>0?`🔗${(t.links||[]).length}`:'',(t.attachments||[]).length>0?`📎${(t.attachments||[]).length}`:'',(t.fotos||[]).length>0?`📷${(t.fotos||[]).length}`:''].filter(Boolean).join(' ');
     html+=`<div class="list-item" onclick="openEditTaskModal('${esc(t.id)}')">
       <span class="ampel ampel-${t.ampel==='grün'?'green':t.ampel==='orange'?'orange':'red'}"></span>
-      <span class="list-item-title">${esc(t.title)}${badges?` <span style="font-size:10px;color:var(--text2)">${badges}</span>`:''}</span>
+      <span class="list-item-title" style="display:flex;align-items:center;gap:5px;">${_typBadgeL}<span>${esc(t.title)}${badges?` <span style="font-size:10px;color:var(--text2)">${badges}</span>`:''}</span></span>
       <span class="list-item-owner">${esc(t.owner)}</span>
       <span class="list-item-due ${overdue?'overdue':''}">${formatDate(t.due)}</span>
       <span class="list-item-status">${esc(t.status)}</span>
@@ -4289,6 +4329,11 @@ function renderList(){
 }
 
 function renderTable(){
+  const _isNotizT=(boardTypes[currentBoard]||'baustelle')==='notiz';
+  const _craneSvgT='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="22" x2="9" y2="7"/><line x1="1" y1="7" x2="21" y2="7"/><line x1="9" y1="4" x2="21" y2="7"/><line x1="1" y1="7" x2="9" y2="4"/><line x1="17" y1="7" x2="17" y2="16"/><path d="M15 16 q2 2 4 0"/><line x1="6" y1="22" x2="12" y2="22"/></svg>';
+  const _typBadgeT=_isNotizT
+    ?'<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;flex-shrink:0;">✅ Aufgabe</span>'
+    :'<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;flex-shrink:0;">'+_craneSvgT+' Auftrag</span>';
   const tasks=getTasks();
   let html=`<div class="table-view"><table><thead><tr>
     <th onclick="toggleListSort('title')">Titel</th><th onclick="toggleListSort('status')">Status</th>
@@ -4307,7 +4352,7 @@ function renderTable(){
     const overdue=isOverdue(t.due);
     const lc=(t.links||[]).length,ac=(t.attachments||[]).length,fc=(t.fotos||[]).length;
     html+=`<tr onclick="openEditTaskModal('${esc(t.id)}')">
-      <td>${esc(t.title)}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px;">${_typBadgeT}<span>${esc(t.title)}</span></span></td>
       <td><span class="list-item-status">${esc(t.status)}</span></td>
       <td>${esc(t.owner)}</td>
       <td class="${overdue?'overdue':''}">${formatDate(t.due)}</td>
@@ -4323,12 +4368,20 @@ function renderTable(){
 function render(){
   const _mc=document.getElementById('mainContent');
   const _sc=_mc?_mc.scrollTop:0;
+  // Scroll-Positionen im offenen Task-Modal vor dem Rendern sichern
+  const _ml=document.querySelector('.mv2-left');
+  const _mr=document.querySelector('.mv2-right');
+  const _scL=_ml?_ml.scrollTop:0;
+  const _scR=_mr?_mr.scrollTop:0;
   renderBoardTabs();updateFilterDropdowns();updateStatusSelect();
   if(currentView==='heute')renderHeute();
   else if(currentView==='kanban'){renderKanban();setTimeout(initColResize,0);}
   else if(currentView==='list')renderList();
   else renderTable();
   if(_mc&&_sc>0)_mc.scrollTop=_sc;
+  // Modal-Scroll-Positionen wiederherstellen (verhindert Sprung nach oben bei Auto-Save)
+  if(_ml&&_scL>0)_ml.scrollTop=_scL;
+  if(_mr&&_scR>0)_mr.scrollTop=_scR;
 }
 function updateStatusSelect(){
   const sel=document.getElementById('taskStatusInput');const cur=sel.value;
