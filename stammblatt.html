@@ -6,6 +6,8 @@
 <title>Stammblatt-Verwaltung</title>
 <script src="https://accounts.google.com/gsi/client" defer onload="gdriveInit()"></script>
 <script src="https://apis.google.com/js/api.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;font-size:13px;background:#f0f2f5;color:#222;}
@@ -184,6 +186,11 @@ textarea{min-height:48px;resize:vertical;}
       📂 Lokale Datei öffnen
       <input type="file" accept=".json" style="display:none" onchange="ladeFile(this)">
     </label>
+    <div style="margin-top:12px;display:flex;gap:6px;">
+      <input type="text" id="sdOrdnerUrlIn" placeholder="📁 Stammdaten-Ordner (Drive URL)…" style="flex:1;padding:7px 10px;border:1px solid #ccc;border-radius:6px;font-size:12px">
+      <button onclick="sdOrdnerBrowse()" style="padding:7px 14px;background:#1a2744;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">Öffnen</button>
+    </div>
+    <div id="sdOrdnerListe" style="display:none;margin-top:8px;text-align:left;max-height:180px;overflow-y:auto;border:1px solid #e0e4ea;border-radius:6px;background:#fff;"></div>
     <div id="_driveInitStatus" style="display:none;margin-top:10px;font-size:12px;padding:6px 10px;border-radius:6px;"></div>
   </div>
 </div>
@@ -200,6 +207,7 @@ textarea{min-height:48px;resize:vertical;}
     <button class="tbtn gruen" id="driveBtnBar" onclick="gdriveConnectFromBar()">☁️ Drive</button>
     <button class="tbtn gruen" onclick="speichern()">💾 Speichern</button>
     <button class="tbtn gelb" id="btnDruck" onclick="drucken()" disabled>🖨 Drucken/PDF</button>
+    <button class="tbtn grau" id="btnPdfDrive" onclick="pdfNachDrive()" disabled title="PDF in Drive-Ordner speichern">📤 PDF→Drive</button>
     <button class="tbtn grau" onclick="beenden()">✕</button>
   </div>
   <div id="wrap">
@@ -240,6 +248,13 @@ textarea{min-height:48px;resize:vertical;}
             <div class="fr"><div class="fl">Baujahr ca.</div><div class="fc"><input type="number" id="fBj" min="1900" max="2030" style="width:100px"></div></div>
             <div class="fr"><div class="fl">Erfassungsdatum</div><div class="fc"><input type="date" id="fDat" style="width:145px"></div></div>
             <div class="fr"><div class="fl">Erfasst durch</div><div class="fc"><input type="text" id="fErf"></div></div>
+            <div class="fr">
+              <div class="fl">📁 Drive-Ordner<small>PDF-Ablage für dieses Objekt</small></div>
+              <div class="fc" style="flex-direction:row;gap:6px">
+                <input type="text" id="fDriveOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1" oninput="planeAutoSave();_updatePdfDriveBtn()">
+                <button type="button" onclick="sdOrdnerLink()" style="padding:5px 10px;background:#1a2744;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">📂</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -567,6 +582,10 @@ function startApp(){
   baueGrid();
   renListe();
   bindFelder();
+  // URL-Parameter: ?obj=ID springt direkt zum Objekt
+  var _p=new URLSearchParams(window.location.search);
+  var _objId=_p.get('obj');
+  if(_objId){ setTimeout(function(){ waehleObj(_objId); },200); }
 }
 
 // ── OBJEKTE
@@ -613,7 +632,7 @@ function leeresObj(id,adr,dachart){
     sich_z:[],sek_v:'',sek_s:'',seil_v:'',seil_s:'',gel_v:'',gel_s:'',
     was:'',str_v:'',
     fotos:{},
-    amp:'',hff:'',akt:'',aktd:''};
+    amp:'',hff:'',akt:'',aktd:'',driveOrdner:''};
 }
 
 function waehleObj(id){
@@ -681,6 +700,7 @@ function fuellForm(o){
   sR('was',o.was); sR('str',o.str_v);
   sR('amp_n',''); setAmpel(o.amp,true);
   sv('fHFF',o.hff); sv('fAkt',o.akt); sv('fAktD',o.aktd);
+  sv('fDriveOrdner',o.driveOrdner||''); _updatePdfDriveBtn();
   wechsleDach(o.dachart||'z',true);
   var ztEl=document.querySelector('input[name="zt"][value="'+o.zt+'"]');
   if(ztEl) zeigHersteller(ztEl);
@@ -715,6 +735,7 @@ function sammelDaten(){
   o.was=gR('was'); o.str_v=gR('str');
   var ab=document.querySelector('.ab.act'); o.amp=ab?ab.dataset.a:'';
   o.hff=v('fHFF'); o.akt=v('fAkt'); o.aktd=v('fAktD');
+  o.driveOrdner=v('fDriveOrdner');
   o.fotos=holeFotos();
   o.dachart=document.getElementById('dswZ').classList.contains('act')?'z':'f';
   renListe();
@@ -1517,3 +1538,134 @@ speichern = function(){
 </html>
 
 </html>
+<script>
+// ════════════════════════════════════════════════
+// STAMMDATEN-ORDNER BROWSER + PDF→DRIVE
+// ════════════════════════════════════════════════
+
+function _folderId(url){
+  if(!url) return null;
+  var m=url.match(/folders\/([a-zA-Z0-9_-]+)/);
+  return m?m[1]:null;
+}
+
+function sdOrdnerLink(){
+  var url=document.getElementById('fDriveOrdner').value.trim();
+  if(url) window.open(url,'_blank');
+  else toast('Bitte zuerst eine Drive-Ordner-URL eintragen','err');
+}
+
+function _updatePdfDriveBtn(){
+  var btn=document.getElementById('btnPdfDrive');
+  if(!btn) return;
+  var url=(document.getElementById('fDriveOrdner')||{}).value||'';
+  var hasFolderId=!!_folderId(url);
+  btn.disabled=!(hasFolderId && gdriveToken && gdriveFileId && cid);
+}
+
+// ── Stammdaten-Ordner Browser (Startscreen)
+async function sdOrdnerBrowse(){
+  var url=document.getElementById('sdOrdnerUrlIn').value.trim();
+  var fid=_folderId(url);
+  if(!fid){ toast('Bitte eine gültige Drive-Ordner-URL eingeben','err'); return; }
+  if(!gdriveToken){ gdriveRequestToken('browse_'+url); return; }
+  try{
+    var q=encodeURIComponent("'"+fid+"' in parents and mimeType='application/json' and trashed=false");
+    var r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,modifiedTime)&orderBy=name',
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    var d=await r.json();
+    var files=d.files||[];
+    var liste=document.getElementById('sdOrdnerListe');
+    if(files.length===0){
+      liste.style.display='block';
+      liste.innerHTML='<div style="padding:10px;color:#888;font-size:12px">Keine JSON-Dateien gefunden.<br><button onclick="gdriveStartNew()" style="margin-top:6px;padding:5px 12px;background:#1a2744;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">✚ Neue anlegen</button></div>';
+      return;
+    }
+    liste.style.display='block';
+    liste.innerHTML=files.map(function(f){
+      var d=new Date(f.modifiedTime).toLocaleDateString('de-DE');
+      return '<div onclick="sdOrdnerDateiLaden(\''+f.id+'\',\''+f.name+'\')" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;align-items:center;gap:8px;">'
+        +'<span style="font-size:16px">📄</span>'
+        +'<span style="flex:1;font-weight:600;color:#1a2744">'+f.name.replace('.json','')+'</span>'
+        +'<span style="color:#aaa;font-size:11px">'+d+'</span>'
+        +'</div>';
+    }).join('');
+  }catch(e){ toast('Drive-Fehler: '+e.message,'err'); }
+}
+
+async function sdOrdnerDateiLaden(fileId, fileName){
+  await gdriveLoadFile(fileId, fileName);
+  document.getElementById('sdOrdnerListe').style.display='none';
+}
+
+// ── PDF → Drive
+async function pdfNachDrive(){
+  if(!cid){ toast('Kein Objekt gewählt','err'); return; }
+  sammelDaten();
+  var o=holeObj(); if(!o) return;
+  var furl=(o.driveOrdner||'').trim();
+  var fid=_folderId(furl);
+  if(!fid){ toast('Bitte zuerst einen Drive-Ordner für dieses Objekt eintragen','err'); return; }
+  if(!gdriveToken||!gdriveFileId){ toast('Bitte zuerst mit Drive verbinden','err'); return; }
+
+  toast('⏳ PDF wird erstellt…','ok');
+
+  // Druck-Vorbereitung (leere Felder ausblenden)
+  document.querySelectorAll('#form .fr').forEach(function(row){
+    var hat=false;
+    row.querySelectorAll('input,select,textarea').forEach(function(el){
+      if(el.type==='radio'||el.type==='checkbox'){ if(el.checked) hat=true; }
+      else if((el.value||'').trim()) hat=true;
+    });
+    row.classList.toggle('leer',!hat);
+  });
+
+  try{
+    var formEl=document.getElementById('form');
+    var canvas=await html2canvas(formEl,{scale:1.5,useCORS:true,logging:false,
+      ignoreElements:function(el){return el.tagName==='BUTTON'||el.classList.contains('leer');}});
+    var {jsPDF}=window.jspdf;
+    var pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var W=210, M=10;
+    var imgW=W-2*M;
+    var imgH=canvas.height*(imgW/canvas.width);
+    var pageH=297-2*M;
+    var pages=Math.ceil(imgH/pageH);
+    for(var p=0;p<pages;p++){
+      if(p>0) pdf.addPage();
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',M,M-(p*pageH),imgW,imgH);
+    }
+    var pdfBlob=pdf.output('arraybuffer');
+    var datum=new Date().toLocaleDateString('de-DE').replace(/\./g,'-');
+    var adr=(o.adr||'Objekt').replace(/[^a-zA-Z0-9äöüÄÖÜß\s]/g,'_').replace(/\s+/g,'_').substring(0,40);
+    var fileName='Stammblatt_'+adr+'_'+datum+'.pdf';
+
+    // Upload nach Drive
+    var boundary='sb_pdf_'+Date.now();
+    var meta=JSON.stringify({name:fileName,mimeType:'application/pdf',parents:[fid]});
+    var body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n'
+      +'--'+boundary+'\r\nContent-Type: application/pdf\r\n\r\n';
+    var bodyBuf=new TextEncoder().encode(body);
+    var endBuf=new TextEncoder().encode('\r\n--'+boundary+'--');
+    var combined=new Uint8Array(bodyBuf.length+pdfBlob.byteLength+endBuf.length);
+    combined.set(bodyBuf,0);
+    combined.set(new Uint8Array(pdfBlob),bodyBuf.length);
+    combined.set(endBuf,bodyBuf.length+pdfBlob.byteLength);
+
+    var r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+boundary},
+      body:combined
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    var file=await r.json();
+    toast('✅ PDF in Drive gespeichert: '+fileName,'ok');
+    var link='https://drive.google.com/file/d/'+file.id+'/view';
+    window.open(link,'_blank');
+  }catch(e){
+    toast('PDF-Fehler: '+e.message,'err');
+  }finally{
+    document.querySelectorAll('#form .fr.leer').forEach(function(el){el.classList.remove('leer');});
+  }
+}
+</script>
