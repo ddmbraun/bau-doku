@@ -288,7 +288,7 @@ textarea{min-height:48px;resize:vertical;}
             <div class="sub">🌿 Außengelände</div>
             <div class="fr"><div class="fl">Rasenfläche</div><div class="fc"><div class="rg" id="rRas"><label><input type="radio" name="ras" value="nein"> Nein</label><label><input type="radio" name="ras" value="ja"> Ja</label></div></div></div>
             <div class="fr"><div class="fl">Hof / Innenhof</div><div class="fc"><div class="rg" id="rHof"><label><input type="radio" name="hof" value="nein"> Nein</label><label><input type="radio" name="hof" value="ja"> Ja</label></div></div></div>
-            <div class="fr"><div class="fl">Wäscheleinen / -ständer</div><div class="fc"><div class="rg" id="rWae"><label><input type="radio" name="wae" value="nein"> Nein</label><label><input type="radio" name="wae" value="ja"> Ja — vor Einsatz entfernen</label></div></div></div>
+            <div class="fr"><div class="fl">Wäscheleinen / -ständer</div><div class="fc"><div class="rg" id="rWae"><label><input type="radio" name="wae" value="nein"> Nein</label><label><input type="radio" name="wae" value="ja"> Vorhanden — vor Einsatz entfernen</label><label><input type="radio" name="wae" value="staender"> Ständer vorhanden — vor Einsatz entfernen</label></div></div></div>
             <div class="fr"><div class="fl">Sonstiges Außenmobiliar</div><div class="fc"><textarea id="fAuM"></textarea></div></div>
             <div class="sub">🚛 Zufahrt & Hubarbeitsbühne</div>
             <div class="fr"><div class="fl">Zufahrt zum Aufstellpunkt</div><div class="fc"><div class="cg"><label><input type="checkbox" data-g="zuf" value="strasse"> Von der Straße</label><label><input type="checkbox" data-g="zuf" value="hof"> Hofzufahrt</label><label><input type="checkbox" data-g="zuf" value="gruen"> Grünfläche</label><label><input type="checkbox" data-g="zuf" value="gehweg"> Gehweg</label><label><input type="checkbox" data-g="zuf" value="keine"> Keine direkte Zufahrt</label></div></div></div>
@@ -309,7 +309,7 @@ textarea{min-height:48px;resize:vertical;}
             </div></div>
             <div class="fr"><div class="fl">Aufstellfläche Hebebühne</div><div class="fc"><div class="rg" id="rAufB"><label><input type="radio" name="auf_b" value="direkt" onchange="tglAuf('B',this)"> Direkt möglich</label><label><input type="radio" name="auf_b" value="eingeschr" onchange="tglAuf('B',this)"> Eingeschränkt</label><label><input type="radio" name="auf_b" value="nicht" onchange="tglAuf('B',this)"> Nicht möglich</label></div></div></div>
             <div class="fr leer" id="frAufBG" style="display:none"><div class="fl">Einschränkung Grund<small>Hebebühne</small></div><div class="fc"><input type="text" id="fAufBG" placeholder="z. B. Untergrund weich, Breite &lt; 3 m, Hindernisse"></div></div>
-            <div class="fr"><div class="fl">Aufstellfläche Gerüst</div><div class="fc"><div class="rg" id="rAufG"><label><input type="radio" name="auf_g" value="direkt" onchange="tglAuf('G',this)"> Direkt möglich</label><label><input type="radio" name="auf_g" value="eingeschr" onchange="tglAuf('G',this)"> Eingeschränkt</label><label><input type="radio" name="auf_g" value="nicht" onchange="tglAuf('G',this)"> Nicht möglich</label></div></div></div>
+            <div class="fr"><div class="fl">Aufstellfläche Gerüst</div><div class="fc"><div class="rg" id="rAufG"><label><input type="radio" name="auf_g" value="keine" onchange="tglAuf('G',this)"> Keine / Nicht erforderlich</label><label><input type="radio" name="auf_g" value="direkt" onchange="tglAuf('G',this)"> Direkt möglich</label><label><input type="radio" name="auf_g" value="eingeschr" onchange="tglAuf('G',this)"> Eingeschränkt</label><label><input type="radio" name="auf_g" value="nicht" onchange="tglAuf('G',this)"> Nicht möglich</label></div></div></div>
             <div class="fr leer" id="frAufGG" style="display:none"><div class="fl">Einschränkung Grund<small>Gerüst</small></div><div class="fc"><input type="text" id="fAufGG" placeholder="z. B. Grenzabstand, Untergrund weich, Engstelle"></div></div>
             <div class="fr"><div class="fl">Abstützung</div><div class="fc"><div class="cg"><label><input type="checkbox" data-g="abs" value="direkt"> Direkt</label><label><input type="checkbox" data-g="abs" value="unterleg"> Unterlegplatten</label><label><input type="checkbox" data-g="abs" value="lastv"> Lastverteilung</label><label><input type="checkbox" data-g="abs" value="unklar"> Tragfähigkeit unklar</label></div></div></div>
             <div class="fr warn"><div class="fl">⚠ Hindernisse</div><div class="fc"><div class="cg"><label><input type="checkbox" data-g="hind" value="poller"> Poller</label><label><input type="checkbox" data-g="hind" value="tore"> Tore</label><label><input type="checkbox" data-g="hind" value="waesche"> Wäscheleinen</label><label><input type="checkbox" data-g="hind" value="baeume"> Äste/Bäume</label><label><input type="checkbox" data-g="hind" value="leit"> Freileitungen</label><label><input type="checkbox" data-g="hind" value="fzg"> Fahrzeuge</label><label><input type="checkbox" data-g="hind" value="balk"> Balkone/Vordächer</label><label><input type="checkbox" data-g="hind" value="keine"> Keine</label></div></div></div>
@@ -1338,13 +1338,13 @@ async function pdfNachDrive(){
   var furl=(o.driveOrdner||'').trim(); var fid=_folderId(furl);
   if(!fid){ toast('Bitte zuerst einen Drive-Ordner für dieses Objekt eintragen','err'); return; }
   if(!gdriveToken||!gdriveFileId){ toast('Bitte zuerst mit Drive verbinden','err'); return; }
-  toast('⏳ PDF wird erstellt…','ok');
+  toast('PDF wird erstellt…','ok');
   try{
     var {jsPDF}=window.jspdf;
     var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     var M=14,W=210,CW=W-2*M,y=M;
     var aR=26,aG=39,aB=68;
-    function chk(n){ if(y+n>285){doc.addPage();y=M;} }
+    function chk(n){ if(y+n>283){doc.addPage();y=M;} }
     function hdr(t){
       chk(10);
       doc.setFillColor(aR,aG,aB); doc.rect(M,y,CW,8,'F');
@@ -1352,17 +1352,28 @@ async function pdfNachDrive(){
       doc.text(t,M+3,y+5.5); doc.setTextColor(0,0,0); y+=10;
     }
     function row(lbl,val){
-      if(val===undefined||val===null) return;
-      var sv=Array.isArray(val)?val.join(', '):String(val); sv=sv.trim(); if(!sv) return;
+      var sv=Array.isArray(val)?val.join(', '):(val!==undefined&&val!==null?String(val):'');
+      sv=sv.trim()||'—';
       chk(7);
       doc.setFontSize(8); doc.setFont(undefined,'bold'); doc.setTextColor(80,80,80);
       doc.text(lbl,M,y+4);
       doc.setFont(undefined,'normal'); doc.setTextColor(0,0,0);
-      var lines=doc.splitTextToSize(sv,CW-55);
-      doc.text(lines,M+55,y+4);
+      var lines=doc.splitTextToSize(sv,CW-56);
+      doc.text(lines,M+56,y+4);
       y+=Math.max(6,lines.length*5);
       doc.setDrawColor(230,230,230); doc.line(M,y,M+CW,y);
     }
+    var waeMap={nein:'Nein',ja:'Vorhanden — vor Einsatz entfernen',staender:'Ständer vorhanden — vor Einsatz entfernen'};
+    var rasMap={nein:'Nein',ja:'Ja'};
+    var hofMap={nein:'Nein',ja:'Ja, passierbar',eng:'Ja, eingeschränkt'};
+    var schlMap={nein:'Nein',ja:'Ja'};
+    var hvbMap={nein:'Nicht nötig',diese:'Diese Straßenseite',gegen:'Gegenüberliegende Seite'};
+    var aufMap={keine:'Keine / Nicht erforderlich',direkt:'Direkt möglich',eingeschr:'Eingeschränkt',nicht:'Nicht möglich'};
+    var aspMap={kein:'—',hm:'Hausmeister',mieter:'Mieter',eigen:'Eigentümer'};
+    var reMap={nein:'Kein Regenrohr',aussen:'Außen liegend',innen:'Innen liegend'};
+    var lukMap={nein:'Keine Luke',ja:'Vorhanden',kein:'Kein Zugang'};
+    var maMap={nein:'Kein Mauerauftritt',ja:'Vorhanden'};
+    var dblMap={nein:'Keine Beleuchtung',ja:'Vorhanden'};
     // KOPF
     doc.setFillColor(aR,aG,aB); doc.rect(0,0,W,18,'F');
     doc.setTextColor(255,255,255);
@@ -1373,53 +1384,115 @@ async function pdfNachDrive(){
     doc.setFontSize(9); doc.setFont(undefined,'normal');
     doc.text((o.plz?o.plz+' ':'')+(o.ort||''),M,y); y+=8;
     doc.setDrawColor(aR,aG,aB); doc.setLineWidth(0.5); doc.line(M,y,M+CW,y); y+=5;
-    // BLÖCKE
+    // A
     hdr('A — Objektstammdaten');
-    row('Objekt-ID',o.id_txt); row('Auftraggeber',o.hv);
-    row('PLZ / Ort',(o.plz?o.plz+' ':'')+o.ort);
-    row('Eingänge',o.eing); row('Stockwerke',o.stw); row('Baujahr',o.bj);
-    row('Erfasst am',o.dat); row('Erfasst durch',o.erf);
+    row('Objekt-ID',o.id_txt); row('Auftraggeber',o.hv||D.hv);
+    row('Adresse',o.adr); row('PLZ / Ort',(o.plz||'')+(o.ort?' '+o.ort:''));
+    row('Eingänge',o.eing); row('Stockwerke',o.stw); row('Baujahr ca.',o.bj);
+    row('Erfassungsdatum',o.dat); row('Erfasst durch',o.erf);
+    // B
     hdr('B — Ansprechpartner & Zugang');
-    var am={kein:'Kein',hm:'Hausmeister',mieter:'Mieter',eigen:'Eigentümer'};
-    row('Typ',am[o.asptyp]||o.asptyp); row('Name',o.aspn); row('Telefon',o.aspt);
-    row('Schlüssel',o.schl); row('Schlüssel bei',o.schlb); row('Zugang',o.zugi);
-    hdr('C — Zugänglichkeit');
-    row('Rasenfläche',o.ras); row('Hofzufahrt',o.hof); row('Wäscheleinen',o.wae);
-    row('Zufahrt',o.zuf); row('Fahrweg',o.fw); row('Fahrwegbreite',o.fwb);
-    row('Parken',o.park); row('Halteverbot',o.hvb);
-    row('UG Straße',(o.ugstr||'')+(o.ugstrl?' ('+o.ugstrl+')':'')); 
-    row('UG Hof',(o.ughof||'')+(o.ughofl?' ('+o.ughofl+')':''));
-    row('Vorber.',o.vorb); row('Hindernisse',o.hind);
-    hdr('D — Dach ('+(o.dachart==='z'?'Ziegeldach':'Flachdach')+')');
-    row('Regenrohr',o.re); row('Regenrohrsyst.',o.rs); row('Traufhöhe',o.trh);
-    row('Dachzugang',o.dzf);
+    row('Ansprechpartner',aspMap[o.asptyp]||o.asptyp);
+    if(o.asptyp&&o.asptyp!=='kein'){ row('Name',o.aspn); row('Telefon',o.aspt); }
+    row('Schlüssel erforderlich',schlMap[o.schl]||o.schl);
+    row('Schlüssel bei',o.schlb); row('Besonderheiten Zugang',o.zugi);
+    // C
+    hdr('C — Zugänglichkeit & Vorfeld');
+    row('Rasenfläche',rasMap[o.ras]||o.ras); row('Hofzufahrt',hofMap[o.hof]||o.hof);
+    row('Wäscheleinen',waeMap[o.wae]||o.wae); row('Außenmaße',o.aum);
+    row('Zufahrt Straßenseite',o.zuf&&o.zuf.length?o.zuf.join(', '):'—');
+    row('Zufahrt Sonderfälle',o.zuf_s&&o.zuf_s.length?o.zuf_s.join(', '):'—');
+    row('Fahrweg',o.fw&&o.fw.length?o.fw.join(', '):'—');
+    row('Fahrwegbreite',o.fwb); row('Fahrwegbreite Verengung',o.fwbver);
+    row('Engstelle',o.eng);
+    row('Parken',o.park&&o.park.length?o.park.join(', '):'—');
+    row('Halteverbot',hvbMap[o.hvb]||o.hvb);
+    row(o.ugstrl||'Straßenseite',o.ugstr); row(o.ughofl||'Hofseite',o.ughof);
+    row(o.uggll||'Giebel links',o.uggl); row(o.uggrl||'Giebel rechts',o.uggr);
+    row('Aufstellfläche Hebebühne',aufMap[o.auf_b]||o.auf_b);
+    if(o.auf_b==='eingeschr') row('Einschränkung Hebebühne',o.auf_b_g);
+    row('Aufstellfläche Gerüst',aufMap[o.auf_g]||o.auf_g);
+    if(o.auf_g==='eingeschr') row('Einschränkung Gerüst',o.auf_g_g);
+    row('Absicherung',o.abs&&o.abs.length?o.abs.join(', '):'—');
+    row('Hindernisse',o.hind&&o.hind.length?o.hind.join(', '):'—');
+    row('Vorbereitung vor Einsatz',o.vorb&&o.vorb.length?o.vorb.join(', '):'—');
+    row('Zufahrt Info',o.zufi);
+    // D
+    hdr('D — Regenrinne & Zugang');
+    row('Regenrohr',reMap[o.re]||o.re);
+    row('Regenrohrsystem',o.rs&&o.rs.length?o.rs.join(', '):'—');
+    row('Traufhöhe ca.',o.trh); row('Standfestigkeit Gerüst',o.sfg);
+    row('Gerüststandort',o.gst); row('Rinneninhalt',o.rih);
+    row('Dachzugang',o.dzf&&o.dzf.length?o.dzf.join(', '):'—');
+    row('Befahranlage',o.bf); row('Untergrundfolie',o.ugf); row('Rückstauklappe',o.rrf);
+    // E — Dach
+    hdr('E — Dach ('+(o.dachart==='z'?'Ziegeldach':'Flachdach')+')');
     if(o.dachart==='z'){
-      row('Dachbelag',o.dbz); row('Dachziegel Art',o.dza);
-      row('Luke',o.luk); row('Luke Info',o.luki);
-      row('Dachform',o.df); row('Neigung',o.ng+(o.ng_grad?' '+o.ng_grad+'°':''));
-      row('Ziegeltyp',o.zt); row('Ziegelfarbe',o.zfa);
-      row('Schornstein',o.sch); row('Gauben',o.gau); row('Gaubentyp',o.gat);
-      row('Wärmedämmung',o.wdf_v); row('PV-Anlage',o.pv_v+(o.pv_size?' '+o.pv_size+' kWp':''));
-      row('Moosbefall',o.mo_v);
+      row('Dachbelag Zeile',o.dbz); row('Dachbelag Typ',o.dbt); row('Dachbelag Anbringung',o.dba);
+      row('Dachziegel Art',o.dza&&o.dza.length?o.dza.join(', '):'—');
+      row('Luke Eingang',o.luke_eing);
+      row('Bodentreppe',o.bta); row('Luke',lukMap[o.luk]||o.luk); row('Luke Info',o.luki);
+      row('Mauerauftritt',maMap[o.ma]||o.ma); row('Mauerauftritt Info',o.mai);
+      row('Dachbodenbeleuchtung',dblMap[o.dbl]||o.dbl); row('Dachboden Beschreibung',o.dbb);
+      row('Dachform',o.df); row('Neigung',o.ng+(o.ng_grad?' ('+o.ng_grad+'°)':''));
+      row('Ziegeltyp',o.zt); row('Traufhöhe Ziegel',o.zh); row('Ziegelfarbe',o.zfa);
+      row('First',o.fi); row('Schornstein',o.sch); row('Schornstein Info',o.schi);
+      row('Gauben',o.gau); row('Gaubentyp',o.gat&&o.gat.length?o.gat.join(', '):'—'); row('Gauben Info',o.gaui);
+      row('Wärmedämmung',o.wdf_v); row('Wärmedämmung Info',o.wdfi);
+      row('PV-Anlage',o.pv_v+(o.pv_size?' — '+o.pv_size+' kWp':'')); row('Raummaß',o.rm);
+      row('Dachflächenfenster (Z)',o.dfz); row('Dachflächenfenster (J)',o.djz);
+      row('Firstziegel',o.fr_v); row('Zinkdach',o.zd); row('Moosbefall',o.mo_v); row('Dachziegel Info',o.diz);
     } else {
-      row('Abdichtung',o.abd); row('Oberflächenbelag',o.ofl);
-      row('Entwässerung',o.enw); row('Gully',o.gul);
-      row('Gefälle',o.geff); row('Lichtkuppeln',o.lk);
-      row('Dachrandabschl.',o.dra); row('Attikahöhe',o.att_h);
-      row('Betontyp',o.bt);
+      row('Abdichtung',o.abd&&o.abd.length?o.abd.join(', '):'—');
+      row('Abdichtungstyp',o.abd_typ); row('Oberflächenbelag',o.ofl);
+      row('Entwässerung',o.enw&&o.enw.length?o.enw.join(', '):'—'); row('Gully',o.gul);
+      row('Dachflächenfenster (F)',o.dff); row('Dachflächenfenster (J)',o.djf);
+      row('Gefälle',o.geff); row('Lichtkuppeln',o.lk); row('Lichtkuppeln Info',o.lki);
+      row('Lichtkuppeln PV',o.lk_pv+(o.lk_pvg?' — '+o.lk_pvg:'')); row('Dachrandabschluss',o.dra);
+      row('Attikahöhe',o.att_h); row('Dampfsperrfolie',o.dif);
+      row('Betontyp',o.bt&&o.bt.length?o.bt.join(', '):'—'); row('Beton Info',o.bti);
     }
-    hdr('E — Sicherheit & Bewertung');
-    row('Sicherung',o.sich_z); row('Wasseranschluss',o.was);
-    var ampMap={gut:'Gut',mittel:'Mittel',schlecht:'Schwierig'};
-    row('Bewertung',ampMap[o.amp]||o.amp);
-    row('Hinweise Fremdfirma',o.hff); row('Aktuelles',o.akt);
+    // F — Sicherheit
+    hdr('F — Sicherheit & Bewertung');
+    row('Vorh. Einrichtungen',o.sich_z&&o.sich_z.length?o.sich_z.join(', '):'—');
+    row('Sekuranten',o.sek_v); row('Sekuranten Seite',o.sek_s);
+    row('Seilsicherung',o.seil_v); row('Seil Seite',o.seil_s);
+    row('Geländer',o.gel_v); row('Geländer Seite',o.gel_s);
+    row('Wasseranschluss',o.was); row('Straßensperrung',o.str_v);
+    var ampMap2={gut:'🟢 Gut / Unproblematisch',mittel:'🟡 Mittel / Aufwändig',schlecht:'🔴 Schwierig / Risikoreich'};
+    row('Bewertung Objekt',ampMap2[o.amp]||o.amp||'—');
+    row('Hinweise Fremdfirma',o.hff); row('Aktuelles / Besonderes',o.akt);
+    // G — Fotos
+    var fotoData=o.fotos||{};
+    var fotoKeys=Object.keys(fotoData).filter(function(k){return fotoData[k]&&fotoData[k].indexOf('data:')===0;});
+    if(fotoKeys.length>0){
+      doc.addPage(); y=M;
+      hdr('G — Pflichtfotos ('+fotoKeys.length+' von '+FOTOS.length+')');
+      var fW=86, fH=64, cols=2, colW=CW/cols;
+      var col=0;
+      fotoKeys.forEach(function(k){
+        var idx=parseInt(k.replace('f',''));
+        var lbl=(idx+1)+'. '+(FOTOS[idx]||'Foto '+(idx+1));
+        var xPos=M+col*colW;
+        chk(fH+12);
+        doc.setFontSize(7); doc.setFont(undefined,'bold'); doc.setTextColor(aR,aG,aB);
+        doc.text(lbl,xPos,y+4);
+        try{
+          doc.addImage(fotoData[k],'JPEG',xPos,y+6,fW,fH);
+        }catch(e){ doc.setFontSize(8); doc.text('[Foto konnte nicht geladen werden]',xPos,y+10); }
+        if(col===0){ col=1; }
+        else{ col=0; y+=fH+14; }
+      });
+      if(col===1) y+=fH+14;
+    }
     // Seitennummern
-    var pages=doc.getNumberOfPages();
-    for(var p=1;p<=pages;p++){
+    var pgCount=doc.getNumberOfPages();
+    for(var p=1;p<=pgCount;p++){
       doc.setPage(p); doc.setFontSize(8); doc.setTextColor(150,150,150);
-      doc.text('Stammblatt · '+(o.adr||'')+' · Seite '+p+' / '+pages,M,293);
+      doc.text('Stammblatt · '+(o.adr||'')+' · Seite '+p+' / '+pgCount,M,293);
       doc.text(new Date().toLocaleDateString('de-DE'),W-M,293,{align:'right'});
     }
+    // Upload Drive
     var pdfBuf=doc.output('arraybuffer');
     var datum=new Date().toLocaleDateString('de-DE').replace(/\./g,'-');
     var slug=(o.adr||'Objekt').replace(/[^a-zA-Z0-9\s]/g,'_').replace(/\s+/g,'_').substring(0,40);
@@ -1431,8 +1504,7 @@ async function pdfNachDrive(){
     var bodyBuf=new TextEncoder().encode(bodyStr);
     var endBuf=new TextEncoder().encode('\r\n--'+boundary+'--');
     var combined=new Uint8Array(bodyBuf.length+pdfBuf.byteLength+endBuf.length);
-    combined.set(bodyBuf,0);
-    combined.set(new Uint8Array(pdfBuf),bodyBuf.length);
+    combined.set(bodyBuf,0); combined.set(new Uint8Array(pdfBuf),bodyBuf.length);
     combined.set(endBuf,bodyBuf.length+pdfBuf.byteLength);
     var r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
       method:'POST',
@@ -1441,7 +1513,7 @@ async function pdfNachDrive(){
     });
     if(!r.ok) throw new Error('HTTP '+r.status);
     var file=await r.json();
-    toast('✅ PDF gespeichert: '+fileName,'ok');
+    toast('PDF gespeichert: '+fileName,'ok');
     window.open('https://drive.google.com/file/d/'+file.id+'/view','_blank');
   }catch(e){ toast('PDF-Fehler: '+e.message,'err'); }
 }
