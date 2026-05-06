@@ -1864,7 +1864,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             <div class="modal-field full">
               <label>📄 Stammblatt PDF <span style="font-weight:400;color:var(--text2);font-size:10px">Drive-Ordner des Objekts — wird aus Auftragsakte automatisch befüllt</span></label>
               <div style="display:flex;gap:6px;">
-                <input type="url" id="tSbPdfOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;font-size:12px;" oninput="scheduleTaskFieldSave()" autocomplete="off">
+                <input type="url" id="tSbPdfOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;font-size:12px;" oninput="scheduleTaskFieldSave();_saveSbOrdnerForAdr()" autocomplete="off">
                 <button type="button" onclick="_openSbPdfOrdner()" style="padding:8px 14px;border-radius:8px;background:#15803d;color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">📂 Öffnen</button>
               </div>
             </div>
@@ -4938,9 +4938,10 @@ function parseAuftragText(text){
     catch(e){console.error('Fehler beim NAS-Feld:',e);}
     try{
       if(gdriveProjOrdner)document.getElementById('tGDOrdner').value=gdriveProjOrdner;
-      // Stammblatt PDF Ordner = gleicher Projektordner (aus Google_Drive_Link)
+      // Stammblatt PDF Ordner: erst Adress-Cache prüfen, dann Projektordner als Fallback
       var _sbPdf=document.getElementById('tSbPdfOrdner');
-      if(_sbPdf && gdriveProjOrdner && !_sbPdf.value) _sbPdf.value=gdriveProjOrdner;
+      if(_sbPdf && !_sbPdf.value) _autoFillSbOrdner(adresseFull);
+      if(_sbPdf && !_sbPdf.value && gdriveProjOrdner) _sbPdf.value=gdriveProjOrdner;
       if(gdriveFotoOrdner)document.getElementById('tGD').value=gdriveFotoOrdner;
       if(gdriveEmailOrdner)document.getElementById('tEmailOrdner').value=gdriveEmailOrdner;
     }catch(e){console.error('Fehler beim GD-Ordner-Feld:',e);}
@@ -8365,7 +8366,25 @@ function tMapsOeffnen(){
 function _openSbPdfOrdner(){
   var url=(document.getElementById('tSbPdfOrdner')||{value:''}).value.trim();
   if(url) window.open(url,'_blank');
-  else showToast('Bitte zuerst den Drive-Ordner aus der Auftragsakte eintragen oder Nachtragen.vbs ausführen','warning',5000);
+  else showToast('Bitte zuerst den Drive-Ordner eintragen — er wird dann für diese Adresse gespeichert','warning',5000);
+}
+// ── Stammblatt-Ordner: adressbasierter localStorage-Cache ─────────────────
+function _sbOrdnerKey(adr){ return 'sbOrdner::'+((adr||'').trim().toLowerCase()); }
+function _saveSbOrdnerForAdr(){
+  var adr=(document.getElementById('tAdr')||{value:''}).value.trim();
+  var url=(document.getElementById('tSbPdfOrdner')||{value:''}).value.trim();
+  if(!adr||!url) return;
+  try{ localStorage.setItem(_sbOrdnerKey(adr), url); } catch(e){}
+}
+function _autoFillSbOrdner(adr){
+  var el=document.getElementById('tSbPdfOrdner');
+  if(!el||el.value.trim()) return;
+  if(!adr) adr=(document.getElementById('tAdr')||{value:''}).value.trim();
+  if(!adr) return;
+  try{
+    var saved=localStorage.getItem(_sbOrdnerKey(adr));
+    if(saved){ el.value=saved; scheduleTaskFieldSave(); }
+  }catch(e){}
 }
 function tDriveOeffnen(){
   const url=document.getElementById('tGD').value.trim();
@@ -9770,6 +9789,9 @@ function openEditTaskModal(id){
   document.getElementById('tHV').value=task.hausverwaltung||'';
   document.getElementById('tAdr').value=task.adresse||'';
   document.getElementById('tSch').value=task.schadensbild||'';
+  // Stammblatt-Ordner: gespeicherter Wert oder Adress-Cache
+  var _sbOrdnerEl=document.getElementById('tSbPdfOrdner');
+  if(_sbOrdnerEl){ _sbOrdnerEl.value=task.sbPdfOrdner||''; if(!_sbOrdnerEl.value) _autoFillSbOrdner(task.adresse||''); }
   setTimeout(()=>{_updateMapsBtn();_updateHdrMeta();},50);
   // Kontakte: migrate old static fields if no kontakte array yet
   let _kontakte=task.kontakte||[];
@@ -10539,6 +10561,7 @@ function _collectTaskData(){
     kundenNr:v('taskKundenNr'),
     hausverwaltung:v('tHV'),
     adresse:v('tAdr'),
+    sbPdfOrdner:v('tSbPdfOrdner'),
     schadensbild:v('tSch'),
     gdriveOrdner:v('tGDOrdner'),
     gdrive:v('tGD'),
