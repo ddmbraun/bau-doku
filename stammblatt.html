@@ -117,6 +117,34 @@ textarea{min-height:48px;resize:vertical;}
 .fra.on{display:block;}
 .del-row{display:flex;justify-content:flex-end;padding:6px 0 0;}
 .del-btn{padding:4px 12px;background:#fff;border:1px solid #ef9a9a;color:#c62828;border-radius:4px;font-size:11px;cursor:pointer;}
+/* Aufstellort-Karten */
+.sao-card{background:#f8f9ff;border-radius:6px;border:1px solid #e0e4ea;border-left:4px solid #1a2744;margin:6px 0;overflow:hidden;}
+.sao-card.sao-kein{border-left-color:#dc2626;}
+.sao-head{background:#1a2744;color:#fff;padding:6px 10px;display:flex;align-items:center;gap:7px;}
+.sao-card.sao-kein .sao-head{background:#991b1b;}
+.sao-num{font-size:10px;font-weight:700;background:#fff;color:#1a2744;border-radius:3px;padding:1px 6px;flex-shrink:0;}
+.sao-card.sao-kein .sao-num{color:#991b1b;}
+.sao-name{font-size:12px;font-weight:700;color:#fff;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.4);padding:1px 3px;flex:1;min-width:0;}
+.sao-name:focus{outline:none;border-bottom-color:#fff;}
+.sao-body{padding:6px 12px;}
+.sao-del{margin-left:auto;padding:2px 8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:4px;font-size:10px;cursor:pointer;flex-shrink:0;}
+.sao-del:hover{background:rgba(220,38,38,.5);}
+.srb{padding:4px 11px;border-radius:4px;border:2px solid #d0d5dd;background:#fafbfc;font-size:11px;font-weight:700;cursor:pointer;color:#555;}
+.srb.sg{background:#dcfce7;border-color:#16a34a;color:#15803d;}
+.srb.sy{background:#fef9c3;border-color:#ca8a04;color:#92400e;}
+.srb.sr{background:#fee2e2;border-color:#dc2626;color:#b91c1c;}
+.srb.sd{background:#dc2626;border-color:#991b1b;color:#fff;}
+.suc{display:inline-block;padding:3px 8px;border-radius:14px;border:1.5px solid #d0d5dd;background:#fafbfc;font-size:11px;font-weight:700;cursor:pointer;color:#555;margin:2px;}
+.suc.gut.act{background:#dcfce7;border-color:#16a34a;color:#15803d;}
+.suc.warn-c.act{background:#fef9c3;border-color:#ca8a04;color:#92400e;}
+.suc.bad.act{background:#fee2e2;border-color:#dc2626;color:#b91c1c;}
+.suc.neu.act{background:#dbeafe;border-color:#2563eb;color:#1d4ed8;}
+.ssw{padding:3px 10px;border-radius:4px;border:1.5px solid #d0d5dd;background:#fafbfc;font-size:11px;cursor:pointer;color:#555;}
+.ssw.act{background:#fff8ed;border-color:#f0c040;color:#7a5c00;font-weight:700;}
+.ssw.arot{background:#fee2e2;border-color:#dc2626;color:#b91c1c;font-weight:700;}
+.sao-gpflicht{background:#fff8ed;border:1px solid #f0c040;border-radius:4px;padding:4px 8px;font-size:11px;color:#7a5c00;margin-top:3px;display:none;}
+.sao-ghl{background:#fffbeb;border-radius:4px;padding:3px 6px;border-left:3px solid #f0c040;}
+.sao-spez{background:#fff8ed;border:1px solid #f0c040;border-radius:4px;padding:5px 8px;font-size:11px;color:#7a5c00;margin-top:4px;display:none;}
 
 /* KONTAKTE */
 .mc.wide{width:620px;}
@@ -315,6 +343,20 @@ textarea{min-height:48px;resize:vertical;}
             <div class="fr warn"><div class="fl">⚠ Hindernisse</div><div class="fc"><div class="cg"><label><input type="checkbox" data-g="hind" value="poller"> Poller</label><label><input type="checkbox" data-g="hind" value="tore"> Tore</label><label><input type="checkbox" data-g="hind" value="waesche"> Wäscheleinen</label><label><input type="checkbox" data-g="hind" value="baeume"> Äste/Bäume</label><label><input type="checkbox" data-g="hind" value="leit"> Freileitungen</label><label><input type="checkbox" data-g="hind" value="fzg"> Fahrzeuge</label><label><input type="checkbox" data-g="hind" value="balk"> Balkone/Vordächer</label><label><input type="checkbox" data-g="hind" value="keine"> Keine</label></div></div></div>
             <div class="fr"><div class="fl">Vorbereitung vor Einsatz</div><div class="fc"><div class="cg"><label><input type="checkbox" data-g="vorb" value="hvb"> Halteverbot beantragen</label><label><input type="checkbox" data-g="vorb" value="absperr"> Absperrung</label><label><input type="checkbox" data-g="vorb" value="fzg"> Fahrzeuge entfernen</label><label><input type="checkbox" data-g="vorb" value="wae"> Wäscheleinen abbauen</label><label><input type="checkbox" data-g="vorb" value="tor"> Tor öffnen</label><label><input type="checkbox" data-g="vorb" value="poll"> Poller entfernen</label><label><input type="checkbox" data-g="vorb" value="aeste"> Äste schneiden</label><label><input type="checkbox" data-g="vorb" value="plat"> Schutzplatten</label><label><input type="checkbox" data-g="vorb" value="nichts"> Nichts</label></div></div></div>
             <div class="fr"><div class="fl">Anmerkungen</div><div class="fc"><textarea id="fZufI"></textarea></div></div>
+
+            <div class="sub">🏗 Hebebühne — Aufstellorte je Traufseite</div>
+            <div class="fr">
+              <div class="fl">Hebebühne erforderlich?<small>Grundsätzliche Einschätzung</small></div>
+              <div class="fc"><div class="rg">
+                <label><input type="radio" name="hb_erf" value="ja"> Ja</label>
+                <label><input type="radio" name="hb_erf" value="nein"> Nein</label>
+                <label><input type="radio" name="hb_erf" value="teil"> Je nach Seite</label>
+              </div></div>
+            </div>
+            <div id="sbAoListe" style="margin-top:6px;"></div>
+            <div style="margin-top:4px;">
+              <button type="button" onclick="_sbAoAdd()" style="padding:6px 14px;border:2px dashed #b0bec5;border-radius:6px;background:transparent;color:#555;font-size:12px;font-weight:700;cursor:pointer;width:100%;">＋ Aufstellort / Traufseite hinzufügen</button>
+            </div>
           </div>
         </div>
 
@@ -642,7 +684,8 @@ function leeresObj(id,adr,dachart){
     sich_z:[],sek_v:'',sek_s:'',seil_v:'',seil_s:'',gel_v:'',gel_s:'',
     was:'',str_v:'',
     fotos:{},
-    amp:'',hff:'',akt:'',aktd:'',driveOrdner:''};
+    amp:'',hff:'',akt:'',aktd:'',driveOrdner:'',
+    hb_erf:'',ao_liste:[]};
 }
 
 function waehleObj(id){
@@ -711,6 +754,7 @@ function fuellForm(o){
   sR('amp_n',''); setAmpel(o.amp,true);
   sv('fHFF',o.hff); sv('fAkt',o.akt); sv('fAktD',o.aktd);
   sv('fDriveOrdner',o.driveOrdner||''); _updatePdfDriveBtn();
+  sR('hb_erf',o.hb_erf||''); _sbAoLadeListe(o.ao_liste||[]);
   wechsleDach(o.dachart||'z',true);
   var ztEl=document.querySelector('input[name="zt"][value="'+o.zt+'"]');
   if(ztEl) zeigHersteller(ztEl);
@@ -746,12 +790,206 @@ function sammelDaten(){
   var ab=document.querySelector('.ab.act'); o.amp=ab?ab.dataset.a:'';
   o.hff=v('fHFF'); o.akt=v('fAkt'); o.aktd=v('fAktD');
   o.driveOrdner=v('fDriveOrdner');
+  o.hb_erf=gR('hb_erf'); o.ao_liste=window._sbAoData||[];
   o.fotos=holeFotos();
   o.dachart=document.getElementById('dswZ').classList.contains('act')?'z':'f';
   renListe();
   document.getElementById('tObj').textContent=o.adr||'(ohne Adresse)';
 }
 
+// ── AUFSTELLORTE (Hebebühne je Traufseite)
+window._sbAoData=[];
+window._sbAoZ=0;
+var _sbAoStd=['Straßenseite','Hofseite','Gartenseite','Giebel links','Giebel rechts'];
+
+function _sbAoAdd(){
+  window._sbAoZ++;
+  var id='sao'+window._sbAoZ;
+  window._sbAoData.push({id:id,name:_sbAoStd[window._sbAoData.length]||'Seite '+window._sbAoZ,
+    erreichbar:'',gebaeudehoehe:'',ug:[],gehweg:'',hvb:'',spez:'',
+    geruest:'',zuf:[],zuf_anm:'',brVer:'',brBed:'',hind:[],vorb:[],anm:''});
+  _sbAoRenderAlle();
+  planeAutoSave();
+}
+function _sbAoRemove(id){
+  if(!confirm('Aufstellort entfernen?')) return;
+  window._sbAoData=window._sbAoData.filter(function(a){return a.id!==id;});
+  _sbAoRenderAlle(); planeAutoSave();
+}
+function _sbAoLadeListe(liste){
+  window._sbAoData=liste||[];
+  window._sbAoZ=window._sbAoData.length;
+  _sbAoRenderAlle();
+}
+function _sbAoRenderAlle(){
+  var el=document.getElementById('sbAoListe'); if(!el)return;
+  el.innerHTML='';
+  window._sbAoData.forEach(function(ao,i){el.appendChild(_sbAoMkCard(ao,i));});
+}
+function _sbAoMkCard(ao,idx){
+  var d=document.createElement('div');
+  d.className='sao-card'+(ao.erreichbar==='kein'?' sao-kein':'');
+  d.id='saocard_'+ao.id;
+  d.innerHTML='<div class="sao-head">'
+    +'<span class="sao-num">'+(idx+1)+'</span>'
+    +'<input class="sao-name" type="text" value="'+_se(ao.name)+'" placeholder="Bezeichnung…" '
+    +'oninput="_sbAoSf(\''+ao.id+'\',\'name\',this.value)">'
+    +'<button class="sao-del" onclick="_sbAoRemove(\''+ao.id+'\')">✕</button>'
+    +'</div>';
+  var b=document.createElement('div'); b.className='sao-body';
+
+  b.innerHTML+=_sfr('Gebäudehöhe / Traufhöhe','Traufkante ca. (m)',
+    '<div style="display:flex;gap:7px;align-items:center">'
+    +'<input type="number" step="0.5" min="2" max="40" value="'+_se(ao.gebaeudehoehe)+'" '
+    +'placeholder="z. B. 7.5" style="width:100px" oninput="_sbAoSf(\''+ao.id+'\',\'gebaeudehoehe\',this.value)">'
+    +'<span style="font-size:11px;color:#888">m</span></div>');
+
+  b.innerHTML+=_sfr('Erreichbarkeit','Mit Hebebühnen-Fahrzeug',
+    '<div style="display:flex;gap:5px;flex-wrap:wrap">'
+    +_srb(ao.id,'direkt','✓ Direkt anfahrbar','sg')+_srb(ao.id,'weiter','↔ Weiter entfernt','sy')
+    +_srb(ao.id,'spez','⚠ Spezialbühne nötig','sr')+_srb(ao.id,'kein','✗ Kein Einsatz möglich','sd')
+    +'</div>'
+    +'<div class="sao-spez" id="saospez_'+ao.id+'">'
+    +'Art der Spezialbühne:<br><input type="text" value="'+_se(ao.spez)+'" '
+    +'placeholder="z. B. Knickarmbühne, Teleskopbühne" oninput="_sbAoSf(\''+ao.id+'\',\'spez\',this.value)" style="margin-top:3px"></div>');
+
+  b.innerHTML+=_sfr('Gerüst möglich?','Alternative / Ergänzung',
+    '<div id="saogw_'+ao.id+'" class="'+(ao.erreichbar==='kein'?'sao-ghl':'')+'">'
+    +'<div style="display:flex;gap:5px;flex-wrap:wrap">'
+    +_sgb(ao.id,'ja','✓ Ja','sg')+_sgb(ao.id,'eingeschr','Eingeschränkt','sy')
+    +_sgb(ao.id,'nein','Nicht möglich','sr')+_sgb(ao.id,'noerf','Nicht erforderlich','')
+    +'</div>'
+    +'<div class="sao-gpflicht" id="saogp_'+ao.id+'" style="display:'+(ao.erreichbar==='kein'?'block':'none')+'">'
+    +'Kein Hebebühneneinsatz möglich — Gerüst prüfen!</div></div>');
+
+  b.innerHTML+=_sfr('Untergrund am Aufstellort','Wo steht das Fahrzeug?',
+    '<div>'+_suc(ao.id,'Asphalt','gut')+_suc(ao.id,'Beton','gut')
+    +_suc(ao.id,'Pflastersteine','neu')+_suc(ao.id,'Schotter','warn-c')
+    +_suc(ao.id,'Rasen / Erde','bad')+_suc(ao.id,'Unbekannt','neu')+'</div>');
+
+  b.innerHTML+=_sfr('Gehweg überfahren?','Bordstein / Gehwegplatten',
+    '<div style="display:flex;gap:5px;flex-wrap:wrap">'
+    +_ssw(ao.id,'gehweg','nein','','Nein')
+    +_ssw(ao.id,'gehweg','plat','','Ja — mit Schutzplatten')
+    +_ssw(ao.id,'gehweg','genehm','arot','Ja — Genehmigung nötig')+'</div>');
+
+  b.innerHTML+=_sfr('Halteverbot',null,
+    '<div style="display:flex;gap:5px;flex-wrap:wrap">'
+    +_ssw(ao.id,'hvb','noerf','','Nicht nötig')
+    +_ssw(ao.id,'hvb','diese','','Diese Straßenseite')
+    +_ssw(ao.id,'hvb','gegen','','Gegenüberliegende Seite')+'</div>');
+
+  b.innerHTML+=_sfr('Zufahrtsweg','Wie gelangt das Fahrzeug dorthin?',
+    '<div class="cg">'
+    +_scb(ao.id,'zuf','strasse','Von der Straße direkt')
+    +_scb(ao.id,'zuf','hof','Über den Hof')
+    +_scb(ao.id,'zuf','gruen','Über Grünfläche')
+    +_scb(ao.id,'zuf','eng','Enge Durchfahrt')
+    +_scb(ao.id,'zuf','rangier','Rangieren nötig')+'</div>'
+    +'<textarea placeholder="Anmerkung zur Zufahrt…" style="margin-top:4px;font-size:12px;" '
+    +'oninput="_sbAoSf(\''+ao.id+'\',\'zuf_anm\',this.value)">'+_se(ao.zuf_anm)+'</textarea>');
+
+  b.innerHTML+=_sfr('Fahrwegbreite','Lichte Breite (m)',
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+    +'<span style="font-size:11px;color:#888">Verfügbar:</span>'
+    +'<input type="number" step="0.1" min="1" max="20" value="'+_se(ao.brVer)+'" placeholder="z. B. 4.5" '
+    +'style="width:90px" oninput="_sbAoSf(\''+ao.id+'\',\'brVer\',this.value)">'
+    +'<span style="font-size:11px;color:#888">mind. benötigt:</span>'
+    +'<input type="number" step="0.1" min="1" max="20" value="'+_se(ao.brBed)+'" placeholder="z. B. 3.5" '
+    +'style="width:90px" oninput="_sbAoSf(\''+ao.id+'\',\'brBed\',this.value)">'+'</div>');
+
+  b.innerHTML+=_sfr('Hindernisse',null,
+    '<div class="cg">'
+    +_scb(ao.id,'hind','poller','Poller')+_scb(ao.id,'hind','tor','Tore / Schranken')
+    +_scb(ao.id,'hind','leit','Freileitungen')+_scb(ao.id,'hind','aeste','Äste / Bäume')
+    +_scb(ao.id,'hind','balk','Balkone / Vordächer')+_scb(ao.id,'hind','fzg','Fahrzeuge')
+    +_scb(ao.id,'hind','waestaender','Wäscheständer demontieren')
+    +_scb(ao.id,'hind','waeleine','Wäscheleine demontieren')
+    +_scb(ao.id,'hind','keine','Keine')+'</div>');
+
+  b.innerHTML+=_sfr('Vorbereitung vor Einsatz',null,
+    '<div class="cg">'
+    +_scb(ao.id,'vorb','hvb','Halteverbot beantragen')+_scb(ao.id,'vorb','plat','Schutzplatten legen')
+    +_scb(ao.id,'vorb','fzg','Fahrzeuge entfernen')+_scb(ao.id,'vorb','poll','Poller entfernen')
+    +_scb(ao.id,'vorb','tor','Tor öffnen')+_scb(ao.id,'vorb','waestaender','Wäscheständer abbauen')
+    +_scb(ao.id,'vorb','waeleine','Wäscheleine abbauen')+_scb(ao.id,'vorb','aeste','Äste schneiden')
+    +_scb(ao.id,'vorb','nichts','Keine')+'</div>');
+
+  b.innerHTML+=_sfr('Anmerkung',null,
+    '<textarea placeholder="z. B. Untergrund nach Regen weich…" style="font-size:12px;" '
+    +'oninput="_sbAoSf(\''+ao.id+'\',\'anm\',this.value)">'+_se(ao.anm)+'</textarea>');
+
+  d.appendChild(b);
+  setTimeout(function(){_sbAoSyncCard(ao);},0);
+  return d;
+}
+function _sfr(l,s,c){return '<div class="fr"><div class="fl">'+_se(l)+(s?'<small>'+_se(s)+'</small>':'')+'</div><div class="fc">'+c+'</div></div>';}
+function _srb(aoid,val,label,cls){return '<button class="srb" id="srb_'+aoid+'_'+val+'" onclick="_sbAoTgReach(\''+aoid+'\',\''+val+'\',\''+cls+'\')">'+label+'</button>';}
+function _sgb(aoid,val,label,cls){return '<button class="srb" id="sgb_'+aoid+'_'+val+'" onclick="_sbAoTgGbtn(\''+aoid+'\',\''+val+'\',\''+cls+'\')">'+label+'</button>';}
+function _suc(aoid,val,typ){return '<span class="suc '+typ+'" id="suc_'+aoid+'_'+_ssl(val)+'" onclick="_sbAoTgChip(\''+aoid+'\',\''+val+'\',this,\''+typ+'\')">'+val+'</span>';}
+function _ssw(aoid,field,val,cls,label){return '<button class="ssw" id="ssw_'+aoid+'_'+field+'_'+val+'" onclick="_sbAoTgSw(\''+aoid+'\',\''+field+'\',\''+val+'\',\''+cls+'\')">'+label+'</button>';}
+function _scb(aoid,group,val,label){return '<label><input type="checkbox" id="scb_'+aoid+'_'+group+'_'+val+'" onchange="_sbAoTgCb(\''+aoid+'\',\''+group+'\',\''+val+'\',this.checked)"> '+label+'</label>';}
+function _se(s){return (s||'').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function _ssl(s){return (s||'').replace(/[^a-zA-Z0-9]/g,'_');}
+function _sbAoGet(id){return (window._sbAoData||[]).find(function(a){return a.id===id;});}
+function _sbAoSf(aoid,field,val){var ao=_sbAoGet(aoid);if(ao){ao[field]=val;planeAutoSave();}}
+
+function _sbAoTgReach(aoid,val,cls){
+  var ao=_sbAoGet(aoid);if(!ao)return;
+  ao.erreichbar=ao.erreichbar===val?'':val;
+  ['direkt','weiter','spez','kein'].forEach(function(v){var el=document.getElementById('srb_'+aoid+'_'+v);if(el)el.className='srb';});
+  if(ao.erreichbar){var el=document.getElementById('srb_'+aoid+'_'+ao.erreichbar);if(el)el.className='srb '+cls;}
+  var spez=document.getElementById('saospez_'+aoid);if(spez)spez.style.display=(ao.erreichbar==='spez'?'block':'none');
+  var kein=(ao.erreichbar==='kein');
+  var card=document.getElementById('saocard_'+aoid);
+  if(card){card.classList.toggle('sao-kein',kein);var hd=card.querySelector('.sao-head');if(hd)hd.style.background=kein?'#991b1b':'';}
+  var gw=document.getElementById('saogw_'+aoid);if(gw)gw.className=kein?'sao-ghl':'';
+  var gp=document.getElementById('saogp_'+aoid);if(gp)gp.style.display=kein?'block':'none';
+  planeAutoSave();
+}
+function _sbAoTgGbtn(aoid,val,cls){
+  var ao=_sbAoGet(aoid);if(!ao)return;
+  ao.geruest=ao.geruest===val?'':val;
+  ['ja','eingeschr','nein','noerf'].forEach(function(v){var el=document.getElementById('sgb_'+aoid+'_'+v);if(el)el.className='srb';});
+  if(ao.geruest){var el=document.getElementById('sgb_'+aoid+'_'+ao.geruest);if(el)el.className='srb '+cls;}
+  planeAutoSave();
+}
+function _sbAoTgSw(aoid,field,val,cls){
+  var ao=_sbAoGet(aoid);if(!ao)return;
+  ao[field]=ao[field]===val?'':val;
+  document.querySelectorAll('[id^="ssw_'+aoid+'_'+field+'_"]').forEach(function(el){el.className='ssw';});
+  if(ao[field]){var el=document.getElementById('ssw_'+aoid+'_'+field+'_'+val);if(el)el.className='ssw act'+(cls?' '+cls:'');}
+  planeAutoSave();
+}
+function _sbAoTgChip(aoid,val,el,typ){
+  var ao=_sbAoGet(aoid);if(!ao)return;
+  if(!ao.ug)ao.ug=[];
+  var i=ao.ug.indexOf(val);
+  if(i>=0){ao.ug.splice(i,1);el.classList.remove('act');}else{ao.ug.push(val);el.classList.add('act');}
+  planeAutoSave();
+}
+function _sbAoTgCb(aoid,group,val,checked){
+  var ao=_sbAoGet(aoid);if(!ao)return;
+  if(!ao[group])ao[group]=[];
+  var i=ao[group].indexOf(val);
+  if(checked&&i<0)ao[group].push(val);
+  if(!checked&&i>=0)ao[group].splice(i,1);
+  planeAutoSave();
+}
+function _sbAoSyncCard(ao){
+  var cm={direkt:'sg',weiter:'sy',spez:'sr',kein:'sd'};
+  if(ao.erreichbar){var el=document.getElementById('srb_'+ao.id+'_'+ao.erreichbar);if(el)el.className='srb '+(cm[ao.erreichbar]||'');}
+  var spez=document.getElementById('saospez_'+ao.id);if(spez)spez.style.display=(ao.erreichbar==='spez'?'block':'none');
+  var kein=(ao.erreichbar==='kein');
+  var gw=document.getElementById('saogw_'+ao.id);if(gw)gw.className=kein?'sao-ghl':'';
+  var gp=document.getElementById('saogp_'+ao.id);if(gp)gp.style.display=kein?'block':'none';
+  var gm={ja:'sg',eingeschr:'sy',nein:'sr',noerf:''};
+  if(ao.geruest){var elg=document.getElementById('sgb_'+ao.id+'_'+ao.geruest);if(elg)elg.className='srb '+(gm[ao.geruest]||'');}
+  (ao.ug||[]).forEach(function(v){var el=document.getElementById('suc_'+ao.id+'_'+_ssl(v));if(el)el.classList.add('act');});
+  if(ao.gehweg){var el=document.getElementById('ssw_'+ao.id+'_gehweg_'+ao.gehweg);if(el)el.className='ssw act'+(ao.gehweg==='genehm'?' arot':'');}
+  if(ao.hvb){var el=document.getElementById('ssw_'+ao.id+'_hvb_'+ao.hvb);if(el)el.className='ssw act';}
+  ['zuf','hind','vorb'].forEach(function(g){(ao[g]||[]).forEach(function(v){var el=document.getElementById('scb_'+ao.id+'_'+g+'_'+v);if(el)el.checked=true;});});
+}
 // ── HELPERS
 function tglAuf(t,r){document.getElementById('frAuf'+t+'G').style.display=r.value==='eingeschr'?'':'none';}
 function wechsleDach(t,noSave){
@@ -1531,6 +1769,34 @@ async function pdfNachDrive(){
     rowIf('⚠ Hindernisse',mapArr(o.hind,hindM).join(', '));
     rowIf('Vorbereitung vor Einsatz',mapArr(o.vorb,vorbM).join(', '));
     rowIf('Anmerkungen Zufahrt',o.zufi);
+
+    sub('🏗 Hebebühne — Aufstellorte je Traufseite');
+    var hbErfM={ja:'Ja',nein:'Nein',teil:'Je nach Seite'};
+    rowIf('Hebebühne erforderlich',hbErfM[o.hb_erf]||null);
+    (o.ao_liste||[]).forEach(function(ao,i){
+      sub('Aufstellort '+(i+1)+': '+(ao.name||''));
+      rowIf('Gebäudehöhe / Traufhöhe',ao.gebaeudehoehe?ao.gebaeudehoehe+' m':null);
+      var errM={direkt:'Direkt anfahrbar',weiter:'Weiter entfernt',spez:'Spezialbühne nötig',kein:'KEIN Einsatz möglich'};
+      rowIf('Erreichbarkeit',errM[ao.erreichbar]||null);
+      if(ao.erreichbar==='spez') rowIf('Art der Spezialbühne',ao.spez);
+      var gerM={ja:'Ja, möglich',eingeschr:'Eingeschränkt',nein:'Nicht möglich',noerf:'Nicht erforderlich'};
+      rowIf('Gerüst möglich',gerM[ao.geruest]||null);
+      rowIf('Untergrund',(ao.ug||[]).join(', ')||null);
+      var gwM={nein:'Nein',plat:'Ja — mit Schutzplatten',genehm:'Ja — Genehmigung nötig'};
+      rowIf('Gehweg überfahren',gwM[ao.gehweg]||null);
+      var hvbM={noerf:'Nicht nötig',diese:'Diese Straßenseite',gegen:'Gegenüberliegende Seite'};
+      rowIf('Halteverbot',hvbM[ao.hvb]||null);
+      var zufLbl={strasse:'Von der Straße',hof:'Über Hof',gruen:'Grünfläche',eng:'Enge Durchfahrt',rangier:'Rangieren'};
+      rowIf('Zufahrtsweg',(ao.zuf||[]).map(function(v){return zufLbl[v]||v;}).join(', ')||null);
+      rowIf('Zufahrt Anmerkung',ao.zuf_anm||null);
+      var brP=[];if(ao.brVer)brP.push('Verfügbar: '+ao.brVer+' m');if(ao.brBed)brP.push('Benötigt: '+ao.brBed+' m');
+      rowIf('Fahrwegbreite',brP.join(' | ')||null);
+      var hindLbl={poller:'Poller',tor:'Tore/Schranken',leit:'Freileitungen',aeste:'Äste/Bäume',balk:'Balkone/Vordächer',fzg:'Fahrzeuge',waestaender:'Wäscheständer demontieren',waeleine:'Wäscheleine demontieren',keine:'Keine'};
+      rowIf('Hindernisse',(ao.hind||[]).map(function(v){return hindLbl[v]||v;}).join(', ')||null);
+      var vorbLbl={hvb:'Halteverbot',plat:'Schutzplatten',fzg:'Fahrzeuge entfernen',poll:'Poller entfernen',tor:'Tor öffnen',waestaender:'Wäscheständer abbauen',waeleine:'Wäscheleine abbauen',aeste:'Äste schneiden',nichts:'Keine'};
+      rowIf('Vorbereitung',(ao.vorb||[]).map(function(v){return vorbLbl[v]||v;}).join(', ')||null);
+      rowIf('Anmerkung',ao.anm||null);
+    });
 
     // ── D — Dachzugang & Erreichbarkeit
     hdr('D — Dachzugang & Erreichbarkeit');
