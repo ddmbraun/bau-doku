@@ -1855,18 +1855,19 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <div class="mv2-section-label" onclick="_toggleMv2Sect('tObjektSect',event)">📍 Objekt<span class="mv2-coll-arrow">›</span></div>
           <div class="modal-grid">
             <div class="modal-field full"><label>Auftraggeber / Hausverwaltung</label><input type="text" id="tHV" placeholder="z.B. AHV, Muster Verwaltung" oninput="scheduleTaskFieldSave();_updateMapsBtn()" autocomplete="off"></div>
-            <div class="modal-field full">
-              <label>📋 Stammblatt-Objekt-ID <span style="font-weight:400;color:var(--text2);font-size:10px">(aus Stammblatt → Objekt-ID Feld)</span></label>
-              <div style="display:flex;gap:6px;">
-                <input type="text" id="tStammblattObjId" placeholder="z.B. BL-F-01" style="flex:1;" oninput="scheduleTaskFieldSave()" autocomplete="off">
-                <button type="button" onclick="_openStammblatt()" style="padding:8px 14px;border-radius:8px;background:#1a2744;color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">📋 Öffnen</button>
-              </div>
-            </div>
+
             <div class="modal-field full">
               <label>Adresse (Straße + PLZ + Ort)</label>
               <div style="display:flex;gap:6px;">
                 <input type="text" id="tAdr" placeholder="Musterstraße 44, 99086 Erfurt" style="flex:1;" oninput="scheduleTaskFieldSave();_updateMapsBtn()" autocomplete="off">
                 <button type="button" onclick="tMapsOeffnen()" style="padding:8px 14px;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">🗺 Maps</button>
+              </div>
+            </div>
+            <div class="modal-field full">
+              <label>📄 Stammblatt PDF <span style="font-weight:400;color:var(--text2);font-size:10px">Drive-Ordner des Objekts</span></label>
+              <div style="display:flex;gap:6px;">
+                <input type="url" id="tSbPdfOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;font-size:12px;" oninput="scheduleTaskFieldSave()" autocomplete="off">
+                <button type="button" onclick="_openSbPdfOrdner()" style="padding:8px 14px;border-radius:8px;background:#15803d;color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">📂 Öffnen</button>
               </div>
             </div>
             <textarea id="tSch" style="display:none;" autocomplete="off"></textarea>
@@ -2713,6 +2714,7 @@ function saveTaskData(){
     kundenNr:document.getElementById('taskKundenNr').value.trim(),
     hausverwaltung:document.getElementById('tHV').value.trim(),
     stammblattObjId:document.getElementById('tStammblattObjId').value.trim(),
+    sbPdfOrdner:document.getElementById('tSbPdfOrdner').value.trim(),
     adresse:document.getElementById('tAdr').value.trim(),
     schadensbild:document.getElementById('tSch').value.trim(),
     kontakte:getKontaktePTP(),
@@ -8361,6 +8363,11 @@ function _openStammblatt(){
   if(objId) url+='?obj='+encodeURIComponent(objId);
   window.open(url,'_blank');
 }
+function _openSbPdfOrdner(){
+  var url=(document.getElementById('tSbPdfOrdner').value||'').trim();
+  if(url) window.open(url,'_blank');
+  else showToast('Bitte zuerst den Drive-Ordner des Objekts eintragen (aus Stammblatt → Drive-Ordner Feld kopieren)','warning',5000);
+}
 function tDriveOeffnen(){
   const url=document.getElementById('tGD').value.trim();
   if(url)window.open(url,'_blank');
@@ -9763,6 +9770,7 @@ function openEditTaskModal(id){
   document.getElementById('taskKundenNr').value=task.kundenNr||'';
   document.getElementById('tHV').value=task.hausverwaltung||'';
   document.getElementById('tStammblattObjId').value=task.stammblattObjId||'';
+  document.getElementById('tSbPdfOrdner').value=task.sbPdfOrdner||'';
   document.getElementById('tAdr').value=task.adresse||'';
   document.getElementById('tSch').value=task.schadensbild||'';
   setTimeout(()=>{_updateMapsBtn();_updateHdrMeta();},50);
@@ -10610,32 +10618,4 @@ function _buildTaskSummaryPdfBytes(data){
   }
   if(data.ausserhausTermine&&data.ausserhausTermine.length){
     doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(0,0,0);doc.text('Ausserhaus-Termine ('+data.ausserhausTermine.length+')',M,y);y+=4;
-    doc.autoTable({startY:y,margin:{left:M,right:M},theme:'striped',styles:{fontSize:8,cellPadding:2},
-      head:[['Datum','Zeit','Beschreibung']],
-      body:data.ausserhausTermine.map(t=>[t.date||'',(t.von||'')+'-'+(t.bis||''),t.beschreibung||''])});
-    y=doc.lastAutoTable.finalY+6;
-  }
-  const allFiles=[
-    ...(data.emailOriginals||[]).map(e=>['E-Mail Original',e.name||'',e.uploadedAt||'']),
-    ...(data.emailPdfs||[]).map(p=>['E-Mail PDF',p.name||'',p.uploadedAt||'']),
-    ...(data.attachments||[]).map(a=>['Anhang',a.name||'',a.uploadedAt||'']),
-    ...(data.fotos||[]).map(f=>['Foto',f.name||'',''])
-  ];
-  if(allFiles.length){
-    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(0,0,0);doc.text('Dateien ('+allFiles.length+')',M,y);y+=4;
-    doc.autoTable({startY:y,margin:{left:M,right:M},theme:'striped',styles:{fontSize:8,cellPadding:2},
-      head:[['Typ','Dateiname','Datum']],body:allFiles});
-  }
-  const pages=doc.getNumberOfPages();
-  for(let p=1;p<=pages;p++){
-    doc.setPage(p);
-    doc.setDrawColor(200,200,200);doc.setLineWidth(0.2);doc.line(M,288,PW-M,288);
-    doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(160,163,175);
-    doc.text('PTP Workboard',M,293);
-    doc.text('Seite '+p+' / '+pages,PW-M,293,{align:'right'});
-  }
-  return doc.output('arraybuffer');
-}
-</script>
-</body>
-</html>
+    doc.autoTable({s
