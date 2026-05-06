@@ -182,8 +182,9 @@ textarea{min-height:48px;resize:vertical;}
     <p>Objekt-Stammdaten für Hausverwaltungen</p>
     <button class="btn-start prim" onclick="gdriveStartLoad()">☁️ Google Drive öffnen</button>
     <button class="btn-start prim" style="background:#22c55e" onclick="gdriveStartNew()">✚ Neue Datei in Google Drive</button>
+    <button class="btn-start sec" onclick="zeigeNeuHV()">✚ Neue Hausverwaltung (lokal)</button>
     <label class="btn-start sec" style="cursor:pointer">
-      📂 Lokale Datei öffnen
+      📂 Lokale Datei öffnen (.json)
       <input type="file" accept=".json" style="display:none" onchange="ladeFile(this)">
     </label>
     <div style="margin-top:12px;display:flex;gap:6px;">
@@ -1282,385 +1283,157 @@ var _origSpeichern = speichern;
 speichern = function(){
   if(gdriveFileId && gdriveToken){ gdriveSaveToCloud(); } else { _origSpeichern(); }
 };
-</script>
-</body>
-</html>
-        D.kontakte.push({
-          id:'kcsv'+Date.now()+'_'+li,
-          typ:'hv',
-          name:hauptname,
-          ansp:firma?person:'',
-          tel:tel, email:email, str:str, plz:plz, ort:ort, knr:knr
-        });
-        added++;
-      }
-      renKontaktListe();
-      renKontaktSelect();
-      setzeDirty(true);
-      toast(added+' Kontakte importiert'+(skipped?' ('+skipped+' übersprungen)':''),'ok');
-    }catch(err){toast('CSV-Fehler: '+err.message,'err');}
-  };
-  r.readAsArrayBuffer(f);
-  inp.value='';
-}
-
-// INIT
-wechsleDach('z',true);
 
 // ════════════════════════════════════════════════
-// GOOGLE DRIVE INTEGRATION
+// STAMMDATEN-ORDNER BROWSER + PDF nach Drive
 // ════════════════════════════════════════════════
-const GDRIVE_CLIENT_ID = '56419258975-2ri3eujer9p6saph1mesa5hihlcae1pl.apps.googleusercontent.com';
-const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.metadata.readonly';
-const GDRIVE_FOLDER_NAME = 'PTP-BAU Daten';
-const GDRIVE_FILE_NAME   = 'stammblatt-daten.json';
-const SD_TOKEN_KEY  = 'sd_gdrive_token_v1';
-const SD_FILE_KEY   = 'sd_gdrive_file_v1';
-
-let gdriveToken = null;
-let gdriveTokenExpires = 0;
-let gdriveFileId = null;
-let gdriveTokenClient = null;
-let gdrivePendingAction = null;
-let workspaceFolderId = null;
-try{ workspaceFolderId = localStorage.getItem('sd_workspace_folder_id') || null; }catch(e){}
-
-function _driveSetStatus(msg, isErr){
-  var el = document.getElementById('_driveInitStatus');
-  if(!el) return;
-  el.style.display = 'block';
-  el.style.background = isErr ? 'rgba(220,50,50,.12)' : 'rgba(37,99,235,.1)';
-  el.style.color = isErr ? '#c00' : '#1a2744';
-  el.textContent = msg;
-}
-
-function gdriveInit(){
-  if(!window.google || !window.google.accounts){ _driveSetStatus('⏳ Google lädt…', false); return; }
-  _driveSetStatus('✓ Google bereit', false);
-  gdriveTokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GDRIVE_CLIENT_ID,
-    scope: GDRIVE_SCOPE,
-    callback: gdriveTokenCallback,
-    error_callback: function(err){
-      if(err && (err.type==='popup_failed_to_open'||err.type==='popup_closed')){
-        toast('⚠ Google-Popup blockiert – Popup-Blocker deaktivieren','err');
-      } else {
-        toast('⚠ Drive-Fehler: '+(err&&err.type||'unbekannt'),'err');
-      }
-    }
-  });
-  // Auto-Connect: gespeicherten Token wiederherstellen
-  try{
-    var sf = JSON.parse(localStorage.getItem(SD_FILE_KEY)||'null');
-    var stored = JSON.parse(localStorage.getItem(SD_TOKEN_KEY)||'null');
-    if(stored && stored.token && stored.exp && Date.now() < stored.exp - 30000){
-      gdriveToken = stored.token;
-      gdriveTokenExpires = stored.exp;
-      if(sf && sf.id && sf.name){
-        _driveSetStatus('☁️ Verbinde…', false);
-        _ensureWorkspaceFolder().then(function(){ gdriveLoadFile(sf.id, sf.name); }).catch(function(){});
-      }
-      return;
-    }
-    // Token abgelaufen → stille Erneuerung
-    if(sf && sf.id){
-      gdrivePendingAction = 'autoload';
-      try{ gdriveTokenClient.requestAccessToken({prompt:'none'}); }catch(e){ gdrivePendingAction=null; }
-    }
-  }catch(e){}
-}
-
-async function gdriveTokenCallback(resp){
-  if(resp.error){
-    if(['interaction_required','access_denied','popup_failed_to_open','popup_closed'].includes(resp.error)){
-      var sf=null; try{sf=JSON.parse(localStorage.getItem(SD_FILE_KEY)||'null');}catch(e){}
-      if(sf && sf.id) toast('☁️ Bitte Drive-Button drücken um neu zu verbinden','err');
-    } else {
-      toast('⚠ Drive-Anmeldefehler: '+resp.error,'err');
-    }
-    gdrivePendingAction = null;
-    return;
-  }
-  gdriveToken = resp.access_token;
-  gdriveTokenExpires = Date.now() + (Number(resp.expires_in||3600) - 60) * 1000;
-  try{ localStorage.setItem(SD_TOKEN_KEY, JSON.stringify({token:gdriveToken, exp:gdriveTokenExpires})); }catch(e){}
-  updateDriveBtn();
-  var action = gdrivePendingAction; gdrivePendingAction = null;
-  try{ await _ensureWorkspaceFolder(); }catch(e){}
-  if(action === 'load') sdPickAndLoad();
-  else if(action === 'new') sdCreateFile();
-  else if(action === 'autoload'){
-    var sf=null; try{sf=JSON.parse(localStorage.getItem(SD_FILE_KEY)||'null');}catch(e){}
-    if(sf && sf.id && sf.name) gdriveLoadFile(sf.id, sf.name).catch(function(){});
-  }
-}
-
-async function _ensureWorkspaceFolder(){
-  if(workspaceFolderId) return workspaceFolderId;
-  var q = encodeURIComponent("name='"+GDRIVE_FOLDER_NAME+"' and mimeType='application/vnd.google-apps.folder' and trashed=false");
-  var r = await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name)&orderBy=createdTime',
-    {headers:{Authorization:'Bearer '+gdriveToken}});
-  var d = await r.json();
-  if(d.files && d.files.length > 0){
-    workspaceFolderId = d.files[0].id;
-  } else {
-    var cr = await fetch('https://www.googleapis.com/drive/v3/files',{
-      method:'POST',
-      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
-      body:JSON.stringify({name:GDRIVE_FOLDER_NAME, mimeType:'application/vnd.google-apps.folder'})
-    });
-    var f = await cr.json();
-    workspaceFolderId = f.id;
-  }
-  try{ localStorage.setItem('sd_workspace_folder_id', workspaceFolderId); }catch(e){}
-  return workspaceFolderId;
-}
-
-function gdriveRequestToken(action){
-  gdrivePendingAction = action;
-  if(!gdriveTokenClient){ toast('⏳ Google lädt noch – bitte 3 Sek. warten','err'); return; }
-  try{ gdriveTokenClient.requestAccessToken({prompt:''}); }catch(e){ toast('⚠ Popup-Fehler: '+e.message,'err'); }
-}
-
-function gdriveStartLoad(){ gdriveRequestToken('load'); }
-function gdriveStartNew(){  gdriveRequestToken('new');  }
-
-function gdriveConnectFromBar(){
-  var tokenOk = gdriveToken && Date.now() < gdriveTokenExpires - 5000;
-  if(!tokenOk){ gdriveRequestToken('load'); return; }
-  if(gdriveFileId){ toast('☁️ Verbunden mit: '+GDRIVE_FILE_NAME,'ok'); }
-  else { sdPickAndLoad(); }
-}
-
-async function sdPickAndLoad(){
-  try{
-    var q = "name='"+GDRIVE_FILE_NAME+"' and mimeType='application/json' and trashed=false";
-    if(workspaceFolderId) q += " and '"+workspaceFolderId+"' in parents";
-    var r = await fetch(
-      'https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(q)+'&fields=files(id%2Cname%2CmodifiedTime)&orderBy=modifiedTime%20desc',
-      {headers:{Authorization:'Bearer '+gdriveToken}}
-    );
-    var data = await r.json();
-    var files = data.files || [];
-    if(files.length === 0){
-      if(confirm('Keine stammblatt-daten.json in Google Drive gefunden.\nJetzt neue Datei erstellen?')){ sdCreateFile(); }
-      return;
-    }
-    await gdriveLoadFile(files[0].id, files[0].name);
-  }catch(e){ toast('Drive-Fehler: '+e.message,'err'); }
-}
-
-async function gdriveLoadFile(fileId, fileName){
-  try{
-    _driveSetStatus('☁️ Lade…', false);
-    var r = await fetch('https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media',
-      {headers:{Authorization:'Bearer '+gdriveToken}});
-    if(r.status===401){ toast('⚠ Drive-Verbindung abgelaufen – bitte Drive-Button drücken','err'); return; }
-    var data = await r.json();
-    gdriveFileId = fileId;
-    try{ localStorage.setItem(SD_FILE_KEY, JSON.stringify({id:fileId, name:fileName})); }catch(e){}
-    D = data;
-    if(!D.kontakte) D.kontakte=[];
-    fname = fileName;
-    startApp();
-    updateDriveBtn();
-    _driveSetStatus('✓ Geladen aus Drive', false);
-    toast('☁️ Drive geladen ✓','ok');
-  }catch(e){ toast('Drive-Fehler: '+e.message,'err'); }
-}
-
-async function sdCreateFile(){
-  try{
-    if(!D.hv){
-      var n = prompt('Name der Verwaltung / des Eigentümers:');
-      if(!n) return;
-      D = {hv:n, obj:[], kontakte:[]};
-    }
-    var content = JSON.stringify(D, null, 2);
-    var boundary = 'sd_bound_'+Date.now();
-    var metaObj = {name: GDRIVE_FILE_NAME, mimeType:'application/json'};
-    if(workspaceFolderId) metaObj.parents = [workspaceFolderId];
-    var meta = JSON.stringify(metaObj);
-    var body = '--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n'
-              +'--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+content+'\r\n'
-              +'--'+boundary+'--';
-    var r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
-      method:'POST',
-      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+boundary},
-      body:body
-    });
-    var file = await r.json();
-    if(!file.id) throw new Error('Keine Datei-ID');
-    gdriveFileId = file.id;
-    fname = GDRIVE_FILE_NAME;
-    try{ localStorage.setItem(SD_FILE_KEY, JSON.stringify({id:file.id, name:file.name})); }catch(e){}
-    startApp();
-    updateDriveBtn();
-    toast('☁️ Neue Datei in Drive erstellt ✓','ok');
-  }catch(e){ toast('Drive-Fehler: '+e.message,'err'); }
-}
-
-async function gdriveSaveToCloud(){
-  if(!gdriveFileId || !gdriveToken){ toast('⚠ Nicht mit Drive verbunden','err'); return; }
-  try{
-    var content = JSON.stringify(D, null, 2);
-    var r = await fetch('https://www.googleapis.com/upload/drive/v3/files/'+gdriveFileId+'?uploadType=media&fields=id',{
-      method:'PATCH',
-      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
-      body:content
-    });
-    if(r.status===401){ toast('⚠ Drive-Verbindung abgelaufen – Drive-Button drücken','err'); return; }
-    setzeDirty(false);
-    toast('☁️ In Drive gespeichert ✓','ok');
-  }catch(e){ toast('Drive-Fehler: '+e.message,'err'); }
-}
-
-function updateDriveBtn(){
-  var btn = document.getElementById('driveBtnBar');
-  if(!btn) return;
-  var tokenOk = gdriveToken && Date.now() < gdriveTokenExpires - 5000;
-  if(tokenOk && gdriveFileId){
-    btn.style.background='#22c55e'; btn.textContent='☁️ Drive ✓';
-  } else if(tokenOk){
-    btn.style.background='#e8a020'; btn.textContent='☁️ Drive';
-  } else {
-    btn.style.background='rgba(255,255,255,.15)'; btn.textContent='☁️ Drive';
-  }
-}
-
-// Speichern: Drive-first, Fallback auf Download
-var _origSpeichern = speichern;
-speichern = function(){
-  if(gdriveFileId && gdriveToken){ gdriveSaveToCloud(); } else { _origSpeichern(); }
-};
-</script>
-</body>
-</html>
-
-</html>
-<script>
-// ════════════════════════════════════════════════
-// STAMMDATEN-ORDNER BROWSER + PDF→DRIVE
-// ════════════════════════════════════════════════
-
 function _folderId(url){
   if(!url) return null;
   var m=url.match(/folders\/([a-zA-Z0-9_-]+)/);
   return m?m[1]:null;
 }
-
 function sdOrdnerLink(){
   var url=document.getElementById('fDriveOrdner').value.trim();
   if(url) window.open(url,'_blank');
   else toast('Bitte zuerst eine Drive-Ordner-URL eintragen','err');
 }
-
 function _updatePdfDriveBtn(){
-  var btn=document.getElementById('btnPdfDrive');
-  if(!btn) return;
+  var btn=document.getElementById('btnPdfDrive'); if(!btn) return;
   var url=(document.getElementById('fDriveOrdner')||{}).value||'';
-  var hasFolderId=!!_folderId(url);
-  btn.disabled=!(hasFolderId && gdriveToken && gdriveFileId && cid);
+  btn.disabled=!(!!_folderId(url) && gdriveToken && gdriveFileId && cid);
 }
-
-// ── Stammdaten-Ordner Browser (Startscreen)
 async function sdOrdnerBrowse(){
   var url=document.getElementById('sdOrdnerUrlIn').value.trim();
   var fid=_folderId(url);
   if(!fid){ toast('Bitte eine gültige Drive-Ordner-URL eingeben','err'); return; }
-  if(!gdriveToken){ gdriveRequestToken('browse_'+url); return; }
+  if(!gdriveToken){ gdrivePendingAction='browse'; gdriveRequestToken('load'); return; }
   try{
     var q=encodeURIComponent("'"+fid+"' in parents and mimeType='application/json' and trashed=false");
     var r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,modifiedTime)&orderBy=name',
       {headers:{Authorization:'Bearer '+gdriveToken}});
-    var d=await r.json();
-    var files=d.files||[];
+    var d=await r.json(); var files=d.files||[];
     var liste=document.getElementById('sdOrdnerListe');
-    if(files.length===0){
+    if(!files.length){
       liste.style.display='block';
-      liste.innerHTML='<div style="padding:10px;color:#888;font-size:12px">Keine JSON-Dateien gefunden.<br><button onclick="gdriveStartNew()" style="margin-top:6px;padding:5px 12px;background:#1a2744;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">✚ Neue anlegen</button></div>';
+      liste.innerHTML='<div style="padding:10px;color:#888;font-size:12px">Keine JSON-Dateien gefunden.<br>'
+        +'<button onclick="gdriveStartNew()" style="margin-top:6px;padding:5px 12px;background:#1a2744;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">✚ Neue anlegen</button></div>';
       return;
     }
     liste.style.display='block';
     liste.innerHTML=files.map(function(f){
-      var d=new Date(f.modifiedTime).toLocaleDateString('de-DE');
+      var dt=new Date(f.modifiedTime).toLocaleDateString('de-DE');
       return '<div onclick="sdOrdnerDateiLaden(\''+f.id+'\',\''+f.name+'\')" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;align-items:center;gap:8px;">'
-        +'<span style="font-size:16px">📄</span>'
-        +'<span style="flex:1;font-weight:600;color:#1a2744">'+f.name.replace('.json','')+'</span>'
-        +'<span style="color:#aaa;font-size:11px">'+d+'</span>'
-        +'</div>';
+        +'<span>📄</span><span style="flex:1;font-weight:600;color:#1a2744">'+f.name.replace('.json','')+'</span>'
+        +'<span style="color:#aaa;font-size:11px">'+dt+'</span></div>';
     }).join('');
   }catch(e){ toast('Drive-Fehler: '+e.message,'err'); }
 }
-
-async function sdOrdnerDateiLaden(fileId, fileName){
-  await gdriveLoadFile(fileId, fileName);
+async function sdOrdnerDateiLaden(fileId,fileName){
+  await gdriveLoadFile(fileId,fileName);
   document.getElementById('sdOrdnerListe').style.display='none';
 }
-
-// ── PDF → Drive
 async function pdfNachDrive(){
   if(!cid){ toast('Kein Objekt gewählt','err'); return; }
-  sammelDaten();
-  var o=holeObj(); if(!o) return;
-  var furl=(o.driveOrdner||'').trim();
-  var fid=_folderId(furl);
+  sammelDaten(); var o=holeObj(); if(!o) return;
+  var furl=(o.driveOrdner||'').trim(); var fid=_folderId(furl);
   if(!fid){ toast('Bitte zuerst einen Drive-Ordner für dieses Objekt eintragen','err'); return; }
   if(!gdriveToken||!gdriveFileId){ toast('Bitte zuerst mit Drive verbinden','err'); return; }
-
   toast('⏳ PDF wird erstellt…','ok');
-
-  // Druck-Vorbereitung (leere Felder ausblenden)
-  document.querySelectorAll('#form .fr').forEach(function(row){
-    var hat=false;
-    row.querySelectorAll('input,select,textarea').forEach(function(el){
-      if(el.type==='radio'||el.type==='checkbox'){ if(el.checked) hat=true; }
-      else if((el.value||'').trim()) hat=true;
-    });
-    row.classList.toggle('leer',!hat);
-  });
-
   try{
-    var formEl=document.getElementById('form');
-    var canvas=await html2canvas(formEl,{
-      scale:1.5,
-      useCORS:true,
-      logging:false,
-      allowTaint:true,
-      foreignObjectRendering:false,
-      removeContainer:true,
-      ignoreElements:function(el){
-        return el.tagName==='BUTTON'||el.classList.contains('leer');
-      }
-    });
     var {jsPDF}=window.jspdf;
-    var pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var W=210, M=10;
-    var imgW=W-2*M;
-    var imgH=canvas.height*(imgW/canvas.width);
-    var pageH=297-2*M;
-    var pages=Math.ceil(imgH/pageH);
-    for(var p=0;p<pages;p++){
-      if(p>0) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',M,M-(p*pageH),imgW,imgH);
+    var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var M=14,W=210,CW=W-2*M,y=M;
+    var aR=26,aG=39,aB=68;
+    function chk(n){ if(y+n>285){doc.addPage();y=M;} }
+    function hdr(t){
+      chk(10);
+      doc.setFillColor(aR,aG,aB); doc.rect(M,y,CW,8,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont(undefined,'bold');
+      doc.text(t,M+3,y+5.5); doc.setTextColor(0,0,0); y+=10;
     }
-    var pdfBlob=pdf.output('arraybuffer');
+    function row(lbl,val){
+      if(val===undefined||val===null) return;
+      var sv=Array.isArray(val)?val.join(', '):String(val); sv=sv.trim(); if(!sv) return;
+      chk(7);
+      doc.setFontSize(8); doc.setFont(undefined,'bold'); doc.setTextColor(80,80,80);
+      doc.text(lbl,M,y+4);
+      doc.setFont(undefined,'normal'); doc.setTextColor(0,0,0);
+      var lines=doc.splitTextToSize(sv,CW-55);
+      doc.text(lines,M+55,y+4);
+      y+=Math.max(6,lines.length*5);
+      doc.setDrawColor(230,230,230); doc.line(M,y,M+CW,y);
+    }
+    // KOPF
+    doc.setFillColor(aR,aG,aB); doc.rect(0,0,W,18,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(14); doc.setFont(undefined,'bold'); doc.text('Stammblatt',M,11);
+    doc.setFontSize(9); doc.setFont(undefined,'normal'); doc.text(D.hv||'',W-M,11,{align:'right'});
+    doc.setTextColor(0,0,0); y=24;
+    doc.setFontSize(13); doc.setFont(undefined,'bold'); doc.text(o.adr||'',M,y); y+=6;
+    doc.setFontSize(9); doc.setFont(undefined,'normal');
+    doc.text((o.plz?o.plz+' ':'')+(o.ort||''),M,y); y+=8;
+    doc.setDrawColor(aR,aG,aB); doc.setLineWidth(0.5); doc.line(M,y,M+CW,y); y+=5;
+    // BLÖCKE
+    hdr('A — Objektstammdaten');
+    row('Objekt-ID',o.id_txt); row('Auftraggeber',o.hv);
+    row('PLZ / Ort',(o.plz?o.plz+' ':'')+o.ort);
+    row('Eingänge',o.eing); row('Stockwerke',o.stw); row('Baujahr',o.bj);
+    row('Erfasst am',o.dat); row('Erfasst durch',o.erf);
+    hdr('B — Ansprechpartner & Zugang');
+    var am={kein:'Kein',hm:'Hausmeister',mieter:'Mieter',eigen:'Eigentümer'};
+    row('Typ',am[o.asptyp]||o.asptyp); row('Name',o.aspn); row('Telefon',o.aspt);
+    row('Schlüssel',o.schl); row('Schlüssel bei',o.schlb); row('Zugang',o.zugi);
+    hdr('C — Zugänglichkeit');
+    row('Rasenfläche',o.ras); row('Hofzufahrt',o.hof); row('Wäscheleinen',o.wae);
+    row('Zufahrt',o.zuf); row('Fahrweg',o.fw); row('Fahrwegbreite',o.fwb);
+    row('Parken',o.park); row('Halteverbot',o.hvb);
+    row('UG Straße',(o.ugstr||'')+(o.ugstrl?' ('+o.ugstrl+')':'')); 
+    row('UG Hof',(o.ughof||'')+(o.ughofl?' ('+o.ughofl+')':''));
+    row('Vorber.',o.vorb); row('Hindernisse',o.hind);
+    hdr('D — Dach ('+(o.dachart==='z'?'Ziegeldach':'Flachdach')+')');
+    row('Regenrohr',o.re); row('Regenrohrsyst.',o.rs); row('Traufhöhe',o.trh);
+    row('Dachzugang',o.dzf);
+    if(o.dachart==='z'){
+      row('Dachbelag',o.dbz); row('Dachziegel Art',o.dza);
+      row('Luke',o.luk); row('Luke Info',o.luki);
+      row('Dachform',o.df); row('Neigung',o.ng+(o.ng_grad?' '+o.ng_grad+'°':''));
+      row('Ziegeltyp',o.zt); row('Ziegelfarbe',o.zfa);
+      row('Schornstein',o.sch); row('Gauben',o.gau); row('Gaubentyp',o.gat);
+      row('Wärmedämmung',o.wdf_v); row('PV-Anlage',o.pv_v+(o.pv_size?' '+o.pv_size+' kWp':''));
+      row('Moosbefall',o.mo_v);
+    } else {
+      row('Abdichtung',o.abd); row('Oberflächenbelag',o.ofl);
+      row('Entwässerung',o.enw); row('Gully',o.gul);
+      row('Gefälle',o.geff); row('Lichtkuppeln',o.lk);
+      row('Dachrandabschl.',o.dra); row('Attikahöhe',o.att_h);
+      row('Betontyp',o.bt);
+    }
+    hdr('E — Sicherheit & Bewertung');
+    row('Sicherung',o.sich_z); row('Wasseranschluss',o.was);
+    var ampMap={gut:'Gut',mittel:'Mittel',schlecht:'Schwierig'};
+    row('Bewertung',ampMap[o.amp]||o.amp);
+    row('Hinweise Fremdfirma',o.hff); row('Aktuelles',o.akt);
+    // Seitennummern
+    var pages=doc.getNumberOfPages();
+    for(var p=1;p<=pages;p++){
+      doc.setPage(p); doc.setFontSize(8); doc.setTextColor(150,150,150);
+      doc.text('Stammblatt · '+(o.adr||'')+' · Seite '+p+' / '+pages,M,293);
+      doc.text(new Date().toLocaleDateString('de-DE'),W-M,293,{align:'right'});
+    }
+    var pdfBuf=doc.output('arraybuffer');
     var datum=new Date().toLocaleDateString('de-DE').replace(/\./g,'-');
-    var adr=(o.adr||'Objekt').replace(/[^a-zA-Z0-9äöüÄÖÜß\s]/g,'_').replace(/\s+/g,'_').substring(0,40);
-    var fileName='Stammblatt_'+adr+'_'+datum+'.pdf';
-
-    // Upload nach Drive
+    var slug=(o.adr||'Objekt').replace(/[^a-zA-Z0-9\s]/g,'_').replace(/\s+/g,'_').substring(0,40);
+    var fileName='Stammblatt_'+slug+'_'+datum+'.pdf';
     var boundary='sb_pdf_'+Date.now();
     var meta=JSON.stringify({name:fileName,mimeType:'application/pdf',parents:[fid]});
-    var body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n'
+    var bodyStr='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n'
       +'--'+boundary+'\r\nContent-Type: application/pdf\r\n\r\n';
-    var bodyBuf=new TextEncoder().encode(body);
+    var bodyBuf=new TextEncoder().encode(bodyStr);
     var endBuf=new TextEncoder().encode('\r\n--'+boundary+'--');
-    var combined=new Uint8Array(bodyBuf.length+pdfBlob.byteLength+endBuf.length);
+    var combined=new Uint8Array(bodyBuf.length+pdfBuf.byteLength+endBuf.length);
     combined.set(bodyBuf,0);
-    combined.set(new Uint8Array(pdfBlob),bodyBuf.length);
-    combined.set(endBuf,bodyBuf.length+pdfBlob.byteLength);
-
+    combined.set(new Uint8Array(pdfBuf),bodyBuf.length);
+    combined.set(endBuf,bodyBuf.length+pdfBuf.byteLength);
     var r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
       method:'POST',
       headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+boundary},
@@ -1668,13 +1441,10 @@ async function pdfNachDrive(){
     });
     if(!r.ok) throw new Error('HTTP '+r.status);
     var file=await r.json();
-    toast('✅ PDF in Drive gespeichert: '+fileName,'ok');
-    var link='https://drive.google.com/file/d/'+file.id+'/view';
-    window.open(link,'_blank');
-  }catch(e){
-    toast('PDF-Fehler: '+e.message,'err');
-  }finally{
-    document.querySelectorAll('#form .fr.leer').forEach(function(el){el.classList.remove('leer');});
-  }
+    toast('✅ PDF gespeichert: '+fileName,'ok');
+    window.open('https://drive.google.com/file/d/'+file.id+'/view','_blank');
+  }catch(e){ toast('PDF-Fehler: '+e.message,'err'); }
 }
 </script>
+</body>
+</html>
