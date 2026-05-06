@@ -1622,8 +1622,17 @@ async function pdfNachDrive(){
 
   try{
     var formEl=document.getElementById('form');
-    var canvas=await html2canvas(formEl,{scale:1.5,useCORS:true,logging:false,
-      ignoreElements:function(el){return el.tagName==='BUTTON'||el.classList.contains('leer');}});
+    var canvas=await html2canvas(formEl,{
+      scale:1.5,
+      useCORS:true,
+      logging:false,
+      allowTaint:true,
+      foreignObjectRendering:false,
+      removeContainer:true,
+      ignoreElements:function(el){
+        return el.tagName==='BUTTON'||el.classList.contains('leer');
+      }
+    });
     var {jsPDF}=window.jspdf;
     var pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     var W=210, M=10;
