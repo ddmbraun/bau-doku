@@ -2957,19 +2957,19 @@ function gdriveInit() {
     callback: gdriveTokenCallback,
     error_callback: (err) => {
       console.warn('[PTP] GIS error_callback:', JSON.stringify(err));
-      const _wasSilent = _silentRefreshInProgress; // vor dem Zurücksetzen merken
+      const _wasSilent = _silentRefreshInProgress;
+      const _wasAutoInit = _autoInitSilentInProgress; // Auto-Init war am Laufen?
       _silentRefreshInProgress = false;
+      _autoInitSilentInProgress = false;
       if(err && (err.type==='popup_failed_to_open'||err.type==='popup_closed')){
         _showDriveWarnBanner(0);
-        if(_wasSilent){
-          // Stille Erneuerung schlug fehl (kein echtes Popup – nur iframe) → sanfter Hinweis
-          showToast('☁️ Automatische Anmeldung fehlgeschlagen – bitte „Erneut anmelden" klicken','error',7000);
+        if(_wasAutoInit || _wasSilent){
+          // Automatischer Hintergrundversuch fehlgeschlagen → Banner zeigen, kein störender Toast
+          console.log('[PTP] Auto-Init silent fehlgeschlagen (' + err.type + ') – Banner gezeigt');
+        } else if(err.type==='popup_failed_to_open'){
+          showToast('⚠ Google-Popup blockiert – Popup-Blocker für diese Seite deaktivieren','error',9000);
         } else if(err.type==='popup_closed'){
-          // Nutzer hat das Google-Fenster selbst geschlossen
-          showToast('ℹ Google-Anmeldefenster geschlossen – bitte nochmals auf „Erneut anmelden" drücken','error',5000);
-        } else {
-          // Browser hat das Popup aktiv blockiert
-          showToast('⚠ Google-Popup wurde blockiert – bitte Popup-Blocker für diese Seite deaktivieren und nochmals drücken','error',9000);
+          showToast('ℹ Anmeldefenster geschlossen – bitte „Erneut anmelden" klicken','error',4000);
         }
       }
     }
@@ -3003,8 +3003,9 @@ function gdriveInit() {
   if (storedFile || localStorage.getItem('gdrive_last_action')) {
     if(_autoReconnectAttempts < _AUTO_RECONNECT_MAX){
       _autoReconnectAttempts++;
+      _autoInitSilentInProgress = true; // Merker: automatischer Init-Versuch
       gdrivePendingAction = storedFile ? 'autoload' : localStorage.getItem('gdrive_last_action');
-      try { gdriveTokenClient.requestAccessToken({ prompt: 'none' }); } catch(e) { gdrivePendingAction = null; }
+      try { gdriveTokenClient.requestAccessToken({ prompt: 'none' }); } catch(e) { gdrivePendingAction = null; _autoInitSilentInProgress = false; }
     } else {
       // Maximale Versuche erreicht → nur Banner zeigen, nicht mehr versuchen
       _driveSetStatus('⚠ Drive nicht verbunden','err');
@@ -3043,7 +3044,8 @@ async function ensureWorkspaceFolder() {
 async function gdriveTokenCallback(resp) {
   console.log('[Drive] gdriveTokenCallback:', JSON.stringify(resp).substring(0,200));
   if (resp.error) {
-    _silentRefreshInProgress=false; // Flag bei jedem Fehler zurücksetzen
+    _silentRefreshInProgress=false;    // Flag bei jedem Fehler zurücksetzen
+    _autoInitSilentInProgress=false;   // Init-Flag zurücksetzen
     // Stille Anmeldung fehlgeschlagen (prompt:none) oder Popup blockiert
     if (['interaction_required','access_denied','popup_failed_to_open','popup_closed'].includes(resp.error)) {
       const _pendingAction = gdrivePendingAction;
@@ -3085,7 +3087,8 @@ async function gdriveTokenCallback(resp) {
   console.log('[Drive] Token erhalten, expires_in=', resp.expires_in);
   _driveSetStatus('✓ Angemeldet – lade Datei…', false);
   gdriveToken = resp.access_token;
-  _autoReconnectAttempts = 0; // Zähler zurücksetzen nach erfolgreichem Token
+  _autoReconnectAttempts = 0;    // Zähler zurücksetzen nach erfolgreichem Token
+  _autoInitSilentInProgress = false; // Init-Flag zurücksetzen
   gdriveTokenExpires = Date.now() + (Number(resp.expires_in || 3600) - 60) * 1000;
   // Token in localStorage speichern (übersteht Seitenreload)
   try { localStorage.setItem(PC_TOKEN_KEY, JSON.stringify({token: gdriveToken, exp: gdriveTokenExpires})); } catch(e) {}
@@ -3202,6 +3205,7 @@ function _renewDriveOtherAccount(){
 
 let _silentRefreshInProgress=false;
 let _silentRefreshStartedAt=0;
+let _autoInitSilentInProgress=false; // Automatischer Init-Versuch läuft
 let _autoReconnectAttempts=0;   // Zählt automatische Verbindungsversuche
 const _AUTO_RECONNECT_MAX=2;    // Maximal 2 stille Versuche, dann aufhören
 function _silentTokenRefresh(onSuccess, onFail){
