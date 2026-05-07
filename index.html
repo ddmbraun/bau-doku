@@ -1042,6 +1042,10 @@ input,select,textarea{font-family:inherit;}
 .task-card-dbox-val{font-size:9px;font-weight:700;color:var(--text);white-space:nowrap;}
 .task-card-dbox-val.muted{color:var(--text2);font-weight:400;}
 .task-card-dbox-val.miss{color:#A32D2D;font-style:italic;}
+#_hdrDates .task-card-datebox{padding:3px 8px;gap:5px;}
+#_hdrDates .task-card-dbox-dot{width:7px;height:7px;}
+#_hdrDates .task-card-dbox-lbl{font-size:calc(11px * var(--modal-scale,1));}
+#_hdrDates .task-card-dbox-val{font-size:calc(12px * var(--modal-scale,1));}
 .task-card-icons-row{display:none;}
 /* Alarm: Termin fehlt */
 .card-alert-termin{font-size:10px;font-weight:700;color:#dc3545;background:#ffebe6;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:5px;border:1px solid #ffbdad;}
@@ -1843,17 +1847,19 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
         <span id="_hdrStatus"></span>
         <span id="_hdrAkt" style="display:none;"></span>
         <span id="_hdrZeitTerminBadge" style="display:none;border:0.5px solid #C0DD97;border-radius:8px;overflow:hidden;font-size:calc(11px * var(--modal-scale,1));font-weight:600;white-space:nowrap;line-height:1;">
-          <span id="_hdrZeitRow" style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#FAEEDA;border-bottom:0.5px solid #FAC775;">
-            <span style="color:#854F0B;">⏱ Zeiterf.</span>
-            <span id="_hdrZeitVal" style="color:#633806;margin-left:auto;padding-left:10px;"></span>
-          </span>
-          <span id="_hdrTerminRow" style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#E6F1FB;border-bottom:0.5px solid #B5D4F4;">
-            <span style="color:#185FA5;">📅 Termine</span>
-            <span id="_hdrTerminVal" style="color:#0C447C;margin-left:auto;padding-left:10px;"></span>
-          </span>
-          <span id="_hdrGesamtRow" style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#EAF3DE;">
-            <span style="color:#3B6D11;">∑ Gesamt</span>
-            <span id="_hdrGesamtVal" style="color:#27500A;margin-left:auto;padding-left:10px;"></span>
+          <span style="display:flex;align-items:stretch;">
+            <span id="_hdrZeitRow" style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:#FAEEDA;border-right:0.5px solid #FAC775;">
+              <span style="color:#854F0B;">⏱ Zeiterf.</span>
+              <span id="_hdrZeitVal" style="color:#633806;padding-left:4px;"></span>
+            </span>
+            <span id="_hdrTerminRow" style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:#E6F1FB;border-right:0.5px solid #B5D4F4;">
+              <span style="color:#185FA5;">📅 Termine</span>
+              <span id="_hdrTerminVal" style="color:#0C447C;padding-left:4px;"></span>
+            </span>
+            <span id="_hdrGesamtRow" style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:#EAF3DE;">
+              <span style="color:#3B6D11;">∑ Gesamt</span>
+              <span id="_hdrGesamtVal" style="color:#27500A;padding-left:4px;"></span>
+            </span>
           </span>
         </span>
         <span class="mv2-subhdr-obj-lbl baustelle-only" id="_hdrObjLabel" style="display:none;">Objekt:</span>
