@@ -1925,6 +1925,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
                 <input type="url" id="tSbPdfOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;font-size:calc(12px * var(--modal-scale,1));" oninput="scheduleTaskFieldSave();_saveSbOrdnerForAdr()" autocomplete="off">
                 <button type="button" onclick="_openSbPdfOrdner()" title="Stammblatt-Ordner in Google Drive öffnen" style="padding:8px 11px;border-radius:8px;background:var(--bg3);color:var(--text2);font-size:calc(12px * var(--modal-scale,1));font-weight:600;border:1px solid var(--border);cursor:pointer;flex-shrink:0;white-space:nowrap;">📂 Ordner</button>
                 <button type="button" onclick="_openSbPdfDokument()" title="Stammblatt-Dokument direkt öffnen (sucht im Ordner)" style="padding:8px 11px;border-radius:8px;background:#15803d;color:#fff;font-size:calc(12px * var(--modal-scale,1));font-weight:700;border:none;cursor:pointer;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 6px rgba(21,128,61,.25);">📄 Stammblatt</button>
+                <button type="button" onclick="_openSbVerwaltung()" title="In Stammblatt-Verwaltung öffnen (direkt zum Objekt)" style="padding:8px 11px;border-radius:8px;background:#1a2744;color:#fff;font-size:calc(12px * var(--modal-scale,1));font-weight:700;border:none;cursor:pointer;flex-shrink:0;white-space:nowrap;">📋 Verwaltung</button>
               </div>
             </div>
             <textarea id="tSch" style="display:none;" autocomplete="off"></textarea>
@@ -2133,7 +2134,8 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <button onclick="exportTaskZip();_closeMehrMenu()">⬇ Sichern (ZIP)</button>
           <label class="mv2-mehr-item">↩ Wiederherstellen<input type="file" accept=".zip" style="display:none" onchange="importTaskFromZip(this.files[0]);this.value='';_closeMehrMenu();" autocomplete="off"></label>
           <button id="modalSaveSize" onclick="_saveModalDefault();_closeMehrMenu()">💾 Position & Größe speichern</button>
-          <button id="abschlussBtn" onclick="createAbschlussakte();_closeMehrMenu()" style="display:none;">📁 Abschlussakte</button>
+          <button id="abschlussBtn" onclick="createAbschlussakte();_closeMehrMenu()" style="display:none;">📁 Abschlussakte (PDF→Drive)</button>
+          <button id="abschlussHtmlBtn" onclick="createAbschlussHtml();_closeMehrMenu()" style="display:none;">🌐 Abschlussakte (HTML)</button>
         </div>
       </div>
       <button class="gcal-btn-modal" id="gcalModalBtn" onclick="openGoogleCalendarFromModal()" style="display:none;">📅 Kalender</button>
@@ -8524,6 +8526,203 @@ async function _openSbPdfDokument(){
     window.open(url,'_blank');
   }
 }
+// ── Abschlussakte als HTML ────────────────────────────────────────────────
+async function createAbschlussHtml(){
+  const btn=document.getElementById('abschlussHtmlBtn');
+  btn.textContent='⏳ Erstelle HTML…';btn.disabled=true;
+  try{
+    const title=document.getElementById('taskTitleInput').value.trim()||'Auftrag';
+    const adresse=document.getElementById('tAdr').value.trim();
+    const hv=document.getElementById('tHV').value.trim();
+    const schaden=document.getElementById('tSch').value.trim();
+    const status=document.getElementById('taskStatusInput').value;
+    const ausf=document.getElementById('taskAusfInput').value;
+    const nas=document.getElementById('tNAS').value.trim();
+    const desc=document.getElementById('taskDescInput').value.trim();
+    const now=new Date().toLocaleString('de-DE');
+    const kontakte=getKontaktePTP();
+    const _pm=(von,bis)=>{try{const[vh,vm]=(von||'').split(':').map(Number);const[bh,bm]=(bis||'').split(':').map(Number);const d=(bh*60+bm)-(vh*60+vm);return d>0?d:0;}catch(_){return 0;}};
+    const _fmt=m=>{const h=Math.floor(m/60);const mm=m%60;return(h>0?h+'h ':'')+(mm<10?'0':'')+mm+' min';};
+    const zeitMin=taskZeitEntries.reduce((s,z)=>s+_pm(z.von,z.bis),0);
+    const termMin=taskAusserhausTermine.reduce((s,t)=>s+_pm(t.von,t.bis),0);
+    const zeitH=Math.floor(zeitMin/60),zeitM=zeitMin%60;
+
+    // ── Fotos als Base64 laden ──
+    btn.textContent='⏳ Fotos laden…';
+    const fotoData=[];
+    for(const f of taskFotos){
+      let src='';
+      if(f.driveId){
+        try{
+          const blobUrl=await _fetchDesktopFotoBlob(f.driveId);
+          if(blobUrl){
+            const blob=await fetch(blobUrl).then(r=>r.blob());
+            src=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsDataURL(blob);});
+          }
+        }catch(e){console.warn('Foto-Fehler:',e);}
+      }
+      fotoData.push({src,caption:f.caption||'',name:f.name||''});
+    }
+
+    // ── Zeilen-Helfer ──
+    const _row=(l,v)=>v?`<tr><td class="lbl">${l}</td><td>${v}</td></tr>`:'';
+    const _sec=(t)=>`<div class="sec-head">${t}</div>`;
+    const _esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // ── Zeiterfassung-Tabelle ──
+    let zeitTable='';
+    if(taskZeitEntries.length){
+      const rows=taskZeitEntries.map(z=>{
+        const dur=_fmt(_pm(z.von,z.bis));
+        return`<tr><td>${_esc(z.date||'')}</td><td>${_esc(z.von||'')}</td><td>${_esc(z.bis||'')}</td><td>${dur}</td><td>${_esc(z.beschreibung||'')}</td></tr>`;
+      }).join('');
+      zeitTable=`${_sec('⏱ Zeiterfassung')}<table class="data-tbl"><thead><tr><th>Datum</th><th>Von</th><th>Bis</th><th>Dauer</th><th>Beschreibung</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3"></td><td><b>Gesamt</b></td><td><b>${zeitH}h ${zeitM<10?'0':''}${zeitM}min</b></td></tr></tfoot></table>`;
+    }
+
+    // ── Termine-Tabelle ──
+    let termTable='';
+    if(taskAusserhausTermine.length){
+      const rows=taskAusserhausTermine.map(t=>`<tr><td>${_esc(t.date||'')}</td><td>${_esc(t.von||'')}</td><td>${_esc(t.bis||'')}</td><td>${_esc(t.beschreibung||'')}</td></tr>`).join('');
+      const tMin=taskAusserhausTermine.reduce((s,t)=>s+_pm(t.von,t.bis),0);
+      termTable=`${_sec('📅 Außer-Haus-Termine')}<table class="data-tbl"><thead><tr><th>Datum</th><th>Von</th><th>Bis</th><th>Beschreibung</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="2"></td><td><b>Gesamt</b></td><td><b>${_fmt(tMin)}</b></td></tr></tfoot></table>`;
+    }
+
+    // ── Notizenverlauf ──
+    let notizHtml='';
+    if(taskNotizVerlauf.length){
+      notizHtml=_sec('📝 Notizenverlauf')+'<div class="notiz-list">'+taskNotizVerlauf.map(n=>`<div class="notiz-item"><span class="notiz-ts">${_esc(n.ts||'')}</span><span class="notiz-txt">${_esc(n.text||'')}</span></div>`).join('')+'</div>';
+    }
+
+    // ── Checkliste ──
+    let checkHtml='';
+    if(taskCheckliste.length){
+      checkHtml=_sec('✅ Checkliste')+'<ul class="check-list">'+taskCheckliste.map(c=>`<li class="${c.done?'done':''}"><span class="ck-box">${c.done?'✓':'○'}</span>${_esc(c.text||'')}</li>`).join('')+'</ul>';
+    }
+
+    // ── Kontakte ──
+    let kontakteHtml='';
+    if(kontakte.length){
+      kontakteHtml=_sec('👤 Kontakte')+'<table class="data-tbl"><thead><tr><th>Rolle</th><th>Name</th><th>Telefon</th><th>E-Mail</th></tr></thead><tbody>'+kontakte.map(k=>`<tr><td>${_esc(k.rolle||'')}</td><td>${_esc(k.name||'')}</td><td>${k.tel?`<a href="tel:${_esc(k.tel)}">${_esc(k.tel)}</a>`:''}</td><td>${k.email?`<a href="mailto:${_esc(k.email)}">${_esc(k.email)}</a>`:''}</td></tr>`).join('')+'</tbody></table>';
+    }
+
+    // ── Fotos-Sektion ──
+    let fotosHtml='';
+    if(fotoData.length){
+      fotosHtml=_sec('📷 Fotos ('+fotoData.length+')')+'<div class="foto-grid">'+fotoData.map((f,i)=>`<div class="foto-card"><div class="foto-nr">Foto ${i+1}</div>${f.src?`<img src="${f.src}" alt="${_esc(f.name)}" onclick="this.classList.toggle('zoom')">`:'<div class="foto-miss">Bild nicht geladen</div>'}<div class="foto-cap">${_esc(f.caption)||'<span style="color:#aaa">keine Beschreibung</span>'}</div></div>`).join('')+'</div>';
+    }
+
+    // ── Gesamt-Badge ──
+    const gesBadge=(zeitMin||termMin)?`<div class="gesamt-badge"><span class="gb-zeit">⏱ Zeiterf. <b>${_fmt(zeitMin)}</b></span><span class="gb-term">📅 Termine <b>${_fmt(termMin)}</b></span><span class="gb-ges">∑ Gesamt <b>${_fmt(zeitMin+termMin)}</b></span></div>`:'';
+
+    // ── HTML zusammenbauen ──
+    const html=`<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Abschlussakte – ${_esc(title)}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,Arial,sans-serif;font-size:14px;color:#1a1a2e;background:#f4f6fb;line-height:1.5;}
+.page{max-width:900px;margin:0 auto;padding:20px 16px 60px;}
+.hdr{background:linear-gradient(135deg,#5a50b4,#3b3080);color:#fff;border-radius:12px;padding:20px 24px 16px;margin-bottom:20px;}
+.hdr h1{font-size:22px;font-weight:800;margin-bottom:4px;}
+.hdr .sub{font-size:12px;opacity:.75;}
+.hdr .meta{font-size:13px;opacity:.9;margin-top:8px;}
+.gesamt-badge{display:flex;flex-wrap:wrap;gap:0;border:1px solid #C0DD97;border-radius:8px;overflow:hidden;font-weight:700;margin:12px 0 0;font-size:13px;}
+.gb-zeit{padding:5px 12px;background:#FAEEDA;color:#633806;border-right:1px solid #FAC775;}
+.gb-term{padding:5px 12px;background:#E6F1FB;color:#0C447C;border-right:1px solid #B5D4F4;}
+.gb-ges{padding:5px 12px;background:#EAF3DE;color:#27500A;}
+.sec-head{font-size:11px;font-weight:700;letter-spacing:.08em;color:#5a50b4;text-transform:uppercase;border-bottom:2px solid #5a50b4;padding-bottom:3px;margin:20px 0 10px;}
+.card{background:#fff;border-radius:10px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+table.data-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px;}
+.data-tbl th{background:#5a50b4;color:#fff;font-weight:700;padding:6px 8px;text-align:left;font-size:11px;}
+.data-tbl td{padding:5px 8px;border-bottom:1px solid #eef;}
+.data-tbl tbody tr:nth-child(even){background:#f8f8fc;}
+.data-tbl tfoot td{background:#eef;font-weight:700;}
+.data-tbl .lbl{color:#666;font-weight:600;width:140px;vertical-align:top;}
+.notiz-list{display:flex;flex-direction:column;gap:6px;}
+.notiz-item{display:flex;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid #eef;}
+.notiz-ts{color:#888;white-space:nowrap;font-size:11px;flex-shrink:0;padding-top:1px;}
+.notiz-txt{color:#1a1a2e;}
+.check-list{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.check-list li{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;}
+.check-list li.done{color:#666;text-decoration:line-through;}
+.ck-box{font-weight:700;width:18px;text-align:center;color:#5a50b4;flex-shrink:0;}
+.foto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.foto-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.foto-nr{font-size:11px;font-weight:700;color:#5a50b4;padding:8px 12px 4px;}
+.foto-card img{width:100%;display:block;max-height:260px;object-fit:contain;background:#f0f0f8;cursor:zoom-in;transition:transform .2s;}
+.foto-card img.zoom{position:fixed;inset:0;width:100vw;height:100vh;max-height:100vh;object-fit:contain;background:#000c;z-index:9999;cursor:zoom-out;border-radius:0;}
+.foto-miss{background:#f5f5f5;color:#bbb;padding:40px;text-align:center;font-size:12px;}
+.foto-cap{font-size:12px;padding:8px 12px;color:#444;border-top:1px solid #eef;min-height:30px;}
+.foto-miss{text-align:center;padding:30px;color:#aaa;font-size:12px;}
+@media print{
+  .foto-card img.zoom{position:static;width:100%;height:auto;max-height:none;background:#fff;cursor:default;}
+  body{background:#fff;}
+  .page{max-width:100%;padding:0;}
+  .hdr{border-radius:0;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hdr">
+    <h1>${_esc(title)}</h1>
+    <div class="meta">${adresse?'📍 '+_esc(adresse)+'&nbsp;&nbsp;':''}${hv?'🏢 '+_esc(hv):''}${status?'&nbsp;&nbsp;● '+_esc(status):''}</div>
+    <div class="sub">Erstellt: ${now}</div>
+    ${gesBadge}
+  </div>
+  <div class="card">
+    ${_sec('📋 Auftragsdaten')}
+    <table class="data-tbl">
+      ${_row('Status',status)}
+      ${_row('Adresse',adresse)}
+      ${_row('Hausverwaltung',hv)}
+      ${_row('Ausführungsdatum',ausf)}
+      ${_row('NAS-Pfad',nas)}
+      ${schaden?_row('Schadensbild',schaden):''}
+      ${desc?_row('Notiz',desc):''}
+    </table>
+  </div>
+  ${kontakteHtml?'<div class="card">'+kontakteHtml+'</div>':''}
+  ${zeitTable?'<div class="card">'+zeitTable+'</div>':''}
+  ${termTable?'<div class="card">'+termTable+'</div>':''}
+  ${notizHtml?'<div class="card">'+notizHtml+'</div>':''}
+  ${checkHtml?'<div class="card">'+checkHtml+'</div>':''}
+  ${fotosHtml?'<div class="foto-section">'+fotosHtml+'</div>':''}
+</div>
+</body>
+</html>`;
+
+    // ── Optionen: öffnen oder herunterladen ──
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+
+    // Overlay mit zwei Optionen
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;';
+    const safeTitle=(title||'Abschlussakte').replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g,'_');
+    ov.innerHTML=`<div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:380px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.3);text-align:center;">
+      <div style="font-size:28px;margin-bottom:10px;">🌐</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:6px;">Abschlussakte HTML</div>
+      <div style="font-size:13px;color:#666;margin-bottom:22px;">${_esc(title)}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="${url}" target="_blank" style="padding:11px 0;border-radius:8px;background:#5a50b4;color:#fff;font-weight:700;font-size:14px;text-decoration:none;display:block;">🔍 Im Browser öffnen</a>
+        <a href="${url}" download="${safeTitle}.html" style="padding:11px 0;border-radius:8px;background:#15803d;color:#fff;font-weight:700;font-size:14px;text-decoration:none;display:block;">⬇ Herunterladen (.html)</a>
+        <button onclick="this.closest('div[style]').parentElement.remove()" style="padding:9px 0;border-radius:8px;background:#f0f0f0;color:#555;font-weight:600;font-size:13px;border:none;cursor:pointer;display:block;width:100%;">Abbrechen</button>
+      </div>
+    </div>`;
+    ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+
+    btn.textContent='✓ HTML bereit';
+    setTimeout(()=>{btn.textContent='🌐 Abschlussakte (HTML)';btn.disabled=false;},3000);
+  }catch(e){
+    alert('Fehler: '+e.message);
+    btn.textContent='🌐 Abschlussakte (HTML)';btn.disabled=false;
+  }
+}
 // ── Stammblatt-Vorschau Overlay ───────────────────────────────────────────
 function _showSbPreview(previewUrl,docName){
   var old=document.getElementById('_sbPreviewOverlay');
@@ -8541,6 +8740,17 @@ function _showSbPreview(previewUrl,docName){
     </div>`;
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
   document.body.appendChild(ov);
+}
+// ── Stammblatt-Verwaltung direkt öffnen ────────────────────────────────────
+function _openSbVerwaltung(){
+  var url=(document.getElementById('tSbPdfOrdner')||{value:''}).value.trim();
+  if(!url){showToast('Bitte zuerst den Stammblatt-Ordner eintragen','warning',4000);return;}
+  // Folder-ID extrahieren
+  var m=url.match(/folders\/([a-zA-Z0-9_-]+)/);
+  var fid=m?m[1]:(url.match(/^[a-zA-Z0-9_-]{20,}$/)?url:null);
+  if(!fid){showToast('Ungültige Ordner-URL','error',3000);return;}
+  // stammblatt.html liegt eine Ebene über dem PTPBAU-Ordner
+  window.open('../stammblatt.html?driveid='+encodeURIComponent(fid),'_blank');
 }
 // ── Stammblatt-Ordner: adressbasierter localStorage-Cache ─────────────────
 function _sbOrdnerKey(adr){ return 'sbOrdner::'+((adr||'').trim().toLowerCase()); }
@@ -9764,9 +9974,12 @@ function _applyBoardType(boardName){
   }
   // Abschlussakte-Button: nur sichtbar für Baustelle-Tasks (und wenn ID vorhanden)
   const abBtn=document.getElementById('abschlussBtn');
+  const abHtmlBtn=document.getElementById('abschlussHtmlBtn');
   if(abBtn){
     const hasId=!!(document.getElementById('taskId')?.value);
-    abBtn.style.display=(type==='baustelle'&&hasId)?'':'none';
+    const show=(type==='baustelle'&&hasId)?'':'none';
+    abBtn.style.display=show;
+    if(abHtmlBtn)abHtmlBtn.style.display=show;
   }
 }
 
@@ -9925,6 +10138,7 @@ function openNewTaskModal(){
   updateKontaktePTPTitle();
   document.getElementById('deleteTaskBtn').style.display='none';
   document.getElementById('abschlussBtn').style.display='none';
+  const _abHb=document.getElementById('abschlussHtmlBtn');if(_abHb)_abHb.style.display='none';
   taskLinks=[];taskAttachments=[];taskAusserhausTermine=[];taskZeitEntries=[];taskNotizVerlauf=[];taskFotos=[];taskCheckliste=[];taskEmailOriginals=[];taskEmailPdfs=[];taskGmailLinks=[];
   _attachImgsOpen=false;
   renderLinksList();renderAttachList();renderFotoListDesktop();renderPruefberichteDesktop();
