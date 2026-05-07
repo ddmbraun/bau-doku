@@ -3058,8 +3058,17 @@ async function gdriveTokenCallback(resp) {
         _showDriveWarnBanner(0);
         closeStartModal();
         if(resp.error==='interaction_required'){
-          showToast('☁️ Bitte ☁️-Button drücken um Drive neu zu verbinden (Browser blockiert automatische Anmeldung)','error',10000);
+          if(_userClickedRenew){
+            // Nutzer hatte geklickt → lautlos fehlgeschlagen → direkt echtes Popup öffnen
+            _userClickedRenew=false;
+            const _hint=localStorage.getItem('ptp_user_email_v1')||'';
+            gdrivePendingAction='reconnect';
+            try{ gdriveTokenClient.requestAccessToken({login_hint:_hint}); }catch(e2){}
+          } else {
+            showToast('☁️ Bitte ☁️-Button drücken um Drive neu zu verbinden (Browser blockiert automatische Anmeldung)','error',10000);
+          }
         } else {
+          _userClickedRenew=false;
           showToast('☁️ Drive-Sitzung abgelaufen – bitte Drive-Button drücken','error',8000);
         }
       } else {
@@ -3086,6 +3095,7 @@ async function gdriveTokenCallback(resp) {
   _driveSetStatus('✓ Angemeldet – lade Datei…', false);
   gdriveToken = resp.access_token;
   _autoReconnectAttempts = 0; // Zähler zurücksetzen nach erfolgreichem Token
+  _userClickedRenew = false;  // Flag zurücksetzen
   gdriveTokenExpires = Date.now() + (Number(resp.expires_in || 3600) - 60) * 1000;
   // Token in localStorage speichern (übersteht Seitenreload)
   try { localStorage.setItem(PC_TOKEN_KEY, JSON.stringify({token: gdriveToken, exp: gdriveTokenExpires})); } catch(e) {}
@@ -3187,15 +3197,18 @@ function _renewDriveTokenSilent(){
   }
   _silentRefreshInProgress=false;
   gdrivePendingAction='reconnect';
+  _userClickedRenew=true; // Merker: Nutzer hat aktiv geklickt → bei Fehler Popup zeigen
   const hint=localStorage.getItem('ptp_user_email_v1')||'';
   try{
     // Erst lautlos versuchen – wenn derselbe Account noch in Google-Session ist kein Popup nötig
     gdriveTokenClient.requestAccessToken({prompt:'none', login_hint:hint});
   }catch(e){
+    _userClickedRenew=false;
     // Lautlos nicht möglich → Popup mit vorausgewähltem Account
     gdriveRequestToken('reconnect');
   }
 }
+let _userClickedRenew=false; // Merker: Nutzer klickte Banner-Button → bei silent-Fehler Popup öffnen
 // Account wechseln: immer Konto-Auswahl zeigen
 function _renewDriveOtherAccount(){
   _silentRefreshInProgress=false;
