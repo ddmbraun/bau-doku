@@ -2044,7 +2044,8 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             <div class="modal-field" style="margin:0"><label style="font-size:calc(11px * var(--modal-scale,1))">Kostenstelle</label><input type="text" id="taskTagsInput" placeholder="z.B. 260036" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
             <div class="modal-field" style="margin:0"><label style="font-size:calc(11px * var(--modal-scale,1))">Rep.-Nr.</label><input type="text" id="taskRepNr" placeholder="z.B. 3483" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" oninput="scheduleTaskFieldSave();_updateHdrMeta()" autocomplete="off"></div>
             <div class="modal-field" style="margin:0"><label style="font-size:calc(11px * var(--modal-scale,1))">Kunden-Nr.</label><input type="text" id="taskKundenNr" placeholder="z.B. 777" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" oninput="scheduleTaskFieldSave()" autocomplete="off"></div>
-            <button type="button" id="openBauBtn" class="topbar-btn btn-primary" style="flex-shrink:0;padding:5px 9px;border-radius:6px;font-size:calc(11px * var(--modal-scale,1));font-weight:600;" onclick="openBaudokuApp()" title="Zur Baudoku App">📋 Bau</button>
+            <button type="button" onclick="document.getElementById('akteNachtragenInput').click()" title="Fehlende Daten aus Auftragsakte.txt in diesen Task laden" style="flex-shrink:0;padding:5px 9px;border-radius:6px;font-size:calc(11px * var(--modal-scale,1));font-weight:600;background:var(--bg3);border:1px solid var(--border);color:var(--text1);cursor:pointer;">📂 Akte</button>
+            <input type="file" id="akteNachtragenInput" accept=".txt" style="display:none" onchange="loadAkteNachtragen(event)">
           </div>
         </div>
 
@@ -5012,6 +5013,7 @@ function parseAuftragText(text){
     const gdriveProjOrdner  = get('Google_Drive_Projektordner')|| get('Google_Drive_Link') || '';
     const gdriveFotoOrdner  = get('Google_Drive_Fotoordner')   || '';
     const gdriveEmailOrdner = get('Google_Drive_Emailordner')  || '';
+    const stammblattLink    = get('Stammblatt_Link')           || '';
     const mieterTel     = get('Mieter_Telefon')           || getFirst('Mieter Telefon');
     const eigTel        = get('Eigentuemer_Telefon')      || getFirst('Eigentümer / WEGTelefon') || getFirst('Eigentümer / WEG Telefon');
     const agName        = get('AG_Kontakt_Name')          || getFirst('Ansprechpartner HV');
@@ -5082,6 +5084,11 @@ function parseAuftragText(text){
     try{if(nasOrdner)document.getElementById('tNAS').value=nasOrdner;}
     catch(e){console.error('Fehler beim NAS-Feld:',e);}
     try{
+      if(stammblattLink && stammblattLink !== '(noch offen)'){
+        localStorage.setItem('ptp_stammblatt_url', stammblattLink);
+      }
+    }catch(e){}
+    try{
       if(gdriveProjOrdner)document.getElementById('tGDOrdner').value=gdriveProjOrdner;
       // Stammblatt PDF Ordner: erst Adress-Cache prüfen, dann Projektordner als Fallback
       var _sbPdf=document.getElementById('tSbPdfOrdner');
@@ -5098,6 +5105,138 @@ function parseAuftragText(text){
   }catch(err){
     console.error('Fehler in parseAuftragText:',err);
     alert('Fehler beim Einlesen der Auftragsakte: '+err.message);
+  }
+}
+
+// ── AKTE NACHTRAGEN: Fehlende Felder im geöffneten Task aus Auftragsakte.txt laden ──
+function loadAkteNachtragen(e){
+  const file=e.target.files[0];
+  if(!file){return;}
+  const reader=new FileReader();
+  reader.onerror=()=>alert('Fehler beim Lesen der Datei');
+  reader.onload=ev=>{
+    try{
+      const text=ev.target.result;
+      if(!text)throw new Error('Datei leer');
+      _akteNachtragenFuellen(text);
+    }catch(err){alert('Fehler: '+err.message);}
+  };
+  reader.readAsText(file,'windows-1252');
+  e.target.value='';
+}
+
+function _akteNachtragenFuellen(text){
+  const lines=text.split('\n');
+  const get=key=>{
+    for(const l of lines){
+      if(!l)continue;
+      if(l.toLowerCase().includes(key.toLowerCase()+':')){
+        const idx=l.indexOf(':');if(idx<0)continue;
+        const v=l.substring(idx+1).trim();
+        return(v===''||v==='(noch offen)')?'':v;
+      }
+    }return'';
+  };
+  const getML=key=>{
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];if(!l)continue;
+      if(l.toLowerCase().includes(key.toLowerCase()+':')){
+        const idx=l.indexOf(':');if(idx<0)continue;
+        let val=l.substring(idx+1).trim();
+        for(let j=i+1;j<lines.length;j++){
+          const nl=(lines[j]||'').replace(/\r/g,'');const nlt=nl.trim();
+          if(nlt.length>2&&/^[A-Z][A-Z0-9_]+$/.test(nlt))break;
+          if(/^[A-Za-z][A-Za-z0-9_]{1,39}:/.test(nlt))break;
+          if(val!==''||nlt!=='')val+=(val?'\n':'')+nlt;
+        }
+        const r=val.trim();return(r===''||r==='(noch offen)')?'':r;
+      }
+    }return'';
+  };
+
+  const fill=(id,val)=>{
+    if(!val)return false;
+    const el=document.getElementById(id);
+    if(!el)return false;
+    const cur=(el.value||'').trim();
+    if(cur===''||cur==='(noch offen)'){el.value=val;return true;}
+    return false;
+  };
+
+  const kostenstelle = get('Auftrag_Kostenstelle');
+  const repNr        = get('Rep_Nr');
+  const kundenNr     = get('Kunden_Nr');
+  const hv           = get('Objekt_Hausverwaltung') || get('Auftraggeber');
+  const strasse      = get('Objekt_Strasse');
+  const schaden      = getML('Baustelle_Schadensbild');
+  const nasOrdner    = get('NAS_Auftragsordner');
+  const gdProj       = get('Google_Drive_Projektordner') || get('Google_Drive_Link');
+  const gdFoto       = get('Google_Drive_Fotoordner');
+  const gdEmail      = get('Google_Drive_Emailordner');
+  const stammLink    = get('Stammblatt_Link');
+  const agName       = get('AG_Kontakt_Name');
+  const agTel        = get('AG_Kontakt_Tel');
+  const agEmail      = get('AG_Kontakt_Email');
+  const mieter       = get('Mieter_Name');
+  const mieterTel    = get('Mieter_Telefon');
+  const mieterEmail  = get('Mieter_Email');
+  const eig          = get('Eigentuemer_Name');
+  const eigTel       = get('Eigentuemer_Telefon');
+  const eigEmail     = get('Eigentuemer_Email');
+  const auftDatum    = get('Auftrag_Datum');
+
+  let filled=[];
+  if(fill('taskTagsInput',kostenstelle)){filled.push('Kostenstelle');scheduleTaskFieldSave();_updateHdrMeta();}
+  if(fill('taskRepNr',repNr)){filled.push('Rep.-Nr.');scheduleTaskFieldSave();}
+  if(fill('taskKundenNr',kundenNr)){filled.push('Kunden-Nr.');scheduleTaskFieldSave();}
+  if(fill('tHV',hv))filled.push('Hausverwaltung');
+  if(fill('tAdr',strasse))filled.push('Adresse');
+  if(fill('tSch',schaden))filled.push('Schadensbild');
+  if(fill('taskDescInput',schaden)){filled.push('Beschreibung');}
+  if(fill('tNAS',nasOrdner))filled.push('NAS-Ordner');
+  if(fill('tGDOrdner',gdProj))filled.push('Drive-Projektordner');
+  if(fill('tGD',gdFoto))filled.push('Drive-Fotoordner');
+  if(fill('tEmailOrdner',gdEmail))filled.push('Drive-E-Mail-Ordner');
+
+  // Stammblatt-Link
+  if(stammLink&&stammLink!=='(noch offen)'){
+    try{localStorage.setItem('ptp_stammblatt_url',stammLink);filled.push('Stammblatt-Link');}catch(e){}
+  }
+
+  // Drive-Ordner für Stammblatt PDF
+  try{
+    const sbEl=document.getElementById('tSbPdfOrdner');
+    if(sbEl&&(!sbEl.value||sbEl.value==='(noch offen)')&&gdProj){sbEl.value=gdProj;filled.push('SB-PDF-Ordner');}
+  }catch(e){}
+
+  // Auftragsdatum → Ausführungstermin wenn leer
+  if(auftDatum){
+    const m=auftDatum.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if(m){
+      const iso=m[3]+'-'+m[2]+'-'+m[1];
+      const el=document.getElementById('taskAusfInput');
+      if(el&&!el.value){el.value=iso;filled.push('Auftragsdatum');}
+    }
+  }
+
+  // Kontakte hinzufügen (nur wenn noch nicht vorhanden)
+  try{
+    if(agName||agTel||agEmail){addKontaktPTP('ag',agName||hv,agTel||'',agEmail||'');filled.push('AG-Kontakt');}
+  }catch(e){}
+  try{
+    if(mieter||mieterTel||mieterEmail){addKontaktPTP('mieter',mieter,mieterTel||'',mieterEmail||'');filled.push('Mieter-Kontakt');}
+  }catch(e){}
+  try{
+    if(eig||eigTel||eigEmail){addKontaktPTP('eigentuemer',eig,eigTel||'',eigEmail||'');filled.push('Eigentümer-Kontakt');}
+  }catch(e){}
+
+  try{scheduleTaskFieldSave();}catch(e){}
+  try{_updateStammSummary();}catch(e){}
+
+  if(filled.length>0){
+    alert('✅ Folgende Felder wurden aus der Auftragsakte eingetragen:\n\n• '+filled.join('\n• '));
+  }else{
+    alert('Alle Felder sind bereits befüllt — nichts geändert.');
   }
 }
 
