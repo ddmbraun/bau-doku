@@ -287,6 +287,18 @@ textarea{min-height:48px;resize:vertical;}
                 <button type="button" onclick="_driveOrdnerSuche()" style="padding:5px 10px;background:#1565c0;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Ordner in Drive suchen">🔍</button>
               </div>
             </div>
+            <div class="fr">
+              <div class="fl">☁️ Drive-Projektordner<small>Projektordner → wird an PTP übergeben</small></div>
+              <div class="fc" style="flex-direction:row;gap:6px">
+                <input type="text" id="fGdriveProjOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1" oninput="planeAutoSave()">
+              </div>
+            </div>
+            <div class="fr">
+              <div class="fl">🖥️ NAS-Ordner<small>Netzwerkpfad → wird an PTP übergeben</small></div>
+              <div class="fc">
+                <input type="text" id="fNasOrdner" placeholder="\\\\nas-ddbraun\\Kunden\\..." style="flex:1" oninput="planeAutoSave()">
+              </div>
+            </div>
           </div>
         </div>
 
@@ -685,7 +697,7 @@ function leeresObj(id,adr,dachart){
     sich_z:[],sek_v:'',sek_s:'',seil_v:'',seil_s:'',gel_v:'',gel_s:'',
     was:'',str_v:'',
     fotos:{},
-    amp:'',hff:'',akt:'',aktd:'',driveOrdner:'',
+    amp:'',hff:'',akt:'',aktd:'',driveOrdner:'',nasOrdner:'',gdriveProjOrdner:'',
     hb_erf:'',ao_liste:[]};
 }
 
@@ -738,6 +750,8 @@ function neuerTaskInPTP(){
     adresse: adr,
     kostenstelle: o.id_txt||'',
     sbPdfOrdner: o.driveOrdner||'',
+    gdriveProjOrdner: o.gdriveProjOrdner||'',
+    nasOrdner: o.nasOrdner||'',
     sbObjId: o.id,
     sbUrl: window.location.href.split('?')[0].split('#')[0],
     _ts: Date.now()
@@ -823,6 +837,8 @@ function fuellForm(o){
   sR('amp_n',''); setAmpel(o.amp,true);
   sv('fHFF',o.hff); sv('fAkt',o.akt); sv('fAktD',o.aktd);
   sv('fDriveOrdner',o.driveOrdner||''); _updatePdfDriveBtn();
+  sv('fGdriveProjOrdner',o.gdriveProjOrdner||'');
+  sv('fNasOrdner',o.nasOrdner||'');
   sR('hb_erf',o.hb_erf||''); _sbAoLadeListe(o.ao_liste||[]);
   wechsleDach(o.dachart||'z',true);
   var ztEl=document.querySelector('input[name="zt"][value="'+o.zt+'"]');
@@ -859,6 +875,8 @@ function sammelDaten(){
   var ab=document.querySelector('.ab.act'); o.amp=ab?ab.dataset.a:'';
   o.hff=v('fHFF'); o.akt=v('fAkt'); o.aktd=v('fAktD');
   o.driveOrdner=v('fDriveOrdner');
+  o.gdriveProjOrdner=v('fGdriveProjOrdner');
+  o.nasOrdner=v('fNasOrdner');
   o.hb_erf=gR('hb_erf'); o.ao_liste=window._sbAoData||[];
   o.fotos=holeFotos();
   o.dachart=document.getElementById('dswZ').classList.contains('act')?'z':'f';

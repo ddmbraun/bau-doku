@@ -10375,6 +10375,8 @@ function _applyStammblattPrefill(){
     if(p.adresse){const el=document.getElementById('tAdr');if(el)el.value=p.adresse;}
     if(p.kostenstelle){const el=document.getElementById('taskTagsInput');if(el)el.value=p.kostenstelle;}
     if(p.sbPdfOrdner){const el=document.getElementById('tSbPdfOrdner');if(el)el.value=p.sbPdfOrdner; const el2=document.getElementById('tSbPdfOrdnerVerk');if(el2)el2.value=p.sbPdfOrdner;}
+    if(p.nasOrdner){const el=document.getElementById('tNAS');if(el)el.value=p.nasOrdner;}
+    if(p.gdriveProjOrdner){const el=document.getElementById('tGDOrdner');if(el)el.value=p.gdriveProjOrdner;}
     if(p.sbUrl){try{localStorage.setItem('ptp_stammblatt_url',p.sbUrl);}catch(e){}}
     if(p._status){const el=document.getElementById('taskStatusInput');if(el)el.value=p._status;}
     showToast('✓ Objektdaten aus Stammblatt übernommen','success',4000);
