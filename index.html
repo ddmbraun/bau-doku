@@ -3001,8 +3001,15 @@ function gdriveInit() {
   // Token abgelaufen oder fehlt → stille Anmeldung versuchen (klappt wenn Google-Session aktiv)
   // Auch ohne lastAction versuchen, wenn eine Datei gespeichert ist
   if (storedFile || localStorage.getItem('gdrive_last_action')) {
-    gdrivePendingAction = storedFile ? 'autoload' : localStorage.getItem('gdrive_last_action');
-    try { gdriveTokenClient.requestAccessToken({ prompt: 'none' }); } catch(e) { gdrivePendingAction = null; }
+    if(_autoReconnectAttempts < _AUTO_RECONNECT_MAX){
+      _autoReconnectAttempts++;
+      gdrivePendingAction = storedFile ? 'autoload' : localStorage.getItem('gdrive_last_action');
+      try { gdriveTokenClient.requestAccessToken({ prompt: 'none' }); } catch(e) { gdrivePendingAction = null; }
+    } else {
+      // Maximale Versuche erreicht → nur Banner zeigen, nicht mehr versuchen
+      _driveSetStatus('⚠ Drive nicht verbunden','err');
+      _showDriveWarnBanner(0);
+    }
   } else {
     // Kein gespeicherter Dateistand → Start-Modal öffnen (Erststart / Browser-Daten gelöscht)
     const sm = document.getElementById('startModal');
@@ -3078,6 +3085,7 @@ async function gdriveTokenCallback(resp) {
   console.log('[Drive] Token erhalten, expires_in=', resp.expires_in);
   _driveSetStatus('✓ Angemeldet – lade Datei…', false);
   gdriveToken = resp.access_token;
+  _autoReconnectAttempts = 0; // Zähler zurücksetzen nach erfolgreichem Token
   gdriveTokenExpires = Date.now() + (Number(resp.expires_in || 3600) - 60) * 1000;
   // Token in localStorage speichern (übersteht Seitenreload)
   try { localStorage.setItem(PC_TOKEN_KEY, JSON.stringify({token: gdriveToken, exp: gdriveTokenExpires})); } catch(e) {}
@@ -3182,6 +3190,8 @@ function _renewDriveTokenSilent(){
 
 let _silentRefreshInProgress=false;
 let _silentRefreshStartedAt=0;
+let _autoReconnectAttempts=0;   // Zählt automatische Verbindungsversuche
+const _AUTO_RECONNECT_MAX=2;    // Maximal 2 stille Versuche, dann aufhören
 function _silentTokenRefresh(onSuccess, onFail){
   if(!gdriveTokenClient||!gdriveToken)return;
   // Feststeck-Schutz: nach 20 Sek. Flag zurücksetzen
@@ -3282,19 +3292,26 @@ function gdriveTokenValid() { return !!gdriveToken && Date.now() < gdriveTokenEx
 function _handleDrive401(){
   gdriveToken=null;gdriveTokenExpires=0;
   try{localStorage.removeItem(PC_TOKEN_KEY);}catch(e){}
+  // Maximale Versuche prüfen
+  if(_autoReconnectAttempts>=_AUTO_RECONNECT_MAX){
+    updateFileStatus('unsaved','⚠ Drive-Verbindung abgelaufen','☁️ Drive-Button drücken zum Neu-Verbinden');
+    _showDriveWarnBanner(0);
+    return;
+  }
   if(gdriveTokenClient){
+    _autoReconnectAttempts++;
     // Stille Neuanmeldung versuchen (kein Popup) – klappt solange Google-Session aktiv
     const prev=gdriveTokenClient.callback;
     gdriveTokenClient.callback=(r)=>{
       gdriveTokenClient.callback=prev;
       if(r&&r.access_token){
+        _autoReconnectAttempts=0; // Erfolg → Zähler zurücksetzen
         gdriveToken=r.access_token;
         gdriveTokenExpires=Date.now()+(Number(r.expires_in||3600)-60)*1000;
         try{localStorage.setItem(PC_TOKEN_KEY,JSON.stringify({token:gdriveToken,exp:gdriveTokenExpires}));}catch(e){}
         showToast('✓ Drive-Verbindung automatisch erneuert – speichere erneut…','ok',3000);
         updateFileStatus('ok','☁️ '+gdriveFileName,'✓ Verbunden');
         _hideDriveWarnBanner();
-        // Automatisch nochmal speichern
         setTimeout(()=>gdriveSaveData(),600);
       }else{
         updateFileStatus('unsaved','⚠ Drive-Verbindung abgelaufen','☁️ Drive-Button drücken zum Neu-Verbinden');
@@ -10194,7 +10211,107 @@ function openNewTaskModal(){
   const _gl=document.getElementById('newGmailLinkLabel');if(_gl)_gl.value='';
   _applyBoardType(currentBoard);
   openModal();
+  // Prefill aus Stammblatt-Verwaltung übernehmen (falls vorhanden)
+  _applyStammblattPrefill();
   setTimeout(()=>document.getElementById('taskTitleInput').focus(),100);
+}
+
+function _applyStammblattPrefill(){
+  try{
+    var raw=localStorage.getItem('ptp_prefill_task');
+    if(!raw)return;
+    var p=JSON.parse(raw);
+    // Nur verwenden wenn jünger als 60 Sekunden
+    if(!p||!p._ts||(Date.now()-p._ts)>60000){localStorage.removeItem('ptp_prefill_task');return;}
+    localStorage.removeItem('ptp_prefill_task');
+    if(p.adresse){const el=document.getElementById('taskTitleInput');if(el)el.value=p.adresse;}
+    if(p.hv){const el=document.getElementById('tHV');if(el)el.value=p.hv;}
+    if(p.adresse){const el=document.getElementById('tAdr');if(el)el.value=p.adresse;}
+    if(p.kostenstelle){const el=document.getElementById('taskTagsInput');if(el)el.value=p.kostenstelle;}
+    if(p.sbPdfOrdner){const el=document.getElementById('tSbPdfOrdner');if(el)el.value=p.sbPdfOrdner;}
+    if(p._status){const el=document.getElementById('taskStatusInput');if(el)el.value=p._status;}
+    showToast('✓ Objektdaten aus Stammblatt übernommen','success',4000);
+    _updateStammSummary();_updateHdrMeta();_updateMapsBtn();
+  }catch(e){console.warn('[PTP] Stammblatt-Prefill Fehler:',e);}
+}
+
+// Beim Start: prüfen ob Prefill vorliegt → Auswahl-Dialog zeigen
+(function _checkPrefillOnLoad(){
+  try{
+    var raw=localStorage.getItem('ptp_prefill_task');
+    if(!raw)return;
+    var p=JSON.parse(raw);
+    if(!p||!p._ts||(Date.now()-p._ts)>60000){localStorage.removeItem('ptp_prefill_task');return;}
+    setTimeout(function(){ _showPrefillBoardDialog(p); },900);
+  }catch(e){}
+})();
+
+function _showPrefillBoardDialog(p){
+  // Nur Baustelle-Boards anzeigen
+  var bauBoards=Object.keys(boards).filter(function(b){return (boardTypes[b]||'baustelle')==='baustelle';});
+  if(!bauBoards.length){
+    // Kein Baustelle-Board vorhanden – trotzdem öffnen
+    openNewTaskModal();_applyStammblattPrefill();return;
+  }
+  var ov=document.createElement('div');
+  ov.id='_prefillDlg';
+  ov.style.cssText='position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;padding:26px 28px;max-width:400px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,.3);';
+
+  // Board-Optionen
+  var boardOpts=bauBoards.map(function(b){
+    return '<option value="'+b.replace(/"/g,'&quot;')+'"'+(b===currentBoard?' selected':'')+'>🏗 '+b+'</option>';
+  }).join('');
+
+  // Status-Optionen des ersten Boards
+  var firstStatuses=getBoardStatuses(bauBoards.includes(currentBoard)?currentBoard:bauBoards[0]);
+  var statusOpts=firstStatuses.map(function(s){
+    return '<option value="'+s.replace(/"/g,'&quot;')+'">'+s+'</option>';
+  }).join('');
+
+  box.innerHTML='<div style="font-size:16px;font-weight:800;color:#1a2744;margin-bottom:4px;">➕ Neuer Task aus Stammblatt</div>'
+    +'<div style="font-size:12px;color:#666;margin-bottom:16px;line-height:1.5;">'
+    +(p.adresse?'📍 '+p.adresse+'<br>':'')
+    +(p.hv?'🏢 '+p.hv+'<br>':'')
+    +(p.kostenstelle?'🔑 Kostenstelle: <b>'+p.kostenstelle+'</b>':'')
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">'
+    +'<div><label style="font-size:11px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Board (Liste)</label>'
+    +'<select id="_pfBoard" style="width:100%;padding:7px 8px;border:1px solid #d0d5dd;border-radius:7px;font-size:13px;" onchange="_pfUpdateStatus(this.value)">'+boardOpts+'</select></div>'
+    +'<div><label style="font-size:11px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Status (Spalte)</label>'
+    +'<select id="_pfStatus" style="width:100%;padding:7px 8px;border:1px solid #d0d5dd;border-radius:7px;font-size:13px;">'+statusOpts+'</select></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;justify-content:flex-end;">'
+    +'<button id="_pfCancel" style="padding:8px 18px;border-radius:7px;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;font-size:13px;">Abbrechen</button>'
+    +'<button id="_pfOk" style="padding:8px 24px;border-radius:7px;background:#6c63ff;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;">Task erstellen</button>'
+    +'</div>';
+
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+
+  box.querySelector('#_pfCancel').addEventListener('click',function(){
+    localStorage.removeItem('ptp_prefill_task');
+    ov.remove();
+  });
+  box.querySelector('#_pfOk').addEventListener('click',function(){
+    var selBoard=box.querySelector('#_pfBoard').value;
+    var selStatus=box.querySelector('#_pfStatus').value;
+    ov.remove();
+    // Board wechseln falls nötig
+    if(selBoard&&selBoard!==currentBoard) switchBoard(selBoard);
+    // Prefill mit gewähltem Status erweitern
+    p._status=selStatus;
+    localStorage.setItem('ptp_prefill_task',JSON.stringify(p));
+    setTimeout(function(){openNewTaskModal();},150);
+  });
+}
+
+function _pfUpdateStatus(boardName){
+  var sel=document.getElementById('_pfStatus');
+  if(!sel)return;
+  var statuses=getBoardStatuses(boardName);
+  sel.innerHTML=statuses.map(function(s){return'<option value="'+s.replace(/"/g,'&quot;')+'">'+s+'</option>';}).join('');
 }
 
 function openEditTaskModal(id){
@@ -11091,7 +11208,6 @@ function _buildTaskSummaryPdfBytes(data){
   }
   const pages=doc.getNumberOfPages();
   for(let p=1;p<=pages;p++){
-    doc.setPage(p);
     doc.setDrawColor(200,200,200);doc.setLineWidth(0.2);doc.line(M,288,PW-M,288);
     doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(160,163,175);
     doc.text('PTP Workboard',M,293);
@@ -11101,4 +11217,3 @@ function _buildTaskSummaryPdfBytes(data){
 }
 </script>
 </body>
-</html>
