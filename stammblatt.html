@@ -739,6 +739,7 @@ function neuerTaskInPTP(){
     kostenstelle: o.id_txt||'',
     sbPdfOrdner: o.driveOrdner||'',
     sbObjId: o.id,
+    sbUrl: window.location.href.split('?')[0].split('#')[0],
     _ts: Date.now()
   };
   try{ localStorage.setItem('ptp_prefill_task', JSON.stringify(prefill)); }catch(e){ alert('Fehler: '+e.message); return; }
@@ -747,6 +748,28 @@ function neuerTaskInPTP(){
   var _base=_href.replace(/[^\/]*$/, '');
   var ptpUrl=_base+'PTPBAU/index.html';
   try{ localStorage.removeItem('ptp_stammblatt_url_ptp'); }catch(e){}
+  // Shortcut automatisch im Hintergrund nach Drive speichern (wenn verbunden + Ordner gesetzt)
+  (function(){
+    try{
+      var furl2=(o.driveOrdner||'').trim(); var fid2=_folderId(furl2);
+      if(fid2 && gdriveToken && gdriveFileId){
+        var sbUrl2=window.location.href.split('?')[0].split('#')[0];
+        var sc2='[InternetShortcut]\r\nURL='+sbUrl2+'\r\n';
+        var bnd2='---SBAuto'+Date.now();
+        var meta2=JSON.stringify({name:'Stammblatt.url',parents:[fid2],'mimeType':'application/octet-stream'});
+        var b2='--'+bnd2+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta2+'\r\n--'+bnd2+'\r\nContent-Type: application/octet-stream\r\n\r\n';
+        var e2=new TextEncoder();
+        var bb=e2.encode(b2), cb=e2.encode(sc2), eb=e2.encode('\r\n--'+bnd2+'--');
+        var f2=new Uint8Array(bb.length+cb.length+eb.length);
+        f2.set(bb); f2.set(cb,bb.length); f2.set(eb,bb.length+cb.length);
+        fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+          method:'POST',
+          headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+bnd2},
+          body:f2
+        }).catch(function(){}); // Fehler still ignorieren
+      }
+    }catch(ex){}
+  })();
   // Toast mit Link anzeigen – wenn PTPBAU schon offen ist springt der storage-Event dort hin
   // Wenn nicht offen: Link im Toast öffnet PTPBAU in neuem Tab
   var _tn=document.createElement('div');

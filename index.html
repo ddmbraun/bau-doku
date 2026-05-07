@@ -10235,7 +10235,8 @@ function _applyStammblattPrefill(){
     if(p.hv){const el=document.getElementById('tHV');if(el)el.value=p.hv;}
     if(p.adresse){const el=document.getElementById('tAdr');if(el)el.value=p.adresse;}
     if(p.kostenstelle){const el=document.getElementById('taskTagsInput');if(el)el.value=p.kostenstelle;}
-    if(p.sbPdfOrdner){const el=document.getElementById('tSbPdfOrdner');if(el)el.value=p.sbPdfOrdner;}
+    if(p.sbPdfOrdner){const el=document.getElementById('tSbPdfOrdner');if(el)el.value=p.sbPdfOrdner; const el2=document.getElementById('tSbPdfOrdnerVerk');if(el2)el2.value=p.sbPdfOrdner;}
+    if(p.sbUrl){try{localStorage.setItem('ptp_stammblatt_url',p.sbUrl);}catch(e){}}
     if(p._status){const el=document.getElementById('taskStatusInput');if(el)el.value=p._status;}
     showToast('✓ Objektdaten aus Stammblatt übernommen','success',4000);
     _updateStammSummary();_updateHdrMeta();_updateMapsBtn();
