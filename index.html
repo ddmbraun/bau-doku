@@ -1095,6 +1095,28 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 #zeiterfassungList .termin-row{padding:2px 5px;margin-bottom:2px;grid-template-columns:100px 72px 72px 1fr 22px 22px 22px;}
 #zeiterfassungList .termin-row input[type="date"],#zeiterfassungList .termin-row input[type="time"],#zeiterfassungList .termin-row input[type="text"]{padding:2px 4px;font-size:11px;height:22px;}
 #zeiterfassungList .termin-row-btn{width:22px;height:22px;font-size:11px;}
+/* ── Zeiterfassung kompakte Einzeilen-Darstellung ── */
+.zeit-compact-row{display:flex;align-items:center;gap:6px;padding:3px 6px;background:var(--bg3);border-radius:6px;margin-bottom:3px;min-height:30px;}
+.zeit-compact-row.bau-readonly{background:rgba(230,126,34,.06);border:1px solid rgba(230,126,34,.2);opacity:.85;}
+.zr-date{position:relative;display:inline-flex;align-items:center;flex-shrink:0;cursor:pointer;}
+.zr-date-lbl{font-size:calc(11px * var(--modal-scale,1));font-weight:600;color:var(--text);background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:2px 5px;white-space:nowrap;cursor:pointer;user-select:none;}
+.zr-date-lbl:hover{border-color:var(--accent);}
+.zr-time{display:inline-flex;align-items:center;gap:2px;flex-shrink:0;}
+.zr-time-input{width:60px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);color:var(--text);font-size:calc(11px * var(--modal-scale,1));font-family:inherit;outline:none;}
+.zr-time-input:focus{border-color:var(--accent);}
+.zr-time-ro{font-size:calc(11px * var(--modal-scale,1));color:var(--text2);white-space:nowrap;min-width:90px;}
+.zr-sep{font-size:10px;color:var(--text2);flex-shrink:0;}
+.zr-desc{flex:1;min-width:60px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);color:var(--text);font-size:calc(11px * var(--modal-scale,1));font-family:inherit;outline:none;}
+.zr-desc:focus{border-color:var(--accent);}
+.zr-desc-ro{flex:1;font-size:calc(11px * var(--modal-scale,1));color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.zr-actions{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.zr-btn-cal{width:24px;height:24px;border-radius:4px;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;}
+.zr-btn-cal.gcal{background:#1a73e8;color:#fff;}
+.zr-btn-cal.out{background:#0078d4;color:#fff;}
+.zr-btn-cal:hover{opacity:.85;}
+.zr-btn-del{width:22px;height:22px;border-radius:4px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0;}
+.zr-btn-del:hover{background:var(--bg4);color:var(--red);}
+.zr-no-btn{width:24px;height:24px;flex-shrink:0;}
 .zeit-gesamt-bau{color:#e67e22;}
 .termin-gesamt{display:flex;justify-content:flex-end;font-size:calc(12px * var(--modal-scale,1));font-weight:700;color:var(--green);padding:5px 8px 2px;}
 .btn-auftrag{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#e8f0fe;color:#1a73e8;border:1px solid #c5d4f5;transition:all .15s;cursor:pointer;}
@@ -4508,6 +4530,9 @@ function renderTable(){
 function render(){
   const _mc=document.getElementById('mainContent');
   const _sc=_mc?_mc.scrollTop:0;
+  // Kanban-Spalten Scroll-Positionen sichern (verhindert Sprung bei Auto-Save)
+  const _kScrolls={};
+  document.querySelectorAll('.kanban-col-body[data-status]').forEach(el=>{_kScrolls[el.dataset.status]=el.scrollTop;});
   // Scroll-Positionen im offenen Task-Modal vor dem Rendern sichern
   const _ml=document.querySelector('.mv2-left');
   const _mr=document.querySelector('.mv2-right');
@@ -4519,6 +4544,13 @@ function render(){
   else if(currentView==='list')renderList();
   else renderTable();
   if(_mc&&_sc>0)_mc.scrollTop=_sc;
+  // Kanban-Spalten Scroll wiederherstellen (nach Paint)
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.kanban-col-body[data-status]').forEach(el=>{
+      const s=_kScrolls[el.dataset.status];
+      if(s>0)el.scrollTop=s;
+    });
+  });
   // Modal-Scroll-Positionen wiederherstellen (verhindert Sprung nach oben bei Auto-Save)
   if(_ml&&_scL>0)_ml.scrollTop=_scL;
   if(_mr&&_scR>0)_mr.scrollTop=_scR;
@@ -4795,28 +4827,30 @@ function renderZeiterfassung(){
   }else{
     html+=taskZeitEntries.map((e,i)=>{
       const hasTime=e.date&&e.von&&e.bis;
-      const calBtn=hasTime?`<button class="termin-row-btn" title="In Google Kalender eintragen" onclick="_openGcalZeitPC(${i})" style="background:#1a73e8;color:#fff;border:none;border-radius:5px;padding:0 8px;cursor:pointer;font-size:14px;">📅</button><button class="termin-row-btn" title="In Outlook Kalender eintragen" onclick="_openOutlookZeitPC(${i})" style="background:#0078d4;color:#fff;border:none;border-radius:5px;padding:0 8px;cursor:pointer;font-size:14px;">📆</button>`:'<span></span><span></span>';
-      return `
-    <div class="termin-row">
-      <input type="date" value="${e.date||''}" oninput="syncZeitEntry(${i},'date',this.value)" autocomplete="off">
-      <input type="time" value="${e.von||''}" oninput="syncZeitEntry(${i},'von',this.value)" autocomplete="off">
-      <input type="time" value="${e.bis||''}" oninput="syncZeitEntry(${i},'bis',this.value)" autocomplete="off">
-      <input type="text" value="${esc(e.beschreibung||'')}" placeholder="Beschreibung" oninput="syncZeitEntry(${i},'beschreibung',this.value)" autocomplete="off">
-      ${calBtn}
-      <button class="termin-row-btn del" onclick="removeZeitEntry(${i})">✕</button>
-    </div>`;
+      const dFmt=e.date?e.date.slice(8,10)+'.'+e.date.slice(5,7)+'.':'--';
+      const tFmt=(e.von&&e.bis)?e.von+'–'+e.bis:(!e.von&&!e.bis?'':((e.von||'?')+'–'+(e.bis||'?')));
+      const calBtn=hasTime?`<button class="zr-btn-cal gcal" title="Google Kalender" onclick="_openGcalZeitPC(${i})">📅</button><button class="zr-btn-cal out" title="Outlook" onclick="_openOutlookZeitPC(${i})">📆</button>`:'<span class="zr-no-btn"></span><span class="zr-no-btn"></span>';
+      return `<div class="zeit-compact-row" data-idx="${i}">
+  <span class="zr-date" title="Datum ändern"><input type="date" value="${e.date||''}" oninput="syncZeitEntry(${i},'date',this.value)" autocomplete="off" style="opacity:0;position:absolute;width:100%;height:100%;top:0;left:0;cursor:pointer;border:none;background:none;"><span class="zr-date-lbl">${dFmt}</span></span>
+  <span class="zr-time"><input type="time" value="${e.von||''}" oninput="syncZeitEntry(${i},'von',this.value)" autocomplete="off" class="zr-time-input" placeholder="von"><span class="zr-sep">–</span><input type="time" value="${e.bis||''}" oninput="syncZeitEntry(${i},'bis',this.value)" autocomplete="off" class="zr-time-input" placeholder="bis"></span>
+  <input class="zr-desc" type="text" value="${esc(e.beschreibung||'')}" placeholder="Beschreibung" oninput="syncZeitEntry(${i},'beschreibung',this.value)" autocomplete="off">
+  <span class="zr-actions">${calBtn}<button class="zr-btn-del" onclick="removeZeitEntry(${i})" title="Löschen">✕</button></span>
+</div>`;
     }).join('');
   }
   if(bauZeiten.length){
     html+=`<div class="bau-sync-divider">📡 Von Bau Doku (${bauZeiten.length})</div>`;
-    html+=bauZeiten.map(z=>`
-    <div class="termin-row bau-readonly">
-      <input type="date" value="${z.datum||z.date||''}" disabled autocomplete="off">
-      <input type="time" value="${z.von||''}" disabled autocomplete="off">
-      <input type="time" value="${z.bis||''}" disabled autocomplete="off">
-      <input type="text" value="${esc(z.beschreibung||z.titel||z.title||'')}" disabled autocomplete="off">
-      <span></span><span></span>
-    </div>`).join('');
+    html+=bauZeiten.map(z=>{
+      const dz=z.datum||z.date||'';
+      const dzFmt=dz?dz.slice(8,10)+'.'+dz.slice(5,7)+'.':'--';
+      const tzFmt=(z.von&&z.bis)?z.von+'–'+z.bis:'';
+      return `<div class="zeit-compact-row bau-readonly">
+  <span class="zr-date"><span class="zr-date-lbl">${dzFmt}</span></span>
+  <span class="zr-time zr-time-ro">${tzFmt}</span>
+  <span class="zr-desc zr-desc-ro">${esc(z.beschreibung||z.titel||z.title||'')}</span>
+  <span class="zr-actions"></span>
+</div>`;
+    }).join('');
   }
   el.innerHTML=html;
   renderZeitGesamt();
@@ -8471,17 +8505,36 @@ async function _openSbPdfDokument(){
     }
     // Erstes Ergebnis öffnen (webViewLink = Google-Vorschau / direkt öffnen)
     var doc=files[0];
-    var openUrl=doc.webViewLink||('https://drive.google.com/file/d/'+doc.id+'/view');
+    var previewUrl='https://drive.google.com/file/d/'+doc.id+'/preview';
     if(files.length>1){
-      // Mehrere Treffer: Toast mit Namen des geöffneten Dokuments
-      showToast('📄 Öffne: '+doc.name+(files.length>1?' ('+files.length+' Treffer, erster wird geöffnet)':''),'success',5000);
+      showToast('📄 Vorschau: '+doc.name+(files.length>1?' ('+files.length+' Treffer, erster wird angezeigt)':''),'success',5000);
+    } else {
+      showToast('📄 Vorschau: '+doc.name,'success',3000);
     }
-    window.open(openUrl,'_blank');
+    _showSbPreview(previewUrl,doc.name);
   }catch(err){
     console.warn('[PTP] _openSbPdfDokument Fehler:',err);
     showToast('Fehler bei Drive-Suche: '+err.message+' – Ordner wird geöffnet','error',5000);
     window.open(url,'_blank');
   }
+}
+// ── Stammblatt-Vorschau Overlay ───────────────────────────────────────────
+function _showSbPreview(previewUrl,docName){
+  var old=document.getElementById('_sbPreviewOverlay');
+  if(old)old.remove();
+  var ov=document.createElement('div');
+  ov.id='_sbPreviewOverlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  ov.innerHTML=`
+    <div style="background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.4);display:flex;flex-direction:column;width:min(96vw,1100px);height:min(92vh,800px);overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#15803d;color:#fff;border-radius:12px 12px 0 0;flex-shrink:0;">
+        <span style="font-size:16px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📄 ${docName||'Stammblatt'}</span>
+        <button onclick="document.getElementById('_sbPreviewOverlay').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:14px;font-weight:700;">✕ Schließen</button>
+      </div>
+      <iframe src="${previewUrl}" style="flex:1;border:none;width:100%;height:100%;" allow="autoplay"></iframe>
+    </div>`;
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
 }
 // ── Stammblatt-Ordner: adressbasierter localStorage-Cache ─────────────────
 function _sbOrdnerKey(adr){ return 'sbOrdner::'+((adr||'').trim().toLowerCase()); }
@@ -10741,7 +10794,6 @@ function _buildTaskSummaryPdfBytes(data){
   if(data.checkliste&&data.checkliste.length){
     doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(0,0,0);doc.text('Checkliste ('+data.checkliste.length+')',M,y);y+=4;
     doc.autoTable({startY:y,margin:{left:M,right:M},theme:'striped',styles:{fontSize:8,cellPadding:2},
-      columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:CW-10}},
       body:data.checkliste.map(c=>[(c.done?'\u2713':'\u25cb'),c.text||''])});
     y=doc.lastAutoTable.finalY+6;
   }
