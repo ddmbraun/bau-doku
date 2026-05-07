@@ -2998,19 +2998,10 @@ function gdriveInit() {
       return;
     }
   } catch(e) {}
-  // Token abgelaufen oder fehlt → stille Anmeldung versuchen (klappt wenn Google-Session aktiv)
-  // Auch ohne lastAction versuchen, wenn eine Datei gespeichert ist
+  // Token abgelaufen oder fehlt → direkt Banner zeigen (prompt:none öffnet unzuverlässig Popups)
   if (storedFile || localStorage.getItem('gdrive_last_action')) {
-    if(_autoReconnectAttempts < _AUTO_RECONNECT_MAX){
-      _autoReconnectAttempts++;
-      _autoInitSilentInProgress = true; // Merker: automatischer Init-Versuch
-      gdrivePendingAction = storedFile ? 'autoload' : localStorage.getItem('gdrive_last_action');
-      try { gdriveTokenClient.requestAccessToken({ prompt: 'none' }); } catch(e) { gdrivePendingAction = null; _autoInitSilentInProgress = false; }
-    } else {
-      // Maximale Versuche erreicht → nur Banner zeigen, nicht mehr versuchen
-      _driveSetStatus('⚠ Drive nicht verbunden','err');
-      _showDriveWarnBanner(0);
-    }
+    _driveSetStatus('⚠ Drive-Verbindung abgelaufen', true);
+    _showDriveWarnBanner(0);
   } else {
     // Kein gespeicherter Dateistand → Start-Modal öffnen (Erststart / Browser-Daten gelöscht)
     const sm = document.getElementById('startModal');
