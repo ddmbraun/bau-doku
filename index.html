@@ -1558,6 +1558,9 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 #fotosDropBody.foto-drag-over .foto-drop-overlay{display:flex;}
 .foto-drop-overlay-icon{font-size:36px;line-height:1;}
 .foto-drop-overlay-text{font-size:13px;font-weight:700;color:#15803d;}
+/* Fotos-Sektion: Drag-over auch bei geschlossener Sektion */
+#tFotoSect{transition:background .15s;}
+#tFotoSect.foto-sect-drag-over>.mv2-section-label{border-radius:6px;background:rgba(52,168,83,.12);outline:2px dashed #34a853;color:#15803d;}
 /* Email Icon Grid */
 .email-icon-grid{display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 6px;}
 .eic{position:relative;width:68px;cursor:pointer;flex-shrink:0;}.eic.eic-sel .eic-thumb{outline:2px solid var(--accent);border-radius:8px;}
@@ -1794,12 +1797,12 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <span class="mv2-meta-item"><span class="mv2-meta-lbl">Bearbeiter:</span>&nbsp;<span id="_hdrOwner" class="mv2-meta-val">–</span></span>
         </div>
         <div class="mv2-size-ctrl">
-          <label style="font-size:10px;color:var(--text2);">🔍</label>
+          <label style="font-size:calc(10px * var(--modal-scale,1));color:var(--text2);">🔍</label>
           <button type="button" class="modal-size-btn" onclick="setModalSize(Math.max(80,+(document.getElementById('modalSizeSlider').value)-10))" title="Kleiner">−</button>
           <span class="modal-size-val2" id="modalSizeVal">80%</span>
           <button type="button" class="modal-size-btn" onclick="setModalSize(Math.min(180,+(document.getElementById('modalSizeSlider').value)+10))" title="Größer">+</button>
           <input id="modalSizeSlider" type="range" min="80" max="180" step="10" value="80" oninput="setModalSize(this.value)" style="width:70px;accent-color:var(--accent);margin-left:4px;" autocomplete="off">
-          <button type="button" class="modal-size-btn" onclick="saveModalSize()" title="Größe speichern" style="font-size:11px;padding:2px 7px;background:var(--accent);color:#fff;border-radius:5px;border:none;cursor:pointer;margin-left:4px;">💾</button>
+          <button type="button" class="modal-size-btn" onclick="saveModalSize()" title="Größe speichern" style="font-size:calc(11px * var(--modal-scale,1));padding:2px 7px;background:var(--accent);color:#fff;border-radius:5px;border:none;cursor:pointer;margin-left:4px;">💾</button>
         </div>
       </div>
       <!-- Zeile 2: Badge + Titel -->
@@ -1811,8 +1814,20 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
       <div class="mv2-subheader">
         <span id="_hdrStatus"></span>
         <span id="_hdrAkt" style="display:none;"></span>
-        <span id="_hdrZeitBadge" style="display:none;padding:2px 9px;border-radius:10px;background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;font-size:calc(11px * var(--modal-scale,1));font-weight:600;white-space:nowrap;"></span>
-        <span id="_hdrTerminBadge" style="display:none;padding:2px 9px;border-radius:10px;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;font-size:calc(11px * var(--modal-scale,1));font-weight:600;white-space:nowrap;"></span>
+        <span id="_hdrZeitTerminBadge" style="display:none;border:0.5px solid #C0DD97;border-radius:8px;overflow:hidden;font-size:calc(11px * var(--modal-scale,1));font-weight:600;white-space:nowrap;line-height:1;">
+          <span id="_hdrZeitRow" style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#FAEEDA;border-bottom:0.5px solid #FAC775;">
+            <span style="color:#854F0B;">⏱ Zeiterf.</span>
+            <span id="_hdrZeitVal" style="color:#633806;margin-left:auto;padding-left:10px;"></span>
+          </span>
+          <span id="_hdrTerminRow" style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#E6F1FB;border-bottom:0.5px solid #B5D4F4;">
+            <span style="color:#185FA5;">📅 Termine</span>
+            <span id="_hdrTerminVal" style="color:#0C447C;margin-left:auto;padding-left:10px;"></span>
+          </span>
+          <span id="_hdrGesamtRow" style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:#EAF3DE;">
+            <span style="color:#3B6D11;">∑ Gesamt</span>
+            <span id="_hdrGesamtVal" style="color:#27500A;margin-left:auto;padding-left:10px;"></span>
+          </span>
+        </span>
         <span class="mv2-subhdr-obj-lbl baustelle-only" id="_hdrObjLabel" style="display:none;">Objekt:</span>
         <button type="button" class="mv2-subhdr-maps baustelle-only" id="_hdrMapsBtn" onclick="_openTaskMaps()" title="In Google Maps öffnen" style="display:none;">📍 Maps</button>
         <a class="mv2-subhdr-tel baustelle-only" id="_hdrTelBtn" style="display:none;" title="Anrufen">📞</a>
@@ -1854,7 +1869,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <div id="checklisteList"></div>
           <div style="display:flex;gap:6px;margin-top:4px;">
             <input type="text" id="newChecklistInput" placeholder="Neue Aufgabe…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addChecklistItem();}" autocomplete="off">
-            <button type="button" class="topbar-btn btn-primary" onclick="addChecklistItem()" style="padding:6px 14px;font-size:14px;line-height:1;">+</button>
+            <button type="button" class="topbar-btn btn-primary" onclick="addChecklistItem()" style="padding:6px 14px;font-size:calc(14px * var(--modal-scale,1));line-height:1;">+</button>
           </div>
         </div>
 
@@ -1867,15 +1882,15 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
               <label>Adresse (Straße + PLZ + Ort)</label>
               <div style="display:flex;gap:6px;">
                 <input type="text" id="tAdr" placeholder="Musterstraße 44, 99086 Erfurt" style="flex:1;" oninput="scheduleTaskFieldSave();_updateMapsBtn()" onblur="_autoFillSbOrdner()" autocomplete="off">
-                <button type="button" onclick="tMapsOeffnen()" style="padding:8px 14px;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">🗺 Maps</button>
+                <button type="button" onclick="tMapsOeffnen()" style="padding:8px 14px;border-radius:8px;background:var(--accent);color:#fff;font-size:calc(13px * var(--modal-scale,1));font-weight:600;border:none;cursor:pointer;flex-shrink:0;">🗺 Maps</button>
               </div>
             </div>
             <div class="modal-field full">
-              <label>📄 Stammblatt PDF <span style="font-weight:400;color:var(--text2);font-size:10px">Drive-Ordner des Objekts — wird aus Auftragsakte automatisch befüllt</span></label>
+              <label>📄 Stammblatt PDF <span style="font-weight:400;color:var(--text2);font-size:calc(10px * var(--modal-scale,1))">Drive-Ordner des Objekts — wird aus Auftragsakte automatisch befüllt</span></label>
               <div style="display:flex;gap:6px;">
-                <input type="url" id="tSbPdfOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;font-size:12px;" oninput="scheduleTaskFieldSave();_saveSbOrdnerForAdr()" autocomplete="off">
-                <button type="button" onclick="_openSbPdfOrdner()" title="Stammblatt-Ordner in Google Drive öffnen" style="padding:8px 11px;border-radius:8px;background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;flex-shrink:0;white-space:nowrap;">📂 Ordner</button>
-                <button type="button" onclick="_openSbPdfDokument()" title="Stammblatt-Dokument direkt öffnen (sucht im Ordner)" style="padding:8px 11px;border-radius:8px;background:#15803d;color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 6px rgba(21,128,61,.25);">📄 Stammblatt</button>
+                <input type="url" id="tSbPdfOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;font-size:calc(12px * var(--modal-scale,1));" oninput="scheduleTaskFieldSave();_saveSbOrdnerForAdr()" autocomplete="off">
+                <button type="button" onclick="_openSbPdfOrdner()" title="Stammblatt-Ordner in Google Drive öffnen" style="padding:8px 11px;border-radius:8px;background:var(--bg3);color:var(--text2);font-size:calc(12px * var(--modal-scale,1));font-weight:600;border:1px solid var(--border);cursor:pointer;flex-shrink:0;white-space:nowrap;">📂 Ordner</button>
+                <button type="button" onclick="_openSbPdfDokument()" title="Stammblatt-Dokument direkt öffnen (sucht im Ordner)" style="padding:8px 11px;border-radius:8px;background:#15803d;color:#fff;font-size:calc(12px * var(--modal-scale,1));font-weight:700;border:none;cursor:pointer;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 6px rgba(21,128,61,.25);">📄 Stammblatt</button>
               </div>
             </div>
             <textarea id="tSch" style="display:none;" autocomplete="off"></textarea>
@@ -1909,10 +1924,14 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
         </div>
 
         <!-- Fotos -->
-        <div class="mv2-section baustelle-only collapsible" id="tFotoSect">
+        <div class="mv2-section baustelle-only collapsible" id="tFotoSect"
+          ondragenter="event.preventDefault();document.getElementById('tFotoSect').classList.add('foto-sect-drag-over')"
+          ondragover="event.preventDefault();event.dataTransfer.dropEffect='copy'"
+          ondragleave="if(!document.getElementById('tFotoSect').contains(event.relatedTarget)){document.getElementById('tFotoSect').classList.remove('foto-sect-drag-over');}"
+          ondrop="event.preventDefault();document.getElementById('tFotoSect').classList.remove('foto-sect-drag-over');document.getElementById('tFotoSect').classList.add('open');document.getElementById('fotosDropBody').classList.remove('foto-drag-over');_handleFotoDrop(event.dataTransfer);">
           <div class="mv2-section-label" style="display:flex;align-items:center;justify-content:space-between;" onclick="_toggleMv2Sect('tFotoSect',event)">
             <span>📷 Fotos (Drive)<span class="mv2-coll-arrow">›</span></span>
-            <button onclick="openFotoGallery()" title="Alle Fotos groß anzeigen" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(108,99,255,0.1);color:var(--accent);font-size:11px;cursor:pointer;font-weight:600;">⛶ Große Ansicht</button>
+            <button onclick="openFotoGallery()" title="Alle Fotos groß anzeigen" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(108,99,255,0.1);color:var(--accent);font-size:calc(11px * var(--modal-scale,1));cursor:pointer;font-weight:600;">⛶ Große Ansicht</button>
           </div>
           <div id="fotosDropBody"
             ondragenter="event.preventDefault();document.getElementById('fotosDropBody').classList.add('foto-drag-over')"
@@ -1925,11 +1944,11 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             </div>
             <div id="fotoListDesktop" style="min-height:60px;"></div>
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-              <button onclick="triggerFotoUploadToDrive()" style="padding:8px 12px;border-radius:6px;border:1.5px dashed var(--accent);background:rgba(108,99,255,0.06);color:var(--accent);font-size:12px;cursor:pointer;white-space:nowrap;">📷 Drive-Foto</button>
-              <button onclick="tDriveOeffnen()" style="padding:8px 12px;border-radius:6px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;cursor:pointer;white-space:nowrap;">📂 Ordner</button>
-              <button onclick="loadFotosFromDriveFolder()" style="padding:8px 12px;border-radius:6px;border:1.5px dashed #34a853;background:rgba(52,168,83,0.06);color:#34a853;font-size:12px;cursor:pointer;white-space:nowrap;">🔄 Aus Ordner wählen</button>
+              <button onclick="triggerFotoUploadToDrive()" style="padding:8px 12px;border-radius:6px;border:1.5px dashed var(--accent);background:rgba(108,99,255,0.06);color:var(--accent);font-size:calc(12px * var(--modal-scale,1));cursor:pointer;white-space:nowrap;">📷 Drive-Foto</button>
+              <button onclick="tDriveOeffnen()" style="padding:8px 12px;border-radius:6px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);font-size:calc(12px * var(--modal-scale,1));cursor:pointer;white-space:nowrap;">📂 Ordner</button>
+              <button onclick="loadFotosFromDriveFolder()" style="padding:8px 12px;border-radius:6px;border:1.5px dashed #34a853;background:rgba(52,168,83,0.06);color:#34a853;font-size:calc(12px * var(--modal-scale,1));cursor:pointer;white-space:nowrap;">🔄 Aus Ordner wählen</button>
             </div>
-            <div id="fotoOrdnerHint" style="font-size:11px;margin-top:4px;padding:4px 6px;border-radius:4px;display:none"></div>
+            <div id="fotoOrdnerHint" style="font-size:calc(11px * var(--modal-scale,1));margin-top:4px;padding:4px 6px;border-radius:4px;display:none"></div>
             <input type="file" id="fotoDriveInput" style="display:none" accept="image/*" multiple onchange="handleFotoUploadToDrive(event)" autocomplete="off">
           </div>
         </div>
@@ -1948,11 +1967,11 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
               <input id="timerDesc" type="text" placeholder="Betreff / Tätigkeit…" maxlength="120"
-                style="flex:1;min-width:0;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:11px;" autocomplete="off">
+                style="flex:1;min-width:0;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:calc(11px * var(--modal-scale,1));" autocomplete="off">
               <button type="button" onclick="deleteAllTimerEntries()"
-                style="flex-shrink:0;padding:4px 8px;border-radius:5px;border:1px solid rgba(231,76,60,.4);background:transparent;color:var(--red);font-size:12px;cursor:pointer;white-space:nowrap;">🗑 Alle</button>
+                style="flex-shrink:0;padding:4px 8px;border-radius:5px;border:1px solid rgba(231,76,60,.4);background:transparent;color:var(--red);font-size:calc(12px * var(--modal-scale,1));cursor:pointer;white-space:nowrap;">🗑 Alle</button>
             </div>
-            <div id="timerEntries" class="timer-entries" style="font-size:11px;color:var(--text2);width:100%;display:none;"></div>
+            <div id="timerEntries" class="timer-entries" style="font-size:calc(11px * var(--modal-scale,1));color:var(--text2);width:100%;display:none;"></div>
           </div>
         </div>
 
@@ -1963,8 +1982,8 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             ondragover="event.preventDefault();this.classList.add('dragover');event.dataTransfer.dropEffect='copy'"
             ondragleave="if(!this.contains(event.relatedTarget))this.classList.remove('dragover')"
             style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px;border:1.5px dashed var(--border);border-radius:10px;background:var(--bg3);cursor:default;text-align:center;transition:border-color .2s,background .2s;">
-            <span style="font-size:16px;">📧</span>
-            <span style="font-size:10px;color:var(--text2);line-height:1.2;">.eml / .msg</span>
+            <span style="font-size:calc(16px * var(--modal-scale,1));">📧</span>
+            <span style="font-size:calc(10px * var(--modal-scale,1));color:var(--text2);line-height:1.2;">.eml / .msg</span>
           </div>
           <div id="topAttachDrop"
             ondragenter="event.preventDefault();this.classList.add('dragover')"
@@ -1972,8 +1991,8 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             ondragleave="if(!this.contains(event.relatedTarget))this.classList.remove('dragover')"
             onclick="document.getElementById('fileAttachInput').click()"
             style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px;border:1.5px dashed var(--border);border-radius:10px;background:var(--bg3);cursor:pointer;text-align:center;transition:border-color .2s,background .2s;">
-            <span style="font-size:16px;">📎</span>
-            <span style="font-size:10px;color:var(--text2);line-height:1.2;">Anhang</span>
+            <span style="font-size:calc(16px * var(--modal-scale,1));">📎</span>
+            <span style="font-size:calc(10px * var(--modal-scale,1));color:var(--text2);line-height:1.2;">Anhang</span>
           </div>
         </div>
 
@@ -1983,14 +2002,14 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <!-- versteckter Maps-Button für JS-Kompatibilität -->
           <button type="button" id="taskMapsBtn" onclick="_openTaskMaps()" style="display:none;" disabled></button>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
-            <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Bearbeiter</label><input type="text" id="taskOwnerInput" placeholder="Name" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
-            <div class="modal-field" style="margin:0;font-size:11px"><label style="font-size:10px">Task</label><select id="taskStatusInput" style="font-size:12px;padding:4px 6px" onchange="updateGcalModalBtn();scheduleTaskFieldSave();_updateStammSummary();_updateMapsBtn()"></select></div>
+            <div class="modal-field" style="margin:0;font-size:calc(11px * var(--modal-scale,1))"><label style="font-size:calc(10px * var(--modal-scale,1))">Bearbeiter</label><input type="text" id="taskOwnerInput" placeholder="Name" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
+            <div class="modal-field" style="margin:0;font-size:calc(11px * var(--modal-scale,1))"><label style="font-size:calc(10px * var(--modal-scale,1))">Task</label><select id="taskStatusInput" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" onchange="updateGcalModalBtn();scheduleTaskFieldSave();_updateStammSummary();_updateMapsBtn()"></select></div>
           </div>
           <div class="baustelle-only" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:end;">
-            <div class="modal-field" style="margin:0"><label style="font-size:11px">Kostenstelle</label><input type="text" id="taskTagsInput" placeholder="z.B. 260036" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
-            <div class="modal-field" style="margin:0"><label style="font-size:11px">Rep.-Nr.</label><input type="text" id="taskRepNr" placeholder="z.B. 3483" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave();_updateHdrMeta()" autocomplete="off"></div>
-            <div class="modal-field" style="margin:0"><label style="font-size:11px">Kunden-Nr.</label><input type="text" id="taskKundenNr" placeholder="z.B. 777" style="font-size:12px;padding:4px 6px" oninput="scheduleTaskFieldSave()" autocomplete="off"></div>
-            <button type="button" id="openBauBtn" class="topbar-btn btn-primary" style="flex-shrink:0;padding:5px 9px;border-radius:6px;font-size:11px;font-weight:600;" onclick="openBaudokuApp()" title="Zur Baudoku App">📋 Bau</button>
+            <div class="modal-field" style="margin:0"><label style="font-size:calc(11px * var(--modal-scale,1))">Kostenstelle</label><input type="text" id="taskTagsInput" placeholder="z.B. 260036" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" oninput="scheduleTaskFieldSave();_updateStammSummary();_updateHdrMeta()" autocomplete="off"></div>
+            <div class="modal-field" style="margin:0"><label style="font-size:calc(11px * var(--modal-scale,1))">Rep.-Nr.</label><input type="text" id="taskRepNr" placeholder="z.B. 3483" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" oninput="scheduleTaskFieldSave();_updateHdrMeta()" autocomplete="off"></div>
+            <div class="modal-field" style="margin:0"><label style="font-size:calc(11px * var(--modal-scale,1))">Kunden-Nr.</label><input type="text" id="taskKundenNr" placeholder="z.B. 777" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px" oninput="scheduleTaskFieldSave()" autocomplete="off"></div>
+            <button type="button" id="openBauBtn" class="topbar-btn btn-primary" style="flex-shrink:0;padding:5px 9px;border-radius:6px;font-size:calc(11px * var(--modal-scale,1));font-weight:600;" onclick="openBaudokuApp()" title="Zur Baudoku App">📋 Bau</button>
           </div>
         </div>
 
@@ -1999,32 +2018,32 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <div class="mv2-section-label" style="color:var(--accent);">📅 Termine</div>
           <div style="display:flex;flex-direction:column;gap:4px;">
             <!-- Ausführungstermin (prominent) -->
-            <div class="modal-field baustelle-only date-field-row" id="taskAusfTerminInputRow" style="margin:0;font-size:11px">
-              <label style="font-size:10px;color:var(--accent);font-weight:600;">🔧 Ausführungstermin <span style="font-weight:400;color:var(--text2);">– Handwerker vor Ort</span></label>
-              <input type="date" id="taskAusfTerminInput" style="font-size:12px;padding:4px 6px;width:100%;border-color:var(--accent);" onchange="scheduleTaskFieldSave();_updateDateFieldVis();" autocomplete="off">
+            <div class="modal-field baustelle-only date-field-row" id="taskAusfTerminInputRow" style="margin:0;font-size:calc(11px * var(--modal-scale,1))">
+              <label style="font-size:calc(10px * var(--modal-scale,1));color:var(--accent);font-weight:600;">🔧 Ausführungstermin <span style="font-weight:400;color:var(--text2);">– Handwerker vor Ort</span></label>
+              <input type="date" id="taskAusfTerminInput" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px;width:100%;border-color:var(--accent);" onchange="scheduleTaskFieldSave();_updateDateFieldVis();" autocomplete="off">
             </div>
             <button class="date-add-btn baustelle-only" id="taskAusfTerminInputAdd" onclick="_showDateField('taskAusfTerminInput')" style="display:none;">＋ Ausführungstermin hinzufügen</button>
             <!-- Ortstermin -->
-            <div class="modal-field baustelle-only date-field-row" id="taskOrtsterminInputRow" style="margin:0;font-size:11px">
-              <label style="font-size:10px">📍 Ortstermin <span style="font-weight:400;color:var(--text2);">– Besichtigungstermin vor Ort</span></label>
-              <input type="date" id="taskOrtsterminInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();" autocomplete="off">
+            <div class="modal-field baustelle-only date-field-row" id="taskOrtsterminInputRow" style="margin:0;font-size:calc(11px * var(--modal-scale,1))">
+              <label style="font-size:calc(10px * var(--modal-scale,1))">📍 Ortstermin <span style="font-weight:400;color:var(--text2);">– Besichtigungstermin vor Ort</span></label>
+              <input type="date" id="taskOrtsterminInput" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();" autocomplete="off">
             </div>
             <!-- Fälligkeit -->
-            <div class="modal-field date-field-row" id="taskDueInputRow" style="margin:0;font-size:11px">
-              <label style="font-size:10px">📅 Erledigen bis <span style="font-weight:400;color:var(--text2);">– interne Deadline</span></label>
-              <input type="date" id="taskDueInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateStammSummary();_updateDateFieldVis();" autocomplete="off">
+            <div class="modal-field date-field-row" id="taskDueInputRow" style="margin:0;font-size:calc(11px * var(--modal-scale,1))">
+              <label style="font-size:calc(10px * var(--modal-scale,1))">📅 Erledigen bis <span style="font-weight:400;color:var(--text2);">– interne Deadline</span></label>
+              <input type="date" id="taskDueInput" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateStammSummary();_updateDateFieldVis();" autocomplete="off">
             </div>
             <button class="date-add-btn" id="taskDueInputAdd" onclick="_showDateField('taskDueInput')" style="display:none;">＋ Erledigen bis hinzufügen</button>
             <!-- Auftrag erteilt -->
-            <div class="modal-field baustelle-only date-field-row" id="taskAusfInputRow" style="margin:0;font-size:11px">
-              <label style="font-size:10px">📋 Auftrag erteilt <span style="font-weight:400;color:var(--text2);">– von Hausverwaltung</span></label>
-              <input type="date" id="taskAusfInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateDateFieldVis();" autocomplete="off">
+            <div class="modal-field baustelle-only date-field-row" id="taskAusfInputRow" style="margin:0;font-size:calc(11px * var(--modal-scale,1))">
+              <label style="font-size:calc(10px * var(--modal-scale,1))">📋 Auftrag erteilt <span style="font-weight:400;color:var(--text2);">– von Hausverwaltung</span></label>
+              <input type="date" id="taskAusfInput" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateDateFieldVis();" autocomplete="off">
             </div>
             <button class="date-add-btn baustelle-only" id="taskAusfInputAdd" onclick="_showDateField('taskAusfInput')" style="display:none;">＋ Auftrag erteilt hinzufügen</button>
             <!-- Status (ehemals Aktivität) -->
-            <div class="modal-field" style="margin:0;margin-top:2px;font-size:11px">
-              <label style="font-size:10px">Status</label>
-              <select id="taskAktivitaetInput" style="font-size:12px;padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateMapsBtn();_updateStammSummary()">
+            <div class="modal-field" style="margin:0;margin-top:2px;font-size:calc(11px * var(--modal-scale,1))">
+              <label style="font-size:calc(10px * var(--modal-scale,1))">Status</label>
+              <select id="taskAktivitaetInput" style="font-size:calc(12px * var(--modal-scale,1));padding:4px 6px;width:100%" onchange="scheduleTaskFieldSave();_updateMapsBtn();_updateStammSummary()">
                 <option value="">— keine —</option>
                 <option value="telefon">📞 Telefon</option>
                 <option value="besichtigung">📍 Besichtigung</option>
@@ -2680,7 +2699,7 @@ function _updateMapsBtn(){
       datesEl.style.display=boxes?'flex':'none';
     }catch(e){datesEl.style.display='none';}
   }
-  // Header: Zeiterfassung- & Termine-Badge
+  // Header: kombiniertes Zeiterfassung/Termine-Tabellen-Badge
   (function(){
     const tid=document.getElementById('taskId')?.value;
     const t=tid?findTaskById(tid):null;
@@ -2688,10 +2707,24 @@ function _updateMapsBtn(){
     const _fm=m=>{const h=Math.floor(m/60),r=m%60;return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
     const zMins=(t&&t.zeitEntries||[]).reduce((s,e)=>s+_pm(e.von,e.bis),0);
     const tMins=(t&&t.ausserhausTermine||[]).reduce((s,e)=>s+_pm(e.von,e.bis),0);
-    const zEl=document.getElementById('_hdrZeitBadge');
-    const tEl=document.getElementById('_hdrTerminBadge');
-    if(zEl){if(zMins>0){zEl.textContent='⏱ Zeiterf.: '+_fm(zMins);zEl.style.display='inline';}else{zEl.style.display='none';}}
-    if(tEl){if(tMins>0){tEl.textContent='📅 Termine: '+_fm(tMins);tEl.style.display='inline';}else{tEl.style.display='none';}}
+    const gMins=zMins+tMins;
+    const wrap=document.getElementById('_hdrZeitTerminBadge');
+    const zRow=document.getElementById('_hdrZeitRow');
+    const tRow=document.getElementById('_hdrTerminRow');
+    const gRow=document.getElementById('_hdrGesamtRow');
+    const zVal=document.getElementById('_hdrZeitVal');
+    const tVal=document.getElementById('_hdrTerminVal');
+    const gVal=document.getElementById('_hdrGesamtVal');
+    if(!wrap)return;
+    if(gMins===0){wrap.style.display='none';return;}
+    if(zVal)zVal.textContent=_fm(zMins);
+    if(tVal)tVal.textContent=_fm(tMins);
+    if(gVal)gVal.textContent=_fm(gMins);
+    if(zRow)zRow.style.display=zMins>0?'flex':'none';
+    if(tRow)tRow.style.display=tMins>0?'flex':'none';
+    // Gesamt-Zeile nur zeigen wenn beide Typen vorhanden
+    if(gRow)gRow.style.display=(zMins>0&&tMins>0)?'flex':'none';
+    wrap.style.display='inline-block';
   })();
   // Header: Maps-Button
   const hBtn=document.getElementById('_hdrMapsBtn');
