@@ -234,7 +234,7 @@ textarea{min-height:48px;resize:vertical;}
     <span class="sp"></span>
     <button class="tbtn grau" onclick="zeigeKontakte()">👥 Kontakte</button>
     <button class="tbtn gruen" id="driveBtnBar" onclick="gdriveConnectFromBar()">☁️ Drive</button><span id="driveStatusTxt" style="font-size:11px;color:rgba(255,255,255,.55);margin-left:-6px"></span>
-    <button class="tbtn gruen" onclick="speichern()">💾 Speichern</button>
+    <button class="tbtn gruen" onclick="speichern()">💾 Speichern</button><span id="_autoSaveTxt" style="font-size:10px;color:rgba(255,255,255,.5);margin-left:-6px;" title="Letztes Auto-Speichern"></span>
     <button class="tbtn gelb" id="btnDruck" onclick="drucken()" disabled>🖨 Drucken/PDF</button>
     <button class="tbtn grau" id="btnPdfDrive" onclick="pdfNachDrive()" disabled title="PDF in Drive-Ordner speichern">📤 PDF→Drive</button>
     <button class="tbtn" id="btnNeuerTask" onclick="neuerTaskInPTP()" disabled style="background:#6c63ff;color:#fff;" title="Neuen Task in PTPBAU mit Objektdaten anlegen">➕ Neuer Task</button>
@@ -1551,24 +1551,56 @@ function updateDriveBtn(){
   var stxt = document.getElementById('driveStatusTxt');
   if(!btn) return;
   var tokenOk = gdriveToken && Date.now() < gdriveTokenExpires - 5000;
+  // Restzeit berechnen
+  var restMin = tokenOk ? Math.max(0, Math.round((gdriveTokenExpires - Date.now()) / 60000)) : 0;
+  var restTxt = tokenOk ? (restMin > 90 ? '' : ' · noch ' + restMin + ' min') : '';
   if(tokenOk && gdriveFileId){
     btn.style.background='#22c55e'; btn.textContent='☁️ Drive ✓';
-    if(stxt){ stxt.textContent=' Verbunden'; stxt.style.color='#86efac'; }
+    if(stxt){ stxt.textContent=' Verbunden' + restTxt; stxt.style.color='#86efac'; }
   } else if(tokenOk){
     btn.style.background='#e8a020'; btn.textContent='☁️ Drive';
-    if(stxt){ stxt.textContent=' Angemeldet, keine Datei'; stxt.style.color='#fde68a'; }
+    if(stxt){ stxt.textContent=' Angemeldet, keine Datei' + restTxt; stxt.style.color='#fde68a'; }
   } else {
     btn.style.background='#dc2626'; btn.textContent='☁️ Drive ✗';
     if(stxt){ stxt.textContent=' Nicht verbunden — Daten werden NICHT gespeichert!'; stxt.style.color='#fca5a5'; }
   }
   _updatePdfDriveBtn();
 }
+// Restzeit-Anzeige jede Minute aktualisieren
+setInterval(updateDriveBtn, 60000);
 
 // Speichern: Drive-first, Fallback auf Download
 var _origSpeichern = speichern;
 speichern = function(){
   if(gdriveFileId && gdriveToken){ gdriveSaveToCloud(); } else { _origSpeichern(); }
 };
+
+// ── AUTO-SPEICHERN alle 90 Sekunden ──────────────────────────────────
+var _lastAutoSave = 0;
+function _autoSaveNow(silent){
+  var tokenOk = gdriveToken && Date.now() < gdriveTokenExpires - 5000;
+  if(!dirty || !gdriveFileId || !tokenOk) return;
+  if(cid) sammelDaten();
+  var content = JSON.stringify(D, null, 2);
+  fetch('https://www.googleapis.com/upload/drive/v3/files/'+gdriveFileId+'?uploadType=media&fields=id',{
+    method:'PATCH',
+    headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
+    body:content
+  }).then(function(r){
+    if(r.status===401){ return; }
+    setzeDirty(false);
+    _lastAutoSave = Date.now();
+    var el=document.getElementById('_autoSaveTxt');
+    if(el){
+      var d=new Date(_lastAutoSave);
+      var hm=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+      el.textContent='💾 '+hm;
+      el.title='Zuletzt auto-gespeichert: '+hm+' Uhr';
+    }
+    if(!silent) toast('☁️ Auto-gespeichert ✓','ok');
+  }).catch(function(){});
+}
+setInterval(function(){ _autoSaveNow(true); }, 90000);
 
 // ════════════════════════════════════════════════
 // STAMMDATEN-ORDNER BROWSER + PDF nach Drive
@@ -1913,18 +1945,14 @@ async function pdfNachDrive(){
     y+=14;
     doc.text('Unterschrift Erfasser:',M,y+4);
     doc.line(M+42,y+4.5,M+CW-10,y+4.5);
-    y+=14;
-    doc.setFontSize(7); doc.setTextColor(150,150,150);
-    doc.text('Erstellt: '+new Date().toLocaleDateString('de-DE'),M,y+4);
-
-    // ── Speichern
-    var pdfName=(o.adr||'Stammblatt').replace(/[^a-zA-Z0-9äöüÄÖÜß ]/g,'_')+'.pdf';
-    // Upload nach Drive
-    var pdfBlob=doc.output('blob');
-    var bArr=await new Response(pdfBlob).arrayBuffer();
-    var folderId=_folderId(furl);
-    var boundary='----WBGStammblatt'+Date.now();
-    var meta=JSON.stringify({name:pdfName,mimeType:'application/pdf',parents:[folderId]});
+    var bArr=doc.output('arraybuffer');
+    var d=new Date();
+    var dd=String(d.getDate()).padStart(2,'0');
+    var mm=String(d.getMonth()+1).padStart(2,'0');
+    var yy=d.getFullYear();
+    var pdfName=(o.adr||'Objekt').replace(/[/\\:*?"<>|]/g,'_')+'_Stammblatt_'+yy+'-'+mm+'-'+dd+'.pdf';
+    var boundary='---SBBoundary'+Date.now();
+    var meta=JSON.stringify({name:pdfName,parents:[fid]});
     var body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+boundary+'\r\nContent-Type: application/pdf\r\n\r\n';
     var bodyEnd='\r\n--'+boundary+'--';
     var enc=new TextEncoder();
@@ -1933,7 +1961,7 @@ async function pdfNachDrive(){
     var pdf=new Uint8Array(bArr);
     var full=new Uint8Array(bodyBytes.length+pdf.length+endBytes.length);
     full.set(bodyBytes); full.set(pdf,bodyBytes.length); full.set(endBytes,bodyBytes.length+pdf.length);
-    var resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    var resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
       method:'POST',
       headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+boundary},
       body:full

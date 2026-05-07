@@ -10246,6 +10246,18 @@ function _applyStammblattPrefill(){
   }catch(e){}
 })();
 
+// Falls PTPBAU bereits geöffnet ist: storage-Event abfangen
+window.addEventListener('storage',function(e){
+  if(e.key!=='ptp_prefill_task'||!e.newValue)return;
+  try{
+    var p=JSON.parse(e.newValue);
+    if(!p||!p._ts||(Date.now()-p._ts)>60000)return;
+    // Prüfen ob Dialog bereits offen
+    if(document.getElementById('_prefillDlg'))return;
+    setTimeout(function(){ _showPrefillBoardDialog(p); },300);
+  }catch(e2){}
+});
+
 function _showPrefillBoardDialog(p){
   // Nur Baustelle-Boards anzeigen
   var bauBoards=Object.keys(boards).filter(function(b){return (boardTypes[b]||'baustelle')==='baustelle';});
@@ -11202,12 +11214,12 @@ function _buildTaskSummaryPdfBytes(data){
     ...(data.fotos||[]).map(f=>['Foto',f.name||'',''])
   ];
   if(allFiles.length){
-    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(0,0,0);doc.text('Dateien ('+allFiles.length+')',M,y);y+=4;
     doc.autoTable({startY:y,margin:{left:M,right:M},theme:'striped',styles:{fontSize:8,cellPadding:2},
       head:[['Typ','Dateiname','Datum']],body:allFiles});
   }
   const pages=doc.getNumberOfPages();
   for(let p=1;p<=pages;p++){
+    doc.setPage(p);
     doc.setDrawColor(200,200,200);doc.setLineWidth(0.2);doc.line(M,288,PW-M,288);
     doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(160,163,175);
     doc.text('PTP Workboard',M,293);
@@ -11217,3 +11229,4 @@ function _buildTaskSummaryPdfBytes(data){
 }
 </script>
 </body>
+</html>
