@@ -237,6 +237,7 @@ textarea{min-height:48px;resize:vertical;}
     <button class="tbtn gruen" onclick="speichern()">💾 Speichern</button><span id="_autoSaveTxt" style="font-size:10px;color:rgba(255,255,255,.5);margin-left:-6px;" title="Letztes Auto-Speichern"></span>
     <button class="tbtn gelb" id="btnDruck" onclick="drucken()" disabled>🖨 Drucken/PDF</button>
     <button class="tbtn grau" id="btnPdfDrive" onclick="pdfNachDrive()" disabled title="PDF in Drive-Ordner speichern">📤 PDF→Drive</button>
+    <button class="tbtn grau" id="btnShortcut" onclick="shortcutNachDrive()" disabled title="Stammblatt-Verknüpfung (.url) in Drive-Stammdaten-Ordner speichern">🔗 Shortcut→Drive</button>
     <button class="tbtn" id="btnNeuerTask" onclick="neuerTaskInPTP()" disabled style="background:#6c63ff;color:#fff;" title="Neuen Task in PTPBAU mit Objektdaten anlegen">➕ Neuer Task</button>
     <button class="tbtn grau" onclick="beenden()">✕</button>
   </div>
@@ -1690,9 +1691,10 @@ async function _driveOrdnerSucheQuery(q,res,ov){
   }catch(e){ res.innerHTML='<div style="padding:10px;color:#c00;font-size:12px;">Fehler: '+e.message+'</div>'; }
 }
 function _updatePdfDriveBtn(){
-  var btn=document.getElementById('btnPdfDrive'); if(!btn) return;
   var url=(document.getElementById('fDriveOrdner')||{}).value||'';
-  btn.disabled=!(!!_folderId(url) && gdriveToken && gdriveFileId && cid);
+  var ok=!!(!!_folderId(url) && gdriveToken && gdriveFileId && cid);
+  var btn=document.getElementById('btnPdfDrive'); if(btn) btn.disabled=!ok;
+  var btn2=document.getElementById('btnShortcut'); if(btn2) btn2.disabled=!ok;
 }
 async function sdOrdnerBrowse(){
   var url=document.getElementById('sdOrdnerUrlIn').value.trim();
@@ -2043,6 +2045,38 @@ async function pdfNachDrive(){
     if(!resp.ok){ var e=await resp.json(); toast('Drive-Fehler: '+(e.error&&e.error.message||resp.status),'err'); return; }
     toast('PDF gespeichert: '+pdfName,'ok');
   }catch(e){ toast('PDF-Fehler: '+e.message,'err'); console.error(e); }
+}
+
+async function shortcutNachDrive(){
+  if(!cid){ toast('Kein Objekt gewählt','err'); return; }
+  sammelDaten(); var o=holeObj(); if(!o) return;
+  var furl=(o.driveOrdner||'').trim(); var fid=_folderId(furl);
+  if(!fid){ toast('Bitte zuerst einen Drive-Ordner für dieses Objekt eintragen','err'); return; }
+  if(!gdriveToken||!gdriveFileId){ toast('Bitte zuerst mit Drive verbinden (☁️ Drive-Button)','err'); return; }
+  try{
+    // Basis-URL der Stammblatt-Seite (ohne Query/Hash)
+    var sbUrl=window.location.href.split('?')[0].split('#')[0];
+    var shortcutContent='[InternetShortcut]\r\nURL='+sbUrl+'\r\n';
+    var shortcutName='Stammblatt.url';
+    // Multipart-Upload zu Drive
+    var boundary='---SBSCBoundary'+Date.now();
+    var meta=JSON.stringify({name:shortcutName,parents:[fid],'mimeType':'application/octet-stream'});
+    var body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+boundary+'\r\nContent-Type: application/octet-stream\r\n\r\n';
+    var bodyEnd='\r\n--'+boundary+'--';
+    var enc=new TextEncoder();
+    var bodyBytes=enc.encode(body);
+    var contentBytes=enc.encode(shortcutContent);
+    var endBytes=enc.encode(bodyEnd);
+    var full=new Uint8Array(bodyBytes.length+contentBytes.length+endBytes.length);
+    full.set(bodyBytes); full.set(contentBytes,bodyBytes.length); full.set(endBytes,bodyBytes.length+contentBytes.length);
+    var resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'multipart/related; boundary='+boundary},
+      body:full
+    });
+    if(!resp.ok){ var e=await resp.json(); toast('Drive-Fehler: '+(e.error&&e.error.message||resp.status),'err'); return; }
+    toast('🔗 Stammblatt.url in Drive-Ordner gespeichert ✓','ok');
+  }catch(e){ toast('Shortcut-Fehler: '+e.message,'err'); console.error(e); }
 }
 </script>
 </body>
