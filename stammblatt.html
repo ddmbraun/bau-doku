@@ -237,6 +237,7 @@ textarea{min-height:48px;resize:vertical;}
     <button class="tbtn gruen" onclick="speichern()">💾 Speichern</button>
     <button class="tbtn gelb" id="btnDruck" onclick="drucken()" disabled>🖨 Drucken/PDF</button>
     <button class="tbtn grau" id="btnPdfDrive" onclick="pdfNachDrive()" disabled title="PDF in Drive-Ordner speichern">📤 PDF→Drive</button>
+    <button class="tbtn" id="btnNeuerTask" onclick="neuerTaskInPTP()" disabled style="background:#6c63ff;color:#fff;" title="Neuen Task in PTPBAU mit Objektdaten anlegen">➕ Neuer Task</button>
     <button class="tbtn grau" onclick="beenden()">✕</button>
   </div>
   <div id="wrap">
@@ -615,18 +616,26 @@ function startApp(){
   baueGrid();
   renListe();
   bindFelder();
-  // URL-Parameter: ?obj=ID springt direkt zum Objekt
-  // Sucht zuerst nach id_txt (Nutzer-ID wie "BL-F-01"), dann nach internem id
+  // URL-Parameter: ?obj=ID oder ?driveid=FOLDER_ID springt direkt zum Objekt
   var _p=new URLSearchParams(window.location.search);
   var _objId=_p.get('obj');
-  if(_objId){
-    setTimeout(function(){
-      var _found=(D.obj||[]).find(function(x){
-        return x.id_txt===_objId || x.id===_objId || x.adr===_objId;
-      });
-      if(_found){ waehleObj(_found.id); }
-      else { toast('Objekt "'+_objId+'" nicht gefunden','err'); }
-    },300);
+  var _driveId=_p.get('driveid');
+  var _autoSelect=null;
+  if(_driveId){
+    // Suche nach Objekt das denselben Drive-Ordner hat
+    var _extractFid=function(url){if(!url)return null;var m=String(url).match(/folders\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;};
+    var _byDrive=(D.obj||[]).find(function(x){return _extractFid(x.driveOrdner||'')===_driveId;});
+    if(_byDrive)_autoSelect=_byDrive.id;
+    else toast('Kein Objekt mit diesem Drive-Ordner gefunden','err');
+  } else if(_objId){
+    var _found=(D.obj||[]).find(function(x){
+      return x.id_txt===_objId || x.id===_objId || x.adr===_objId;
+    });
+    if(_found)_autoSelect=_found.id;
+    else toast('Objekt "'+_objId+'" nicht gefunden','err');
+  }
+  if(_autoSelect){
+    setTimeout(function(){ waehleObj(_autoSelect); },300);
   }
 }
 
@@ -687,6 +696,7 @@ function waehleObj(id){
   document.getElementById('empty').style.display='none';
   document.getElementById('form').style.display='block';
   document.getElementById('btnDruck').disabled=false;
+  var _bnt=document.getElementById('btnNeuerTask');if(_bnt)_bnt.disabled=false;
   fuellForm(o);
   renListe();
 }
@@ -705,6 +715,40 @@ function loeschObjekt(){
   planeAutoSave();
 }
 
+function neuerTaskInPTP(){
+  if(!cid){alert('Bitte zuerst ein Objekt auswählen.');return;}
+  sammelDaten(); // aktuellen Stand sichern
+  var o=holeObj();
+  if(!o) return;
+  // HV-Name aus Kontakten auflösen
+  var hvName=o.hv||'';
+  if(!hvName&&o.hvref){
+    var k=(D.kontakte||[]).find(function(x){return x.id===o.hvref;});
+    if(k) hvName=k.name||'';
+  }
+  // Adresse zusammensetzen
+  var adr=(o.adr||'').trim();
+  if(o.ort&&!adr.toLowerCase().includes(o.ort.toLowerCase())) adr=(adr?adr+', ':'')+o.ort;
+  if(o.plz&&!adr.includes(o.plz)) adr=(adr?adr.replace(o.ort,o.plz+' '+o.ort):o.plz+' '+o.ort);
+  // Daten in localStorage schreiben
+  var prefill={
+    hv: hvName,
+    adresse: adr,
+    kostenstelle: o.id_txt||'',
+    sbPdfOrdner: o.driveOrdner||'',
+    sbObjId: o.id,
+    _ts: Date.now()
+  };
+  try{ localStorage.setItem('ptp_prefill_task', JSON.stringify(prefill)); }catch(e){ alert('Fehler: '+e.message); return; }
+  // PTPBAU öffnen (relativ: stammblatt liegt im Root, PTPBAU im Unterordner)
+  var ptpUrl=localStorage.getItem('ptp_stammblatt_url_ptp')||'';
+  if(!ptpUrl){
+    // Automatisch ableiten: stammblatt.html → PTPBAU/index.html
+    var base=window.location.href.replace(/[^/]*$/, '');
+    ptpUrl=base+'PTPBAU/index.html';
+  }
+  window.open(ptpUrl,'_blank');
+}
 function holeObj(){ return D.obj.find(function(o){ return o.id===cid; }); }
 
 // ── FORM
