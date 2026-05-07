@@ -1013,19 +1013,19 @@ input,select,textarea{font-family:inherit;}
 .task-card{background:var(--bg3);border-radius:8px;padding:8px 11px;cursor:grab;transition:transform .18s,box-shadow .18s,border-color .15s;border:1px solid var(--border);border-left:5px solid #ccc;position:relative;zoom:var(--card-scale,1);}
 .task-card:hover{border-color:var(--accent);border-left-color:inherit;transform:translateY(-2px);box-shadow:0 5px 14px var(--shadow);}
 .task-card.dragging{opacity:0.5;}
-.task-card-title{font-size:12px;font-weight:600;margin-bottom:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.task-card-title{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .task-card-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;}
 .task-card-owner{font-size:10px;color:var(--accent);background:rgba(108,99,255,0.1);padding:2px 7px;border-radius:4px;font-weight:700;}
 .task-card-due{font-size:10px;color:var(--text2);}
 .task-card-due.overdue{color:var(--red);}
 /* Karten-Kopfzeile: Rep-Nr + Kostenstelle */
-.task-card-toprow{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px;gap:5px;}
+.task-card-toprow{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;gap:5px;}
 .task-card-toprow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* Karten-Fußzeile */
 .task-card-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:5px;margin-top:5px;font-size:11px;color:var(--text2);}
-.task-card-owner-chip{font-size:10px;font-weight:700;color:var(--accent);background:rgba(108,99,255,0.12);padding:1px 6px;border-radius:10px;border:0.5px solid rgba(108,99,255,0.3);white-space:nowrap;flex-shrink:0;}
+.task-card-owner-chip{font-size:11px;font-weight:700;color:var(--accent);background:rgba(108,99,255,0.12);padding:1px 6px;border-radius:10px;border:0.5px solid rgba(108,99,255,0.3);white-space:nowrap;flex-shrink:0;}
 .task-card-taskrow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:3px 0 4px;font-size:9px;color:var(--text2);}
-.task-card-chip{padding:2px 6px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap;}
+.task-card-chip{padding:2px 6px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;}
 .task-card-chip-task{background:rgba(52,168,83,0.1);color:#1e7e34;border:0.5px solid rgba(52,168,83,0.3);}
 .task-card-chip-tel{background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;}
 .task-card-chip-besi{background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;}
@@ -1551,6 +1551,13 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .email-orig-drop{border:1.5px dashed var(--border);border-radius:8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:border-color .2s,background .2s;margin-top:6px;}
 .email-orig-drop.dragover{border-color:#1a7a3c;background:rgba(26,122,60,.13);color:#1a7a3c;box-shadow:0 0 0 3px rgba(26,122,60,.18);}
 .dragover{border-color:#1a7a3c!important;background:rgba(26,122,60,.15)!important;box-shadow:0 0 0 3px rgba(26,122,60,.25)!important;}
+/* ── Fotos-Dropzone ── */
+#fotosDropBody{position:relative;border:2px dashed transparent;border-radius:10px;padding:6px;transition:border-color .15s,background .15s;}
+#fotosDropBody.foto-drag-over{border-color:#34a853;background:rgba(52,168,83,.08);box-shadow:0 0 0 4px rgba(52,168,83,.18);}
+#fotosDropBody .foto-drop-overlay{display:none;position:absolute;inset:0;border-radius:9px;background:rgba(52,168,83,.13);z-index:10;pointer-events:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+#fotosDropBody.foto-drag-over .foto-drop-overlay{display:flex;}
+.foto-drop-overlay-icon{font-size:36px;line-height:1;}
+.foto-drop-overlay-text{font-size:13px;font-weight:700;color:#15803d;}
 /* Email Icon Grid */
 .email-icon-grid{display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 6px;}
 .eic{position:relative;width:68px;cursor:pointer;flex-shrink:0;}.eic.eic-sel .eic-thumb{outline:2px solid var(--accent);border-radius:8px;}
@@ -1804,6 +1811,8 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
       <div class="mv2-subheader">
         <span id="_hdrStatus"></span>
         <span id="_hdrAkt" style="display:none;"></span>
+        <span id="_hdrZeitBadge" style="display:none;padding:2px 9px;border-radius:10px;background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;font-size:calc(11px * var(--modal-scale,1));font-weight:600;white-space:nowrap;"></span>
+        <span id="_hdrTerminBadge" style="display:none;padding:2px 9px;border-radius:10px;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;font-size:calc(11px * var(--modal-scale,1));font-weight:600;white-space:nowrap;"></span>
         <span class="mv2-subhdr-obj-lbl baustelle-only" id="_hdrObjLabel" style="display:none;">Objekt:</span>
         <button type="button" class="mv2-subhdr-maps baustelle-only" id="_hdrMapsBtn" onclick="_openTaskMaps()" title="In Google Maps öffnen" style="display:none;">📍 Maps</button>
         <a class="mv2-subhdr-tel baustelle-only" id="_hdrTelBtn" style="display:none;" title="Anrufen">📞</a>
@@ -1865,7 +1874,8 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
               <label>📄 Stammblatt PDF <span style="font-weight:400;color:var(--text2);font-size:10px">Drive-Ordner des Objekts — wird aus Auftragsakte automatisch befüllt</span></label>
               <div style="display:flex;gap:6px;">
                 <input type="url" id="tSbPdfOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;font-size:12px;" oninput="scheduleTaskFieldSave();_saveSbOrdnerForAdr()" autocomplete="off">
-                <button type="button" onclick="_openSbPdfOrdner()" style="padding:8px 14px;border-radius:8px;background:#15803d;color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;">📂 Öffnen</button>
+                <button type="button" onclick="_openSbPdfOrdner()" title="Stammblatt-Ordner in Google Drive öffnen" style="padding:8px 11px;border-radius:8px;background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;flex-shrink:0;white-space:nowrap;">📂 Ordner</button>
+                <button type="button" onclick="_openSbPdfDokument()" title="Stammblatt-Dokument direkt öffnen (sucht im Ordner)" style="padding:8px 11px;border-radius:8px;background:#15803d;color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 6px rgba(21,128,61,.25);">📄 Stammblatt</button>
               </div>
             </div>
             <textarea id="tSch" style="display:none;" autocomplete="off"></textarea>
@@ -1905,10 +1915,14 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
             <button onclick="openFotoGallery()" title="Alle Fotos groß anzeigen" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(108,99,255,0.1);color:var(--accent);font-size:11px;cursor:pointer;font-weight:600;">⛶ Große Ansicht</button>
           </div>
           <div id="fotosDropBody"
-            ondragenter="event.preventDefault();document.getElementById('fotosDropBody').style.outline='2px dashed var(--accent)'"
+            ondragenter="event.preventDefault();document.getElementById('fotosDropBody').classList.add('foto-drag-over')"
             ondragover="event.preventDefault();event.dataTransfer.dropEffect='copy'"
-            ondragleave="if(!document.getElementById('fotosDropBody').contains(event.relatedTarget))document.getElementById('fotosDropBody').style.outline=''"
-            ondrop="event.preventDefault();document.getElementById('fotosDropBody').style.outline='';_handleFotoDrop(event.dataTransfer)">
+            ondragleave="if(!document.getElementById('fotosDropBody').contains(event.relatedTarget))document.getElementById('fotosDropBody').classList.remove('foto-drag-over')"
+            ondrop="event.preventDefault();document.getElementById('fotosDropBody').classList.remove('foto-drag-over');_handleFotoDrop(event.dataTransfer)">
+            <div class="foto-drop-overlay">
+              <div class="foto-drop-overlay-icon">📷</div>
+              <div class="foto-drop-overlay-text">Fotos hier ablegen → direkt in Drive hochladen</div>
+            </div>
             <div id="fotoListDesktop" style="min-height:60px;"></div>
             <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
               <button onclick="triggerFotoUploadToDrive()" style="padding:8px 12px;border-radius:6px;border:1.5px dashed var(--accent);background:rgba(108,99,255,0.06);color:var(--accent);font-size:12px;cursor:pointer;white-space:nowrap;">📷 Drive-Foto</button>
@@ -2150,6 +2164,13 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
   </div>
   <div class="sect-popup-body">
     <div class="modal-grid">
+      <div class="modal-field full baustelle-only">
+        <label>📄 Stammblatt-Ordner (Drive) <span style="font-size:10px;color:var(--text2);font-weight:400;">← gespiegelt aus Objekt-Sektion</span></label>
+        <div class="link-row-2">
+          <input type="url" id="tSbPdfOrdnerVerk" placeholder="https://drive.google.com/drive/folders/…" style="flex:1;" oninput="document.getElementById('tSbPdfOrdner').value=this.value;scheduleTaskFieldSave();_saveSbOrdnerForAdr();" autocomplete="off">
+          <button class="link-btn-2" onclick="(function(){var u=(document.getElementById('tSbPdfOrdnerVerk')||{value:''}).value.trim();if(u)window.open(u,'_blank');else showToast('Bitte zuerst Stammblatt-Ordner eintragen','warning',4000);})()" title="Stammblatt-Ordner öffnen" style="background:#15803d;color:#fff;border-color:#15803d;font-weight:700;">📂</button>
+        </div>
+      </div>
       <div class="modal-field full baustelle-only">
         <label>📷 Google Drive – Foto-Ordner <span style="font-size:10px;color:var(--accent);font-weight:600;">← 📷 Drive-Foto Button nutzt DIESEN Ordner</span></label>
         <div class="link-row-2">
@@ -2659,6 +2680,19 @@ function _updateMapsBtn(){
       datesEl.style.display=boxes?'flex':'none';
     }catch(e){datesEl.style.display='none';}
   }
+  // Header: Zeiterfassung- & Termine-Badge
+  (function(){
+    const tid=document.getElementById('taskId')?.value;
+    const t=tid?findTaskById(tid):null;
+    const _pm=(von,bis)=>{try{if(!von||!bis)return 0;const[vh,vm]=von.split(':').map(Number);const[bh,bm]=bis.split(':').map(Number);const d=(bh*60+bm)-(vh*60+vm);return d>0?d:0;}catch(_){return 0;}};
+    const _fm=m=>{const h=Math.floor(m/60),r=m%60;return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
+    const zMins=(t&&t.zeitEntries||[]).reduce((s,e)=>s+_pm(e.von,e.bis),0);
+    const tMins=(t&&t.ausserhausTermine||[]).reduce((s,e)=>s+_pm(e.von,e.bis),0);
+    const zEl=document.getElementById('_hdrZeitBadge');
+    const tEl=document.getElementById('_hdrTerminBadge');
+    if(zEl){if(zMins>0){zEl.textContent='⏱ Zeiterf.: '+_fm(zMins);zEl.style.display='inline';}else{zEl.style.display='none';}}
+    if(tEl){if(tMins>0){tEl.textContent='📅 Termine: '+_fm(tMins);tEl.style.display='inline';}else{tEl.style.display='none';}}
+  })();
   // Header: Maps-Button
   const hBtn=document.getElementById('_hdrMapsBtn');
   if(hBtn) hBtn.style.display=adr?'':'none';
@@ -3995,6 +4029,10 @@ function taskCardHTML(task){
   function dbox(lbl,val,dotStyle,isMiss){
     return`<div class="task-card-datebox${isMiss?' miss':''}"><div class="task-card-dbox-dot" style="${dotStyle}"></div><div class="task-card-dbox-lbl">${lbl}</div><div class="task-card-dbox-val${val?isMiss?' miss':'':' muted'}">${val||'–'}</div></div>`;
   }
+  // ─ Zeiterfassung & Termine Badges ─
+  const _zeitMins=(task.zeitEntries||[]).reduce((s,e)=>s+parseMinutes(e.von,e.bis),0);
+  const _terminMins=(task.ausserhausTermine||[]).reduce((s,e)=>s+parseMinutes(e.von,e.bis),0);
+  const _fmtBadge=m=>{const h=Math.floor(m/60),r=m%60;return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
   return`<div class="task-card ${colClass}" draggable="true" data-id="${esc(task.id)}"
     ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" onclick="openEditTaskModal('${esc(task.id)}')">
     <div class="task-card-toprow">
@@ -4007,6 +4045,8 @@ function taskCardHTML(task){
       ${task.status?`<span style="color:var(--text2);">Task:</span><span class="task-card-chip task-card-chip-task">${esc(task.status)}</span>`:''}
       ${_aktChip?`<span style="color:var(--text2);margin-left:2px;">Status:</span><span class="task-card-chip ${_aktChip.cls}">${_aktChip.lbl}</span>`:''}
       ${isNotizBoard&&task.due?`<span style="color:var(--text2);margin-left:2px;">Fällig:</span><span class="task-card-chip" style="${overdue?'background:#FCEBEB;color:#A32D2D;border:0.5px solid #F7C1C1;':'background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;'}">${formatDate(task.due)}</span>`:''}
+      ${_zeitMins>0?`<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:10px;background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;font-size:10px;font-weight:600;white-space:nowrap;">⏱ ${_fmtBadge(_zeitMins)}</span>`:''}
+      ${_terminMins>0?`<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:10px;background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;font-size:10px;font-weight:600;white-space:nowrap;">📅 ${_fmtBadge(_terminMins)}</span>`:''}
       ${_adr?`<a href="https://maps.google.com/?q=${encodeURIComponent(_adr)}" target="_blank" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;margin-left:auto;" title="${esc(_adr)}">📍</a>`:''}
       ${_tel?`<a href="tel:${_tel.replace(/[^0-9+]/g,'')}" onclick="event.stopPropagation()" style="font-size:13px;text-decoration:none;opacity:0.75;" title="${esc(_tel)}">📞</a>`:''}
     </div>`:''}
@@ -8368,6 +8408,42 @@ function _openSbPdfOrdner(){
   if(url) window.open(url,'_blank');
   else showToast('Bitte zuerst den Drive-Ordner eintragen — er wird dann für diese Adresse gespeichert','warning',5000);
 }
+async function _openSbPdfDokument(){
+  var url=(document.getElementById('tSbPdfOrdner')||{value:''}).value.trim();
+  if(!url){showToast('Bitte zuerst den Drive-Ordner eintragen','warning',5000);return;}
+  if(!gdriveToken){showToast('⚠ Bitte zuerst mit Google Drive verbinden','error',4000);return;}
+  // Folder-ID aus URL extrahieren
+  var m=url.match(/[-\w]{25,}/);
+  var folderId=m?m[0]:null;
+  if(!folderId){window.open(url,'_blank');return;}
+  showToast('🔍 Suche Stammblatt-Dokument…','info',3000);
+  try{
+    // Drive-API: Dateien im Ordner suchen die "Stammblatt" im Namen enthalten
+    var q=encodeURIComponent("'"+folderId+"' in parents and name contains 'Stammblatt' and trashed=false");
+    var r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name,mimeType,webViewLink)&orderBy=name&pageSize=10',
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    var data=await r.json();
+    var files=(data.files||[]);
+    if(files.length===0){
+      showToast('Kein Stammblatt-Dokument im Ordner gefunden – Ordner wird geöffnet','warning',5000);
+      window.open(url,'_blank');
+      return;
+    }
+    // Erstes Ergebnis öffnen (webViewLink = Google-Vorschau / direkt öffnen)
+    var doc=files[0];
+    var openUrl=doc.webViewLink||('https://drive.google.com/file/d/'+doc.id+'/view');
+    if(files.length>1){
+      // Mehrere Treffer: Toast mit Namen des geöffneten Dokuments
+      showToast('📄 Öffne: '+doc.name+(files.length>1?' ('+files.length+' Treffer, erster wird geöffnet)':''),'success',5000);
+    }
+    window.open(openUrl,'_blank');
+  }catch(err){
+    console.warn('[PTP] _openSbPdfDokument Fehler:',err);
+    showToast('Fehler bei Drive-Suche: '+err.message+' – Ordner wird geöffnet','error',5000);
+    window.open(url,'_blank');
+  }
+}
 // ── Stammblatt-Ordner: adressbasierter localStorage-Cache ─────────────────
 function _sbOrdnerKey(adr){ return 'sbOrdner::'+((adr||'').trim().toLowerCase()); }
 function _saveSbOrdnerForAdr(){
@@ -8383,7 +8459,8 @@ function _autoFillSbOrdner(adr){
   if(!adr) return;
   try{
     var saved=localStorage.getItem(_sbOrdnerKey(adr));
-    if(saved){ el.value=saved; scheduleTaskFieldSave(); }
+    if(saved){ el.value=saved; scheduleTaskFieldSave();
+      var vk=document.getElementById('tSbPdfOrdnerVerk'); if(vk) vk.value=saved; }
   }catch(e){}
 }
 function tDriveOeffnen(){
@@ -9792,6 +9869,8 @@ function openEditTaskModal(id){
   // Stammblatt-Ordner: gespeicherter Wert oder Adress-Cache
   var _sbOrdnerEl=document.getElementById('tSbPdfOrdner');
   if(_sbOrdnerEl){ _sbOrdnerEl.value=task.sbPdfOrdner||''; if(!_sbOrdnerEl.value) _autoFillSbOrdner(task.adresse||''); }
+  var _sbVerkEl=document.getElementById('tSbPdfOrdnerVerk');
+  if(_sbVerkEl) _sbVerkEl.value=_sbOrdnerEl?_sbOrdnerEl.value:'';
   setTimeout(()=>{_updateMapsBtn();_updateHdrMeta();},50);
   // Kontakte: migrate old static fields if no kontakte array yet
   let _kontakte=task.kontakte||[];
