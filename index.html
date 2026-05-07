@@ -1080,11 +1080,11 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 
 /* TERMIN / ZEITERFASSUNG ROWS */
 .termin-table{width:100%;border-collapse:collapse;}
-.termin-head{display:grid;grid-template-columns:105px 80px 80px 1fr 26px 26px;gap:5px;padding:3px 8px;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
+.termin-head{display:grid;grid-template-columns:105px 80px 80px 1fr 26px 26px;gap:5px;padding:3px 8px;font-size:calc(10px * var(--modal-scale,1));font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
 .termin-row{display:grid;grid-template-columns:105px 80px 80px 1fr 26px 26px 26px;gap:5px;align-items:center;padding:5px 8px;background:var(--bg3);border-radius:6px;margin-bottom:4px;}
-.termin-row input[type="date"],.termin-row input[type="time"],.termin-row input[type="text"]{width:100%;padding:4px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);color:var(--text);font-size:12px;outline:none;font-family:inherit;}
+.termin-row input[type="date"],.termin-row input[type="time"],.termin-row input[type="text"]{width:100%;padding:4px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);color:var(--text);font-size:calc(12px * var(--modal-scale,1));outline:none;font-family:inherit;}
 .termin-row input:focus{border-color:var(--accent);}
-.termin-row-btn{width:26px;height:26px;border-radius:4px;background:transparent;color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:none;}
+.termin-row-btn{width:26px;height:26px;border-radius:4px;background:transparent;color:var(--text2);font-size:calc(13px * var(--modal-scale,1));display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:none;}
 .termin-row-btn:hover{background:var(--bg4);}
 .termin-row-btn.cal:hover{background:#1a73e8;color:#fff;}
 .termin-row-btn.del:hover{color:var(--red);}
@@ -1096,7 +1096,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 #zeiterfassungList .termin-row input[type="date"],#zeiterfassungList .termin-row input[type="time"],#zeiterfassungList .termin-row input[type="text"]{padding:2px 4px;font-size:11px;height:22px;}
 #zeiterfassungList .termin-row-btn{width:22px;height:22px;font-size:11px;}
 .zeit-gesamt-bau{color:#e67e22;}
-.termin-gesamt{display:flex;justify-content:flex-end;font-size:12px;font-weight:700;color:var(--green);padding:5px 8px 2px;}
+.termin-gesamt{display:flex;justify-content:flex-end;font-size:calc(12px * var(--modal-scale,1));font-weight:700;color:var(--green);padding:5px 8px 2px;}
 .btn-auftrag{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;background:#e8f0fe;color:#1a73e8;border:1px solid #c5d4f5;transition:all .15s;cursor:pointer;}
 .btn-auftrag:hover{background:#1a73e8;color:#fff;border-color:#1a73e8;}
 
@@ -1140,33 +1140,33 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .modal-overlay.open .mv2-header *{pointer-events:auto;}
 /* ── Meta-Zeile (Rep.-Nr. · Kostenstelle · Bearbeiter) ── */
 .mv2-meta-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:7px;}
-.mv2-meta-fields{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;min-width:0;}
+.mv2-meta-fields{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:calc(12px * var(--modal-scale,1));min-width:0;}
 .mv2-meta-item{display:flex;align-items:center;gap:3px;white-space:nowrap;}
 .mv2-meta-lbl{color:var(--text2);font-weight:500;}
 .mv2-meta-val{color:var(--text);font-weight:600;}
-.mv2-meta-sep{color:var(--border);font-size:13px;flex-shrink:0;}
+.mv2-meta-sep{color:var(--border);font-size:calc(13px * var(--modal-scale,1));flex-shrink:0;}
 .mv2-title-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .mv2-subheader{display:flex;align-items:center;gap:7px;padding-bottom:10px;flex-wrap:wrap;min-height:24px;}
-.mv2-subhdr-sep{color:var(--border);font-size:14px;flex-shrink:0;}
-.mv2-subhdr-hv{font-size:12px;font-weight:600;color:var(--text1);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;}
-.mv2-subhdr-adr{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
-.mv2-subhdr-status{margin-left:auto;font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px;background:rgba(39,174,96,0.12);color:#1a8a4a;white-space:nowrap;}
-.mv2-subhdr-maps{padding:2px 10px;border-radius:11px;background:#2e7d32;color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;line-height:1.5;}
+.mv2-subhdr-sep{color:var(--border);font-size:calc(14px * var(--modal-scale,1));flex-shrink:0;}
+.mv2-subhdr-hv{font-size:calc(12px * var(--modal-scale,1));font-weight:600;color:var(--text1);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;}
+.mv2-subhdr-adr{font-size:calc(12px * var(--modal-scale,1));color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+.mv2-subhdr-status{margin-left:auto;font-size:calc(11px * var(--modal-scale,1));font-weight:600;padding:2px 10px;border-radius:10px;background:rgba(39,174,96,0.12);color:#1a8a4a;white-space:nowrap;}
+.mv2-subhdr-maps{padding:2px 10px;border-radius:11px;background:#2e7d32;color:#fff;font-size:calc(12px * var(--modal-scale,1));font-weight:600;border:none;cursor:pointer;flex-shrink:0;line-height:1.5;}
 .mv2-subhdr-maps:disabled{opacity:0.4;cursor:default;}
-.mv2-subhdr-status-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:rgba(39,174,96,0.12);color:#1a7a40;white-space:nowrap;flex-shrink:0;}
-.mv2-subhdr-akt{font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:rgba(108,99,255,0.1);color:var(--accent);white-space:nowrap;flex-shrink:0;}
-.mv2-subhdr-obj-lbl{font-size:11px;color:var(--text2);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-right:4px;}
-.mv2-subhdr-tel{padding:2px 8px;border-radius:11px;background:#1565c0;color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;line-height:1.6;text-decoration:none;display:inline-flex;align-items:center;}
+.mv2-subhdr-status-chip{font-size:calc(11px * var(--modal-scale,1));font-weight:600;padding:2px 9px;border-radius:10px;background:rgba(39,174,96,0.12);color:#1a7a40;white-space:nowrap;flex-shrink:0;}
+.mv2-subhdr-akt{font-size:calc(11px * var(--modal-scale,1));font-weight:600;padding:2px 9px;border-radius:10px;background:rgba(108,99,255,0.1);color:var(--accent);white-space:nowrap;flex-shrink:0;}
+.mv2-subhdr-obj-lbl{font-size:calc(11px * var(--modal-scale,1));color:var(--text2);font-weight:500;white-space:nowrap;flex-shrink:0;margin-left:auto;padding-right:4px;}
+.mv2-subhdr-tel{padding:2px 8px;border-radius:11px;background:#1565c0;color:#fff;font-size:calc(12px * var(--modal-scale,1));font-weight:600;border:none;cursor:pointer;flex-shrink:0;line-height:1.6;text-decoration:none;display:inline-flex;align-items:center;}
 /* ── ⋯ Mehr-Dropdown ── */
 .mv2-mehr-wrap{position:relative;display:inline-flex;}
 .mv2-mehr-menu{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:1300;min-width:200px;padding:4px 0;overflow:hidden;}
 .mv2-mehr-menu.open{display:block;}
-.mv2-mehr-menu button,.mv2-mehr-menu label.mv2-mehr-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 16px;font-size:12px;font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;box-sizing:border-box;}
+.mv2-mehr-menu button,.mv2-mehr-menu label.mv2-mehr-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 16px;font-size:calc(12px * var(--modal-scale,1));font-weight:500;color:var(--text);background:none;border:none;cursor:pointer;text-align:left;white-space:nowrap;box-sizing:border-box;}
 .mv2-mehr-menu button:hover,.mv2-mehr-menu label.mv2-mehr-item:hover{background:var(--bg3);}
-.mv2-title-row h2{font-size:17px;margin:0;flex:1;pointer-events:none;}
-.mv2-title-input{flex:1;font-size:19px;font-weight:600;color:var(--text);background:transparent;border:none;border-bottom:2px solid transparent;outline:none;padding:2px 4px;border-radius:4px 4px 0 0;transition:border-color .15s,background .15s;min-width:0;cursor:text;}
+.mv2-title-row h2{font-size:calc(17px * var(--modal-scale,1));margin:0;flex:1;pointer-events:none;}
+.mv2-title-input{flex:1;font-size:calc(19px * var(--modal-scale,1));font-weight:600;color:var(--text);background:transparent;border:none;border-bottom:2px solid transparent;outline:none;padding:2px 4px;border-radius:4px 4px 0 0;transition:border-color .15s,background .15s;min-width:0;cursor:text;}
 .mv2-title-input:focus{border-bottom-color:var(--accent);background:rgba(108,99,255,0.04);}
-.mv2-title-input::placeholder{color:var(--text2);font-weight:400;font-size:16px;}
+.mv2-title-input::placeholder{color:var(--text2);font-weight:400;font-size:calc(16px * var(--modal-scale,1));}
 .mv2-size-ctrl{display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .mv2-body{flex:1;overflow:hidden;display:flex;gap:0;min-height:0;}
 .mv2-left{flex:1;overflow-y:auto;padding:14px 16px 14px 20px;border-right:1px solid var(--border);}
@@ -1176,9 +1176,9 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .mv2-subsect-divider{border-top:1px solid var(--border);margin:10px 0 8px;padding-top:8px;}
 .mv2-section{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
 .mv2-section:last-child{border-bottom:none;margin-bottom:0;}
-.mv2-section-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.mv2-section-label{font-size:calc(11px * var(--modal-scale,1));font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
 .mv2-footer{flex-shrink:0;display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;padding:10px 16px;background:var(--bg3);border-top:1px solid var(--border);border-radius:0 0 14px 14px;position:relative;}
-.mv2-footer button,.mv2-footer label.topbar-btn{padding:5px 11px!important;border-radius:6px;font-size:12px!important;font-weight:500;}
+.mv2-footer button,.mv2-footer label.topbar-btn{padding:5px 11px!important;border-radius:6px;font-size:calc(12px * var(--modal-scale,1))!important;font-weight:500;}
 .modal-size-preset{padding:2px 9px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:10px;cursor:pointer;transition:background .15s,color .15s;}
 .modal-size-preset:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 .modal h2{font-size:calc(18px * var(--modal-scale, 1));margin-bottom:16px;}
@@ -1202,14 +1202,14 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .form-collapse{margin-top:6px;border-top:1px solid var(--border);}
 .form-collapse-header{display:flex;align-items:center;justify-content:space-between;padding:5px 0 4px;cursor:pointer;user-select:none;-webkit-user-select:none;}
 .form-collapse-title{font-size:calc(11px * var(--modal-scale, 1));font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
-.form-collapse-arrow{color:var(--text2);font-size:13px;transition:transform .2s;}
+.form-collapse-arrow{color:var(--text2);font-size:calc(13px * var(--modal-scale,1));transition:transform .2s;}
 .form-collapse-body{display:none;padding-bottom:4px;}
 .form-collapse.open .form-collapse-arrow{transform:rotate(180deg);}
 .form-collapse.open .form-collapse-body{display:block;}
 /* ── Einklappbare Sektionen unterhalb Notizen ── */
 .mv2-section.collapsible:not(.open)>*:not(.mv2-section-label){display:none !important;}
 .mv2-section.collapsible .mv2-section-label{cursor:pointer;user-select:none;-webkit-user-select:none;}
-.mv2-coll-arrow{font-size:12px;color:var(--text2);transition:transform .2s;display:inline-block;margin-left:5px;line-height:1;}
+.mv2-coll-arrow{font-size:calc(12px * var(--modal-scale,1));color:var(--text2);transition:transform .2s;display:inline-block;margin-left:5px;line-height:1;}
 .mv2-section.collapsible.open .mv2-coll-arrow{transform:rotate(90deg);}
 /* ── Datumsfelder: ausblenden wenn leer ── */
 .date-field-row.d-hidden{display:none!important;}
@@ -1227,11 +1227,11 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .mv2-popup-btn-row:last-child{border-bottom:none;}
 .mv2-popup-btn-row:hover{background:rgba(108,99,255,0.06);}
 .mv2-popup-btn-row.dragover{background:rgba(108,99,255,0.18);border:1.5px dashed var(--accent);border-radius:6px;}
-.mv2-popup-btn-row span{font-size:12px;color:var(--text);font-weight:500;}
-.mv2-popup-open-btn{padding:3px 10px;border-radius:5px;border:1px solid var(--accent);background:rgba(108,99,255,0.08);color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;pointer-events:none;}
+.mv2-popup-btn-row span{font-size:calc(12px * var(--modal-scale,1));color:var(--text);font-weight:500;}
+.mv2-popup-open-btn{padding:3px 10px;border-radius:5px;border:1px solid var(--accent);background:rgba(108,99,255,0.08);color:var(--accent);font-size:calc(11px * var(--modal-scale,1));font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;pointer-events:none;}
 .mv2-popup-btn-row:hover .mv2-popup-open-btn{background:var(--accent);color:#fff;}
 .date-add-btn:hover{text-decoration:underline;}
-.add-row-btn{width:100%;padding:8px;border-radius:7px;font-size:12px;color:var(--accent2);background:rgba(108,99,255,.1);border:1px dashed rgba(108,99,255,.4);margin-top:4px;transition:all .15s;cursor:pointer;}
+.add-row-btn{width:100%;padding:8px;border-radius:7px;font-size:calc(12px * var(--modal-scale,1));color:var(--accent2);background:rgba(108,99,255,.1);border:1px dashed rgba(108,99,255,.4);margin-top:4px;transition:all .15s;cursor:pointer;}
 .add-row-btn:hover{background:rgba(108,99,255,.2);}
 .timer-divider{text-align:center;font-size:10px;color:var(--text2);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
 .timer-divider::before,.timer-divider::after{content:'';flex:1;height:1px;background:var(--border);}
@@ -1527,11 +1527,11 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 /* ── NOTIZ-CHRONIK ── */
 .notiz-entry{display:flex;gap:10px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:6px;padding:8px 10px;margin-bottom:6px;}
 .notiz-entry-body{flex:1;min-width:0;}
-.notiz-ts{color:var(--text2);font-size:11px;font-weight:500;margin-bottom:3px;letter-spacing:.2px;}
-.notiz-text{color:var(--text);font-size:14px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;}
-.notiz-del{flex-shrink:0;background:transparent;border:1px solid var(--border);color:var(--text2);width:26px;height:26px;border-radius:4px;font-size:13px;cursor:pointer;}
+.notiz-ts{color:var(--text2);font-size:calc(11px * var(--modal-scale,1));font-weight:500;margin-bottom:3px;letter-spacing:.2px;}
+.notiz-text{color:var(--text);font-size:calc(14px * var(--modal-scale,1));line-height:1.45;white-space:pre-wrap;word-wrap:break-word;}
+.notiz-del{flex-shrink:0;background:transparent;border:1px solid var(--border);color:var(--text2);width:26px;height:26px;border-radius:4px;font-size:calc(13px * var(--modal-scale,1));cursor:pointer;}
 .notiz-del:hover{border-color:var(--red);color:var(--red);}
-.notiz-empty{color:var(--text2);font-size:12px;font-style:italic;padding:4px 2px;}
+.notiz-empty{color:var(--text2);font-size:calc(12px * var(--modal-scale,1));font-style:italic;padding:4px 2px;}
 
 /* ── CARD-GRÖßE (Schieberegler-Variable) ── */
 .card-size-group{display:flex;align-items:center;gap:6px;flex-shrink:0;}
@@ -1602,7 +1602,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
 .checkliste-item input[type=text]{flex:1;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:calc(12px * var(--modal-scale,1));outline:none;}
 .checkliste-item input[type=text]:focus{border-color:var(--accent);}
 .checkliste-item input[type=text].done-text{text-decoration:line-through;opacity:.55;}
-.checkliste-item .ck-del{padding:2px 7px;font-size:11px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0;}
+.checkliste-item .ck-del{padding:2px 7px;font-size:calc(11px * var(--modal-scale,1));border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0;}
 .checkliste-item .ck-del:hover{border-color:var(--red);color:var(--red);}
 
 /* ── TASK-TYP: Notiz-Modus (blendet Baustelle-spezifische Felder aus) ── */
@@ -1796,13 +1796,19 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           <span class="mv2-meta-sep">·</span>
           <span class="mv2-meta-item"><span class="mv2-meta-lbl">Bearbeiter:</span>&nbsp;<span id="_hdrOwner" class="mv2-meta-val">–</span></span>
         </div>
-        <div class="mv2-size-ctrl">
-          <label style="font-size:calc(10px * var(--modal-scale,1));color:var(--text2);">🔍</label>
-          <button type="button" class="modal-size-btn" onclick="setModalSize(Math.max(80,+(document.getElementById('modalSizeSlider').value)-10))" title="Kleiner">−</button>
-          <span class="modal-size-val2" id="modalSizeVal">80%</span>
-          <button type="button" class="modal-size-btn" onclick="setModalSize(Math.min(180,+(document.getElementById('modalSizeSlider').value)+10))" title="Größer">+</button>
-          <input id="modalSizeSlider" type="range" min="80" max="180" step="10" value="80" oninput="setModalSize(this.value)" style="width:70px;accent-color:var(--accent);margin-left:4px;" autocomplete="off">
-          <button type="button" class="modal-size-btn" onclick="saveModalSize()" title="Größe speichern" style="font-size:calc(11px * var(--modal-scale,1));padding:2px 7px;background:var(--accent);color:#fff;border-radius:5px;border:none;cursor:pointer;margin-left:4px;">💾</button>
+        <div class="mv2-size-ctrl" style="gap:4px;">
+          <span style="font-size:10px;color:var(--text2);white-space:nowrap;" title="Linke Seite">◧</span>
+          <button type="button" class="modal-size-btn" onclick="setModalSideScale('left',Math.max(70,+(document.getElementById('modalSliderL').value)-5))" title="Links kleiner">−</button>
+          <span class="modal-size-val2" id="modalValL" style="min-width:34px;">100%</span>
+          <button type="button" class="modal-size-btn" onclick="setModalSideScale('left',Math.min(200,+(document.getElementById('modalSliderL').value)+5))" title="Links größer">+</button>
+          <input id="modalSliderL" type="range" min="70" max="200" step="5" value="100" oninput="setModalSideScale('left',this.value)" style="width:60px;accent-color:var(--accent);" autocomplete="off">
+          <span style="font-size:10px;color:var(--border);margin:0 2px;">|</span>
+          <span style="font-size:10px;color:var(--text2);white-space:nowrap;" title="Rechte Seite">◨</span>
+          <button type="button" class="modal-size-btn" onclick="setModalSideScale('right',Math.max(70,+(document.getElementById('modalSliderR').value)-5))" title="Rechts kleiner">−</button>
+          <span class="modal-size-val2" id="modalValR" style="min-width:34px;">100%</span>
+          <button type="button" class="modal-size-btn" onclick="setModalSideScale('right',Math.min(200,+(document.getElementById('modalSliderR').value)+5))" title="Rechts größer">+</button>
+          <input id="modalSliderR" type="range" min="70" max="200" step="5" value="100" oninput="setModalSideScale('right',this.value)" style="width:60px;accent-color:var(--accent);" autocomplete="off">
+          <button type="button" class="modal-size-btn" onclick="saveModalSize()" title="Größe speichern" style="padding:2px 7px;background:var(--accent);color:#fff;border-radius:5px;border:none;cursor:pointer;margin-left:4px;">💾</button>
         </div>
       </div>
       <!-- Zeile 2: Badge + Titel -->
@@ -10539,37 +10545,37 @@ function setCardSize(pct){
   }catch(e){console.warn('[PTP]',e);}
 })();
 
-// ── MODAL-GRÖSSE ──
-function setModalSize(pct){
+// ── MODAL-GRÖSSE (zwei Regler: links ◧ / rechts ◨) ──
+function setModalSideScale(side,pct){
   const v=Math.max(70,Math.min(200,parseInt(pct,10)||100));
-  const box=document.getElementById('taskModalBox');
-  if(box){
-    // Nur CSS-Variable für Schrift/Padding-Skalierung – KEIN zoom (zerstört position:fixed)
-    box.style.setProperty('--modal-scale',(v/100).toFixed(2));
-    box.style.zoom=''; // alten Zoom-Wert aus localStorage/alten Versionen löschen
-  }
-  const lbl=document.getElementById('modalSizeVal');if(lbl)lbl.textContent=v+'%';
-  const sl=document.getElementById('modalSizeSlider');if(sl&&String(sl.value)!==String(v))sl.value=String(v);
-  // Kein Auto-Speichern – erst nach Klick auf 💾
+  const col=document.querySelector(side==='left'?'.mv2-left':'.mv2-right');
+  if(col)col.style.setProperty('--modal-scale',(v/100).toFixed(2));
+  const lbl=document.getElementById(side==='left'?'modalValL':'modalValR');
+  if(lbl)lbl.textContent=v+'%';
+  const sl=document.getElementById(side==='left'?'modalSliderL':'modalSliderR');
+  if(sl&&String(sl.value)!==String(v))sl.value=String(v);
+}
+function setModalSize(pct){
+  // Kompatibilität – setzt beide Seiten gleich
+  setModalSideScale('left',pct);
+  setModalSideScale('right',pct);
 }
 function saveModalSize(){
-  const sl=document.getElementById('modalSizeSlider');
-  const v=sl?parseInt(sl.value,10):100;
-  try{localStorage.setItem('ptp_modal_size',String(v));}catch(e){console.warn('[PTP]',e);}
-  // Auch aktuelle Fenstergröße speichern
-  const box=document.getElementById('taskModalBox');
-  if(box){try{localStorage.setItem('ptp_modal_dims',JSON.stringify({w:Math.round(box.offsetWidth),h:Math.round(box.offsetHeight)}));}catch(e){console.warn('[PTP]',e);}}
+  const slL=document.getElementById('modalSliderL');
+  const slR=document.getElementById('modalSliderR');
+  const vL=slL?parseInt(slL.value,10):100;
+  const vR=slR?parseInt(slR.value,10):100;
+  try{localStorage.setItem('ptp_modal_size_l',String(vL));localStorage.setItem('ptp_modal_size_r',String(vR));}catch(e){console.warn('[PTP]',e);}
   const btn=event&&event.target;
   if(btn){const orig=btn.textContent;btn.textContent='✓';setTimeout(()=>{btn.textContent='💾';},1200);}
 }
 function applyStoredModalSize(){
   try{
-    const s=parseInt(localStorage.getItem('ptp_modal_size')||'80',10);
-    setModalSize(s);
+    const vL=parseInt(localStorage.getItem('ptp_modal_size_l')||localStorage.getItem('ptp_modal_size')||'100',10);
+    const vR=parseInt(localStorage.getItem('ptp_modal_size_r')||localStorage.getItem('ptp_modal_size')||'100',10);
+    setModalSideScale('left',vL);
+    setModalSideScale('right',vR);
   }catch(e){console.warn('[PTP]',e);}
-  // Veraltete Pixelgrößen aus alten Versionen löschen (verhindert zu großes Modal)
-  try{localStorage.removeItem('ptp_modal_dims');}catch(e){}
-  // Alten zoom-Key aus localStorage löschen
   try{const b=document.getElementById('taskModalBox');if(b)b.style.zoom='';}catch(e){}
 }
 // ResizeObserver: kein Auto-Speichern mehr – Größe nur auf expliziten Klick auf 💾 gespeichert
