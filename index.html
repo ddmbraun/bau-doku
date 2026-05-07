@@ -8742,15 +8742,60 @@ function _showSbPreview(previewUrl,docName){
   document.body.appendChild(ov);
 }
 // ── Stammblatt-Verwaltung direkt öffnen ────────────────────────────────────
+const _SB_URL_KEY='ptp_stammblatt_url';
 function _openSbVerwaltung(){
   var url=(document.getElementById('tSbPdfOrdner')||{value:''}).value.trim();
   if(!url){showToast('Bitte zuerst den Stammblatt-Ordner eintragen','warning',4000);return;}
-  // Folder-ID extrahieren
   var m=url.match(/folders\/([a-zA-Z0-9_-]+)/);
   var fid=m?m[1]:(url.match(/^[a-zA-Z0-9_-]{20,}$/)?url:null);
   if(!fid){showToast('Ungültige Ordner-URL','error',3000);return;}
-  // stammblatt.html liegt eine Ebene über dem PTPBAU-Ordner
-  window.open('../stammblatt.html?driveid='+encodeURIComponent(fid),'_blank');
+  // Gespeicherte URL nutzen, sonst automatisch aus aktuellem Pfad ableiten
+  var sbUrl=(localStorage.getItem(_SB_URL_KEY)||'').trim();
+  if(!sbUrl){
+    // Ableitung: PTPBAU liegt in /PTPBAU/, stammblatt.html eine Ebene höher
+    var base=window.location.href.replace(/\/[^\/]*$\/[^\/]*$/,'').replace(/\/PTPBAU\/[^\/]*$/,'');
+    sbUrl=base+'/stammblatt.html';
+  }
+  var target=sbUrl+(sbUrl.includes('?')?'&':'?')+'driveid='+encodeURIComponent(fid);
+  var w=window.open(target,'_blank');
+  // Prüfen ob Fenster geblockt / 404 → dann Konfigurationsdialog anbieten
+  setTimeout(function(){
+    try{
+      if(!w||w.closed){_sbUrlSetupDialog(fid);return;}
+    }catch(e){}
+  },1500);
+}
+function _sbUrlSetupDialog(fid){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;';
+  var inner=document.createElement('div');
+  inner.style.cssText='background:#fff;border-radius:14px;padding:28px 30px;max-width:440px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,.3);';
+  inner.innerHTML='<div style="font-size:18px;font-weight:800;color:#1a2744;margin-bottom:8px;">📋 Stammblatt-URL</div>'
+    +'<div style="font-size:13px;color:#555;margin-bottom:4px;line-height:1.5;">Standard-Pfad (<code>../stammblatt.html</code>) hat nicht funktioniert.<br>Bitte die vollständige URL der Stammblatt-Verwaltung eintragen:</div>'
+    +'<div style="font-size:11px;color:#888;margin-bottom:12px;">z.B. <code>https://nutzername.github.io/repo/stammblatt.html</code></div>'
+    +'<input id="_sbUrlInput" type="url" placeholder="https://…/stammblatt.html" style="width:100%;padding:9px 11px;border:1px solid #d0d5dd;border-radius:7px;font-size:13px;margin-bottom:14px;box-sizing:border-box;" autocomplete="off">'
+    +'<div style="display:flex;gap:8px;justify-content:flex-end;">'
+    +'<button id="_sbUrlCancel" style="padding:8px 18px;border-radius:7px;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;font-size:13px;">Abbrechen</button>'
+    +'<button id="_sbUrlOk" style="padding:8px 22px;border-radius:7px;background:#1a2744;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;">Speichern & öffnen</button>'
+    +'</div>';
+  ov.appendChild(inner);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+  inner.querySelector('#_sbUrlCancel').addEventListener('click',function(){ov.remove();});
+  inner.querySelector('#_sbUrlOk').addEventListener('click',function(){_sbUrlSave(fid,ov);});
+  document.body.appendChild(ov);
+  setTimeout(function(){inner.querySelector('#_sbUrlInput').focus();},100);
+}
+function _sbUrlSave(fid,ov){
+  var inp=(ov||document).getElementById?null:null;
+  inp=ov?ov.querySelector('#_sbUrlInput'):document.getElementById('_sbUrlInput');
+  var val=(inp?inp.value:'').trim();
+  if(!val){showToast('Bitte eine URL eingeben','warning',3000);return;}
+  try{var u=new URL(val);val=u.origin+u.pathname;}catch(e){}
+  localStorage.setItem(_SB_URL_KEY,val);
+  if(ov)ov.remove();else document.querySelector('div[style*="99999"]')?.remove();
+  var target=val+(val.includes('?')?'&':'?')+'driveid='+encodeURIComponent(fid);
+  window.open(target,'_blank');
+  showToast('✓ URL gespeichert','success',2000);
 }
 // ── Stammblatt-Ordner: adressbasierter localStorage-Cache ─────────────────
 function _sbOrdnerKey(adr){ return 'sbOrdner::'+((adr||'').trim().toLowerCase()); }
