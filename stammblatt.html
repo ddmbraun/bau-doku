@@ -282,7 +282,8 @@ textarea{min-height:48px;resize:vertical;}
               <div class="fl">📁 Drive-Ordner<small>PDF-Ablage für dieses Objekt</small></div>
               <div class="fc" style="flex-direction:row;gap:6px">
                 <input type="text" id="fDriveOrdner" placeholder="https://drive.google.com/drive/folders/…" style="flex:1" oninput="planeAutoSave();_updatePdfDriveBtn()">
-                <button type="button" onclick="sdOrdnerLink()" style="padding:5px 10px;background:#1a2744;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">📂</button>
+                <button type="button" onclick="sdOrdnerLink()" style="padding:5px 10px;background:#1a2744;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Ordner öffnen">📂</button>
+                <button type="button" onclick="_driveOrdnerSuche()" style="padding:5px 10px;background:#1565c0;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Ordner in Drive suchen">🔍</button>
               </div>
             </div>
           </div>
@@ -740,14 +741,14 @@ function neuerTaskInPTP(){
     _ts: Date.now()
   };
   try{ localStorage.setItem('ptp_prefill_task', JSON.stringify(prefill)); }catch(e){ alert('Fehler: '+e.message); return; }
-  // PTPBAU öffnen (relativ: stammblatt liegt im Root, PTPBAU im Unterordner)
-  var ptpUrl=localStorage.getItem('ptp_stammblatt_url_ptp')||'';
-  if(!ptpUrl){
-    // Automatisch ableiten: stammblatt.html → PTPBAU/index.html
-    var base=window.location.href.replace(/[^/]*$/, '');
-    ptpUrl=base+'PTPBAU/index.html';
-  }
-  window.open(ptpUrl,'_blank');
+  // PTPBAU-URL immer automatisch ableiten (kein veralteter Cache-Wert)
+  var _href=window.location.href.split('?')[0].split('#')[0];
+  var _base=_href.replace(/[^\/]*$/, '');
+  var ptpUrl=_base+'PTPBAU/index.html';
+  // Alten fehlerhaften Cache-Eintrag löschen falls vorhanden
+  try{ localStorage.removeItem('ptp_stammblatt_url_ptp'); }catch(e){}
+  // Falls PTPBAU schon offen ist, greift der storage-Event – trotzdem neues Tab als Fallback
+  window.open(ptpUrl,'_ptpbau');
 }
 function holeObj(){ return D.obj.find(function(o){ return o.id===cid; }); }
 
@@ -1614,6 +1615,69 @@ function sdOrdnerLink(){
   var url=document.getElementById('fDriveOrdner').value.trim();
   if(url) window.open(url,'_blank');
   else toast('Bitte zuerst eine Drive-Ordner-URL eintragen','err');
+}
+function _driveOrdnerSuche(){
+  if(!gdriveToken){ toast('Bitte zuerst Drive verbinden','err'); return; }
+  // Overlay erstellen
+  var ov=document.createElement('div');
+  ov.id='_driveOrdnerSucheDlg';
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML=''
+    +'<div style="background:#fff;border-radius:12px;padding:20px 22px;width:480px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.3);">'
+    +'<div style="font-size:15px;font-weight:800;color:#1a2744;margin-bottom:12px;">📁 Drive-Ordner suchen</div>'
+    +'<input id="_driveOrdnerQ" type="text" placeholder="Ordnernamen eingeben…" autocomplete="off" '
+    +'style="width:100%;padding:9px 12px;border:1.5px solid #b0c4de;border-radius:7px;font-size:13px;box-sizing:border-box;outline:none;">'
+    +'<div id="_driveOrdnerRes" style="margin-top:8px;max-height:260px;overflow-y:auto;border-radius:7px;border:1px solid #e0e4ea;background:#fafbfc;display:none;"></div>'
+    +'<div style="display:flex;justify-content:flex-end;margin-top:14px;">'
+    +'<button id="_driveOrdnerClose" style="padding:7px 18px;border-radius:7px;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;font-size:13px;">Schließen</button>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(ov);
+  var inp=ov.querySelector('#_driveOrdnerQ');
+  var res=ov.querySelector('#_driveOrdnerRes');
+  ov.querySelector('#_driveOrdnerClose').onclick=function(){ ov.remove(); };
+  ov.onclick=function(e){ if(e.target===ov) ov.remove(); };
+  var _t=null;
+  inp.addEventListener('input',function(){
+    clearTimeout(_t);
+    var q=inp.value.trim();
+    if(q.length<2){ res.style.display='none'; return; }
+    _t=setTimeout(function(){ _driveOrdnerSucheQuery(q,res,ov); },400);
+  });
+  inp.focus();
+}
+async function _driveOrdnerSucheQuery(q,res,ov){
+  res.innerHTML='<div style="padding:10px;color:#888;font-size:12px;">🔍 Suche…</div>';
+  res.style.display='block';
+  try{
+    var qStr=encodeURIComponent("mimeType='application/vnd.google-apps.folder' and name contains '"+q.replace(/'/g,"\'")+"' and trashed=false");
+    var r=await fetch('https://www.googleapis.com/drive/v3/files?q='+qStr+'&fields=files(id,name,parents)&orderBy=name&pageSize=30',
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    var d=await r.json();
+    var files=d.files||[];
+    if(!files.length){
+      res.innerHTML='<div style="padding:10px;color:#888;font-size:12px;">Kein Ordner gefunden.</div>';
+      return;
+    }
+    res.innerHTML=files.map(function(f){
+      var url='https://drive.google.com/drive/folders/'+f.id;
+      return '<div data-url="'+url+'" data-name="'+f.name.replace(/"/g,"&quot;") +'" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;align-items:center;gap:8px;transition:background .15s;">'
+        +'<span style="font-size:16px;">📁</span>'
+        +'<span style="flex:1;font-weight:600;color:#1a2744;">'+f.name+'</span>'
+        +'<span style="color:#aaa;font-size:11px;white-space:nowrap;">'+f.id.slice(-8)+'</span>'
+        +'</div>';
+    }).join('');
+    res.querySelectorAll('[data-url]').forEach(function(el){
+      el.addEventListener('mouseenter',function(){ el.style.background='#e8f0fb'; });
+      el.addEventListener('mouseleave',function(){ el.style.background=''; });
+      el.addEventListener('click',function(){
+        var inp2=document.getElementById('fDriveOrdner');
+        if(inp2){ inp2.value=el.dataset.url; planeAutoSave(); _updatePdfDriveBtn(); }
+        toast('📁 Ordner übernommen: '+el.dataset.name,'ok');
+        ov.remove();
+      });
+    });
+  }catch(e){ res.innerHTML='<div style="padding:10px;color:#c00;font-size:12px;">Fehler: '+e.message+'</div>'; }
 }
 function _updatePdfDriveBtn(){
   var btn=document.getElementById('btnPdfDrive'); if(!btn) return;
