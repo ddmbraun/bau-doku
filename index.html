@@ -927,6 +927,12 @@ input,select,textarea{font-family:inherit;}
 .btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
 .btn-secondary:hover{background:var(--bg4);color:var(--text);}
 
+/* TOPBAR COLLAPSE */
+body.topbar-collapsed .topbar{display:none;}
+body.topbar-collapsed .filebar{display:none;}
+#topbarCollapseBtn{transition:transform .2s;}
+body.topbar-collapsed #topbarCollapseBtn{transform:rotate(180deg);}
+
 /* FILE BAR */
 .filebar{display:flex;align-items:center;justify-content:space-between;padding:5px 20px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
 .filebar-left{display:flex;align-items:center;gap:10px;}
@@ -1718,6 +1724,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
       </div>
       <button class="filter-btn" id="clearFiltersBtn" onclick="clearFilters()" style="display:none">✕ Zurücksetzen</button>
     </div>
+    <button id="topbarCollapseBtn" onclick="_toggleTopbarCollapse()" title="Obere Leisten ein-/ausblenden" style="padding:3px 8px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;cursor:pointer;flex-shrink:0;margin-left:6px;">▲</button>
   </div>
 </div>
 
@@ -1965,7 +1972,7 @@ body.light .task-tag{background:rgba(58,100,220,0.12);color:#2a52cc;border-color
           ondragleave="if(!document.getElementById('tFotoSect').contains(event.relatedTarget)){document.getElementById('tFotoSect').classList.remove('foto-sect-drag-over');}"
           ondrop="event.preventDefault();document.getElementById('tFotoSect').classList.remove('foto-sect-drag-over');document.getElementById('tFotoSect').classList.add('open');document.getElementById('fotosDropBody').classList.remove('foto-drag-over');_handleFotoDrop(event.dataTransfer);">
           <div class="mv2-section-label" style="display:flex;align-items:center;justify-content:space-between;" onclick="_toggleMv2Sect('tFotoSect',event)">
-            <span>📷 Fotos (Drive)<span class="mv2-coll-arrow">›</span></span>
+            <span>📷 Fotos (Drive)<span id="tFotoCountBadge" style="margin-left:5px;font-size:calc(11px * var(--modal-scale,1));background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;display:none;"></span><span class="mv2-coll-arrow">›</span></span>
             <button onclick="openFotoGallery()" title="Alle Fotos groß anzeigen" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(108,99,255,0.1);color:var(--accent);font-size:calc(11px * var(--modal-scale,1));cursor:pointer;font-weight:600;">⛶ Große Ansicht</button>
           </div>
           <div id="fotosDropBody"
@@ -5876,7 +5883,7 @@ async function _dfpLoadFolder(folderId,folderName){
         const sel=_dfpSelected.has(f.id);
         const border=sel?'border:2.5px solid var(--accent);':'border:2.5px solid transparent;';
         const chk=sel?'display:flex;':'display:none;';
-        html+=`<div class="dfp-item" data-id="${esc(f.id)}" data-name="${esc(f.name)}" data-mime="${esc(f.mimeType||'image/jpeg')}" data-selected="${sel?'1':'0'}" onclick="_dfpToggle(this)" style="position:relative;width:110px;height:110px;border-radius:8px;overflow:hidden;cursor:pointer;${border}background:var(--bg3);flex-shrink:0;">`
+        html+=`<div class="dfp-item" data-id="${esc(f.id)}" data-name="${esc(f.name)}" data-mime="${esc(f.mimeType||'image/jpeg')}" data-thumb="${esc(thumb)}" data-selected="${sel?'1':'0'}" onclick="_dfpToggle(this)" style="position:relative;width:110px;height:110px;border-radius:8px;overflow:hidden;cursor:pointer;${border}background:var(--bg3);flex-shrink:0;">`
           +(thumb?`<img src="${esc(thumb)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`
                  :`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;">🖼️</div>`)
           +`<div style="position:absolute;bottom:0;left:0;right:0;font-size:9px;padding:2px 4px;background:rgba(0,0,0,.6);color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.name)}</div>`
@@ -5909,7 +5916,7 @@ function _dfpToggle(el){
   if(chk)chk.style.display=sel?'none':'flex';
   const id=el.dataset.id;
   if(sel){_dfpSelected.delete(id);}
-  else{_dfpSelected.set(id,{id,name:el.dataset.name,mime:el.dataset.mime||'image/jpeg'});}
+  else{_dfpSelected.set(id,{id,name:el.dataset.name,mime:el.dataset.mime||'image/jpeg',thumbnailLink:el.dataset.thumb||''});}
   _dfpUpdateCount();
 }
 function _dfpUpdateCount(){
@@ -5921,9 +5928,9 @@ function _dfpConfirm(){
   if(!overlay)return;
   if(!taskFotos)taskFotos=[];
   let added=0;
-  _dfpSelected.forEach(({id,name,mime})=>{
+  _dfpSelected.forEach(({id,name,mime,thumbnailLink})=>{
     if(!taskFotos.find(f=>f.driveId===id)){
-      taskFotos.push({driveId:id,name,mimeType:mime,caption:''});
+      taskFotos.push({driveId:id,name,mimeType:mime,caption:'',thumbnailLink:thumbnailLink||''});
       added++;
     }
   });
@@ -5937,6 +5944,26 @@ function _dfpConfirm(){
 }
 // Legacy – wird nicht mehr direkt aufgerufen, schadet aber nicht
 function _showDriveFolderPicker(files){loadFotosFromDriveFolder();}
+// ── Lokales Thumbnail aus Bild-Datei generieren (200px, JPEG) ──
+function _genLocalThumb(file){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      try{
+        const max=200,r=Math.min(max/img.width,max/img.height,1);
+        const c=document.createElement('canvas');
+        c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg',0.72));
+      }catch(e){URL.revokeObjectURL(url);resolve('');}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);resolve('');};
+    img.src=url;
+  });
+}
+
 async function handleFotoUploadToDrive(e){
   const files=[...e.target.files];
   e.target.value='';
@@ -5959,7 +5986,8 @@ async function handleFotoUploadToDrive(e){
       if(meta&&meta.id){
         const blobUrl=URL.createObjectURL(file);
         _desktopFotoBlobCache.set(meta.id,blobUrl);
-        taskFotos.push({driveId:meta.id,name:meta.name||file.name,mimeType:meta.mimeType||file.type,caption:''});
+        const thumbUrl=await _genLocalThumb(file);
+        taskFotos.push({driveId:meta.id,name:meta.name||file.name,mimeType:meta.mimeType||file.type,caption:'',thumbnailLink:thumbUrl});
         showToast('✓ '+file.name+' hochgeladen','success');
       }
     }catch(err){showToast('Fehler: '+err.message,'error');}
@@ -7233,6 +7261,8 @@ let _fotoExpanded=false;
 function renderFotoListDesktop(){
   const el=document.getElementById('fotoListDesktop');
   if(!el)return;
+  const badge=document.getElementById('tFotoCountBadge');
+  if(badge){if(taskFotos&&taskFotos.length){badge.textContent=taskFotos.length;badge.style.display='inline';}else{badge.style.display='none';}}
   if(!taskFotos||!taskFotos.length){el.innerHTML='';_fotoSelectMode=false;_fotoSelected.clear();return;}
   const items=taskFotos.map((f,i)=>{
     const name=f.name||'';
@@ -7241,7 +7271,9 @@ function renderFotoListDesktop(){
     const id=(f.editedDriveId||f.driveId||'');
     const cached=id?_desktopFotoBlobCache.get(id):null;
     const safeId=String(id).replace(/[^A-Za-z0-9_\-]/g,'');
-    const srcAttr=cached?'src="'+esc(cached)+'" ':(safeId?'data-foto-id="'+safeId+'" ':'');
+    // Priorität: 1. BlobCache (gerade hochgeladen) 2. thumbnailLink (CDN, kein API-Call) 3. lazy hydration
+    const thumbSrc=f.thumbnailLink||'';
+    const srcAttr=cached?'src="'+esc(cached)+'" ':(thumbSrc?'src="'+esc(thumbSrc)+'" ':(safeId?'data-foto-id="'+safeId+'" ':''));
     const editedBadge=f.editedDriveId?'<div style="position:absolute;top:4px;left:4px;background:rgba(108,99,255,.75);color:#fff;font-size:9px;padding:2px 5px;border-radius:4px;pointer-events:none">✏ bearb.</div>':'';
     const tip=caption?(caption+' — '+name):name;
     const bottomLabel=caption
@@ -9729,7 +9761,8 @@ async function _handleFotoDrop(dt){
       if(meta&&meta.id){
         const blobUrl=URL.createObjectURL(file);
         _desktopFotoBlobCache.set(meta.id,blobUrl);
-        taskFotos.push({driveId:meta.id,name:meta.name||file.name,mimeType:meta.mimeType||file.type,caption:''});
+        const thumbUrl=await _genLocalThumb(file);
+        taskFotos.push({driveId:meta.id,name:meta.name||file.name,mimeType:meta.mimeType||file.type,caption:'',thumbnailLink:thumbUrl});
         showToast('✓ '+file.name+' hochgeladen','success');
       }
     }catch(err){showToast('Fehler: '+err.message,'error');}
@@ -10573,6 +10606,72 @@ function deleteTask(){
   boards[currentBoard]=boards[currentBoard].filter(t=>t.id!==id);
   closeModal();render();autoSave();
 }
+
+function duplicateTask(){
+  const id=document.getElementById('taskId').value;
+  if(!id)return;
+  const orig=findTaskById(id);
+  if(!orig){showToast('Task nicht gefunden','error');return;}
+  // Aktuellen Stand speichern
+  saveTaskData();
+  // Tiefe Kopie erstellen, neue ID vergeben
+  const copy=JSON.parse(JSON.stringify(orig));
+  copy.id=generateId();
+  copy.title=(orig.title||'')+'  (Kopie)';
+  if(!boards[currentBoard])boards[currentBoard]=[];
+  // Kopie direkt nach Original einfügen
+  const idx=boards[currentBoard].findIndex(t=>t.id===id);
+  if(idx>=0) boards[currentBoard].splice(idx+1,0,copy);
+  else boards[currentBoard].push(copy);
+  closeModal();render();autoSave();
+  showToast('✓ Task dupliziert: '+copy.title,'success',3000);
+}
+
+function moveTaskToBoard(){
+  const id=document.getElementById('taskId').value;
+  if(!id)return;
+  const boardKeys=Object.keys(boards).filter(b=>b!==currentBoard);
+  if(!boardKeys.length){showToast('Kein anderes Board vorhanden','error');return;}
+  // Dialog aufbauen
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px 24px;min-width:280px;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.35);';
+  box.innerHTML='<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">↗ Task verschieben nach …</div>'
+    +'<div style="display:flex;flex-direction:column;gap:7px;" id="_moveBoardList">'
+    +boardKeys.map(b=>`<button onclick="_doMoveTask('${id}','${b.replace(/'/g,'\\x27')}');this.closest('div[style*=fixed]').remove()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;text-align:left;font-size:13px;font-weight:500;">${(boardTypes[b]||'baustelle')==='notiz'?'✅':'🏗'} ${b}</button>`).join('')
+    +'</div>'
+    +'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="margin-top:14px;width:100%;padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:13px;">Abbrechen</button>';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+}
+
+function _doMoveTask(id,targetBoard){
+  if(!boards[currentBoard]||!boards[targetBoard])return;
+  const task=findTaskById(id);
+  if(!task)return;
+  saveTaskData();
+  // Aus aktuellem Board entfernen
+  boards[currentBoard]=boards[currentBoard].filter(t=>t.id!==id);
+  // Status auf erstem Status des Ziel-Boards setzen
+  const targetStatuses=getBoardStatuses(targetBoard);
+  const updTask=JSON.parse(JSON.stringify(findTaskById(id)||task));
+  if(targetStatuses&&targetStatuses.length) updTask.status=targetStatuses[0];
+  boards[targetBoard].push(updTask);
+  closeModal();render();autoSave();
+  showToast('✓ Task verschoben nach: '+targetBoard,'success',3000);
+}
+
+// ── TOPBAR COLLAPSE ──
+function _toggleTopbarCollapse(){
+  const collapsed=document.body.classList.toggle('topbar-collapsed');
+  localStorage.setItem('ptp_topbar_collapsed', collapsed?'1':'0');
+}
+(function _initTopbarCollapse(){
+  if(localStorage.getItem('ptp_topbar_collapsed')==='1'){
+    document.body.classList.add('topbar-collapsed');
+  }
+})();
 
 // ── COLUMN MANAGER ──
 function openColManager(){
